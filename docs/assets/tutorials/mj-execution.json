@@ -1,0 +1,20 @@
+{
+  "scope": "Executed random tiny native Janus mechanical demonstration; no semantic or pretrained accuracy claim",
+  "script": "examples/tutorials/lens_mj.py",
+  "script_sha256": "d9cd23da86d68aadffbed69c8e87b1ddf4958dd40e05b8e16c078816028759c1",
+  "source_pdf_sha256": "11c7ab4483ba6326ea83b25bd047c6198f39355032ffd608dca0da8b73c0f780",
+  "images": [
+    {
+      "filename": "lens-mj-text.png",
+      "sha256": "ba7fb830d8377cf644e217a857b9fd1e179a0c7832768778c5b4cda0d7da67f3"
+    },
+    {
+      "filename": "lens-mj-visual.png",
+      "sha256": "c6e0f364b232082607fc915c91f7664965984a09bfe17efe4be5b205d48c90b1"
+    },
+    {
+      "filename": "lens-mj-modality-index.png",
+      "sha256": "3005365e5b5e035c1dae46e1faccb9495540a1255cd22234a26a91c56950fd97"
+    }
+  ]
+}

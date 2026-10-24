@@ -247,12 +247,29 @@ preventing an accidental reset. See the [training guide](TRAINING.md).
 
 ## Results and persistence
 
+[MJ-Lens](methods/mj_lens.md) uses `probe.lens.mj(layers=..., source="visual",
+target="text", binding=...)`. Its source layers are **block inputs**, with L0
+at the embedding stream. `.fit(inputs)` replaces one-batch estimates;
+`.fit_batches(input_batches, directory=..., resume=...)` accumulates exact
+causal-pair means with odd/even prompt diagnostics. It estimates derivatives
+without an optimizer. These coordinates and normalization differ from the
+original `probe.lens.jacobian()` and their artifacts are not interchangeable.
+
+Janus visual outputs additionally require a shared calibrated
+`fit_visual_readout(...)` and explicit `MJBatch` output-position masks/context.
+`.save(directory)` and `.load(directory)` validate model revision, source and
+target channel, source/final sites, readout, tokenizer/codebook and calibration
+identities. `decode_mj_codes(...)` requires a real codebook grid and native
+decoder, and only accepts many visual-source positions. See the
+[complete walkthrough](../examples/tutorials/lens_mj.py).
+
 `ProbeResult` contains `.method`, `.tensors`, and `.metadata`.
 Outputs are detached and moved to `result_device` (CPU by default).
 
 | Method | Main outputs |
 | --- | --- |
 | Logit, Tuned, Jacobian | `logits[L,N,V]`, `positions[N,2]`; Jacobian also `transported[L,N,D]` |
+| MJ-Lens | `logits[L,N,A]`, `transported[L,N,D]`, `positions[N,2]`; visual output adds `code_ids[L,N]`. `A` is the selected output alphabet. |
 | Embed | `token_ids[1,N,K]`, `similarities[1,N,K]`, norms and positions |
 | Attention Lens | `head_logits[L,N,H,V]`, summed logits and positions |
 | Patchscope | Target `logits[L,B,T_target,V]` |

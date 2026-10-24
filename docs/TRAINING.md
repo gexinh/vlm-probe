@@ -11,6 +11,7 @@ derivatives. Logit Lens, EmbedLens, and an identity Patchscope need no training.
 | Tuned Lens | One affine residual translator per selected layer, minimizing `KL(model || lens)` | Verified author GPT-2 checkpoint; independently fitted SmolVLM-500M and LLaVA-1.5-7B translators. |
 | Attention Lens | Per-head vocabulary decoders, jointly fitted through summed logits | GPT-2 heads at layers 7 and 10, calibrated on 4,096 BookCorpus contexts and validated on 512 separate WikiText-2 contexts. |
 | Jacobian Lens | Mean downstream residual Jacobian; no optimizer | All 12 GPT-2 residual layers, calibrated on 256 independent WikiText-2 contexts. |
+| [MJ-Lens](methods/mj_lens.md) | Modality-pair causal expectation and optional generation-head mean slopes; no optimizer | Offline tiny native Janus walkthrough fits all four operators and retains odd/even prompt estimates. These fixtures do not establish pretrained accuracy. |
 
 VLM Tuned Lens calibration used 1,024 COCO training images and 256 separate
 validation images, with eight caption prediction positions per image. Showcase

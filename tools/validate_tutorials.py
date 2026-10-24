@@ -21,6 +21,7 @@ ROUTES = {
     "lenses": {
         "logit_lens": ["logit"], "tuned_lens": ["tuned"],
         "attention_lens": ["attention"], "jacobian_lens": ["jacobian"],
+        "mj_lens": ["mj"],
         "embed_lens": ["embed"], "patchscope": ["patchscope"],
     },
     "attention": {

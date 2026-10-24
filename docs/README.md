@@ -14,6 +14,7 @@ demo workflows.
 - [Visualization](VISUALIZATION.md): reusable lens heatmaps, image overlays, causal grids, curves, and graphs.
 - [Input geometry](INPUT_GEOMETRY.md): native visual grids, token counts, preprocessing summaries, and coordinate limits.
 - [Lens calibration](TRAINING.md): training and validation splits, author checkpoints, persistent optimization, and resumable Jacobian estimation.
+- [MJ-Lens](methods/mj_lens.md): modality-split transport, Janus visual-codebook readout, calibration and controlled modality index.
 - [SAE platform](methods/sae/README.md): native methods, one training engine, model cards, checkpoint imports and visualization.
 - [SAE tutorial](methods/sae/examples/README.md): a complete live image-to-feature workflow, including training and plots.
 - [Package architecture](ARCHITECTURE.md): family base classes, adapters, execution, and results.

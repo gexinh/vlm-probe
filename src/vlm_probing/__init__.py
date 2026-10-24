@@ -9,11 +9,13 @@ from .api.causal import CausalMethods
 from .api.sae import SAEMethods
 from .metrics import TokenMargin, SequenceLogProb, ClassScore
 from .geometry import visual_grid, preprocessing_report
+from .api.mj import MJBatch, fit_visual_readout, decode_mj_codes
 from . import visualization
 
-__version__ = "1.0.2"
+__version__ = "1.1.0.dev0"
 __all__ = ["BaseMethod", "ProbeResult", "ForwardTrace", "BaseModelAdapter",
            "HookPoint", "ModelReadout", "TorchModelAdapter", "Prober", "ModelSpec",
            "ProbeInputs", "TokenLayout", "HeadSite", "CapabilityError", "register_adapter",
            "LensMethods", "AttentionMethods", "CausalMethods", "SAEMethods", "TokenMargin", "SequenceLogProb", "ClassScore",
-           "visualization", "visual_grid", "preprocessing_report"]
+           "visualization", "visual_grid", "preprocessing_report",
+           "MJBatch", "fit_visual_readout", "decode_mj_codes"]

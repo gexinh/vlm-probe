@@ -161,7 +161,7 @@ exercises the API without downloading pretrained weights.
 
 ## Model Support
 
-Eight VLM families have explicit adapters. Text-only GPT-2/Llama/Qwen and a ViT
+Nine VLM families have explicit adapters. Text-only GPT-2/Llama/Qwen and a ViT
 classifier provide complementary controls. Availability is method-specific;
 see the [capability matrix](docs/models/README.md).
 
@@ -175,6 +175,7 @@ see the [capability matrix](docs/models/README.md).
 | InternVL | InternVL3-1B-hf | [Usage](docs/models/internvl.md) |
 | LLaVA | llava-1.5-7b-hf | [Usage](docs/models/llava.md) |
 | Pixtral | Pixtral-12B-2409 | [Usage](docs/models/pixtral.md) |
+| Janus | Janus-Pro-1B / 7B, native Transformers format | [Usage](docs/models/janus.md) |
 | Language models | GPT-2 / Llama / Qwen2 / Qwen3 | [GPT-2](docs/models/gpt2.md) · [Llama](docs/models/llama.md) · [Qwen](docs/models/qwen_text.md) |
 | Vision classifier | ViT-B/16 | [Usage](docs/models/vit.md) |
 
@@ -191,6 +192,7 @@ from paper methods.
   <a href="docs/methods/tuned_lens.md"><img src="docs/assets/method-buttons/tuned-lens.svg" alt="Tuned Lens" width="200" height="44"></a>
   <a href="docs/methods/attention_lens.md"><img src="docs/assets/method-buttons/attention-lens.svg" alt="Attention Lens" width="200" height="44"></a>
   <a href="docs/methods/jacobian_lens.md"><img src="docs/assets/method-buttons/jacobian-lens.svg" alt="Jacobian Lens" width="200" height="44"></a>
+  <a href="docs/methods/mj_lens.md"><img src="docs/assets/method-buttons/mj-lens.svg" alt="MJ-Lens" width="200" height="44"></a>
   <a href="docs/methods/embed_lens.md"><img src="docs/assets/method-buttons/embed-lens.svg" alt="EmbedLens" width="200" height="44"></a>
   <a href="docs/methods/patchscope.md"><img src="docs/assets/method-buttons/patchscopes.svg" alt="Patchscopes" width="200" height="44"></a>
 </p>
