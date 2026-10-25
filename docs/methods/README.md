@@ -24,6 +24,7 @@ graph. These modality boundaries are documented on each method page.
 | [Tuned Lens](tuned_lens.md) | `probe.lens.tuned(...)` | Fit one affine translator per residual layer before applying the model's frozen readout. |
 | [Attention Lens](attention_lens.md) | `probe.lens.attention(...)` | Train separate vocabulary decoders for individual attention heads. |
 | [Jacobian Lens](jacobian_lens.md) | `probe.lens.jacobian(...)` | Estimate a layer-to-final-residual Jacobian, transport representations, and decode them. |
+| [MJ-Lens](mj_lens.md) | `probe.lens.mj(...)` | Separate source modalities and output channels, with optional discrete visual-codebook readout and controlled modality index. |
 | [EmbedLens](embed_lens.md) | `probe.lens.embed(...)` | Find vocabulary embeddings nearest to projected visual tokens. |
 | [Patchscope](patchscope.md) | `probe.lens.patchscope(...)` | Insert a source representation into a target prompt and inspect its output logits. |
 

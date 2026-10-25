@@ -263,6 +263,13 @@ class LensMethods:
         require(self.probe.adapter.readout, "Jacobian Lens requires an adapter readout")
         return FittedLensProbe(self.probe, "jacobian", layers_for(self.probe, layers), tokens, binding=binding)
 
+    def mj(self, *, layers=None, source="visual", target="text", visual_readout=None,
+           context=None, binding=None):
+        """Modality-split Jacobian Lens, with paper block-input layer indices."""
+        from .mj import MJLensProbe
+        return MJLensProbe(self.probe, layers=layers, source=source, target=target,
+                           visual_readout=visual_readout, context=context, binding=binding)
+
     def patchscope(self, *, layers, source_position, target_layer, target_position,
                    target=None, mapping=None):
         return PatchscopeProbe(self.probe, layers_for(self.probe, layers), source_position,

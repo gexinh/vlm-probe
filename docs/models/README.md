@@ -2,7 +2,7 @@
 
 [Home](../../README.md) / [Documentation](../README.md)
 
-Automatic adapters target **Transformers 5.3.x**, tested with **5.3.0**. The eight
+Automatic adapters target **Transformers 5.3.x**, tested with **5.3.0**. The nine
 VLM families below use native Transformers classes. Each guide provides a full
 loading and image-input example. [Llama](llama.md), [GPT-2](gpt2.md), and [Qwen2/Qwen3 text](qwen_text.md) provide text controls;
 [ViT](vit.md) provides a pure-vision classification control.
@@ -61,6 +61,7 @@ Do not copy a different model's tokenizer, hard-coded layer IDs or fitted artifa
 | [InternVL](internvl.md) | 1B | Tiny architecture + eight pretrained report cases |
 | [LLaVA](llava.md) | 7B | Tiny architecture + pretrained GQA/COCO demos and shared report cases |
 | [Pixtral](pixtral.md) | 12B | Native Mistral/Pixtral architecture tests + eight pretrained cases; seven attention methods |
+| [Janus](janus.md) | Pro-1B / Pro-7B, native format | Tiny native pixel/text, teacher-forced codebook, MJ transport, head and VQ decode contracts; no new pretrained accuracy claim |
 | [Qwen2 / Qwen3 text](qwen_text.md) | 0.5B / 0.6B | Native tiny text architecture tests; no new pretrained accuracy claim |
 | [ViT](vit.md) | ViT-B/16 | Tiny classifier + actual pretrained author-checkpoint map/deletion controls |
 
@@ -75,6 +76,14 @@ All eight official processors were also exercised on image+chat inputs.
 [Architecture checks](../../examples/hf_model_matrix.py) use small native models.
 
 ## Capability matrix
+
+[MJ-Lens](../methods/mj_lens.md) has its own declared block-input sites and final
+RMSNorm target, visible under `lens.mj` in `describe()`. Native Qwen, Llama,
+Idefics3, InternVL, LLaVA and Janus RMS decoders expose text-output transport;
+Janus also declares its discrete visual output head. An image encoder alone
+does not provide that second output channel. GPT-2's affine LayerNorm and
+undeclared custom/Pixtral contracts are not automatically treated as MJ RMS
+readouts. The table below describes the existing residual-output methods.
 
 | Methods | Qwen3.5-4B | Other seven VLM families |
 | --- | --- | --- |

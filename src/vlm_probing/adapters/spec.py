@@ -124,6 +124,47 @@ class HeadSite:
 
 
 @dataclass
+class MJSpec:
+    """Audited MJ-Lens transport sites and output dictionaries.
+
+    ``sources[i]`` is the input to decoder block i; ``final`` is the input to
+    the model's final RMS normalization. These indices deliberately differ
+    from the ordinary, post-block ``ModelSpec.residuals`` convention. Visual
+    code IDs belong to ``visual_head``'s codebook, not the text vocabulary.
+    """
+
+    sources: dict[int, str]
+    final: str
+    norm: Callable[[Tensor], Tensor]
+    text_unembedding: Tensor
+    norm_gain: Tensor
+    visual_head: torch.nn.Module | None = None
+    decode_visual_codes: Callable[[Tensor], Tensor] | None = None
+
+    def validate(self):
+        if (not isinstance(self.sources, dict) or not self.sources
+                or any(type(i) is not int or i < 0 for i in self.sources)
+                or any(not isinstance(site, str) or not site for site in self.sources.values())):
+            raise ValueError("MJSpec.sources requires nonnegative block-input indices and hook names")
+        if not isinstance(self.final, str) or not self.final:
+            raise ValueError("MJSpec.final must name the final norm input hook")
+        if not callable(self.norm):
+            raise TypeError("MJSpec.norm must be callable")
+        if (not isinstance(self.text_unembedding, Tensor)
+                or not self.text_unembedding.is_floating_point()
+                or self.text_unembedding.ndim != 2 or not self.text_unembedding.numel()):
+            raise ValueError("MJSpec.text_unembedding must be a floating [vocabulary, hidden] tensor")
+        if (not isinstance(self.norm_gain, Tensor) or not self.norm_gain.is_floating_point()
+                or self.norm_gain.ndim != 1
+                or self.norm_gain.shape[0] != self.text_unembedding.shape[1]):
+            raise ValueError("MJSpec.norm_gain must be a floating vector matching the readout hidden width")
+        if self.visual_head is not None and not isinstance(self.visual_head, torch.nn.Module):
+            raise TypeError("MJSpec.visual_head must be a torch.nn.Module or None")
+        if self.decode_visual_codes is not None and not callable(self.decode_visual_codes):
+            raise TypeError("MJSpec.decode_visual_codes must be callable or None")
+
+
+@dataclass
 class ModelSpec:
     """Site names reference an adapter's hook table; no shape-based inference.
 
@@ -166,6 +207,7 @@ class ModelSpec:
     # Explicit architectural fact; None leaves a custom adapter's mask semantics unknown.
     # Append fields to preserve existing positional ModelSpec construction.
     causal_attention: bool | None = None
+    mj: MJSpec | None = None
 
     def validate(self, sites):
         if self.causal_attention is not None and type(self.causal_attention) is not bool:
@@ -185,6 +227,12 @@ class ModelSpec:
             names.update(value.site for value in mapping.values())
         if self.path_final is not None:
             names.add(self.path_final)
+        if self.mj is not None:
+            if not isinstance(self.mj, MJSpec):
+                raise TypeError("spec.mj must be MJSpec or None")
+            self.mj.validate()
+            names.update(self.mj.sources.values())
+            names.add(self.mj.final)
         missing = names - set(sites)
         if missing:
             raise ValueError(f"spec references unknown hook sites: {sorted(missing)}")

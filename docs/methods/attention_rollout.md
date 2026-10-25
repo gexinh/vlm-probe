@@ -51,6 +51,38 @@ image patch should therefore not be taken as an object-localization result
 without controls for sequence position. Target conditioning or a different
 propagation rule is not a guarantee that this bias disappears.
 
+## Inspect positional concentration
+
+After the complete example below, inspect the same selected query and visual
+keys with the explicit diagnostic tool:
+
+```python
+from vlmprobe.attention import attention_position_diagnostics
+
+# ViT example below: query 0 is CLS; visual_positions excludes CLS.
+visual_scores = result.tensors["rollout"][0, 0, visual_positions]
+diagnostic = attention_position_diagnostics(visual_scores, grid_shape=grid_shape)
+print(diagnostic.tensors["top_bottom_ratio"])
+diagnostic.save(output_dir / "position-diagnostic")
+```
+
+For a causal VLM, select its intended native query and actual visual keys
+instead. The tool accepts nonnegative finite scores `[..., N]` in native visual
+order and preserves leading dimensions. `grid_shape=(H,W)` must describe one
+actual row-major image grid. For explicitly identified native tile groups,
+pass `tile_sizes=[...]` instead; tile mass and mean-per-token ratios are returned
+separately so unequal group sizes remain visible. It never guesses spatial
+layout from a packed tensor or treats concatenated tiles as a single image.
+
+The tool measures raw mass in equal first/last sequence thirds and, when given
+a grid, equal top/bottom row thirds. It performs no floor subtraction,
+normalization or correction. Zero over zero is undefined (`NaN`); positive mass
+over zero is `inf`. Empty thirds are also undefined. A ratio far from one is a
+concentration measurement, not sufficient evidence of mask-induced bias or
+content independence. Compare matched images and mask/weight controls before
+making either claim. Signed attribution inputs require the caller to choose
+and declare an evidence transform first.
+
 ## Complete example
 
 The example loads pretrained weights, reads a raw image, computes a fresh result, and calls the built-in visualization API. No probe training is required. Run outside `torch.inference_mode()` for gradient methods.

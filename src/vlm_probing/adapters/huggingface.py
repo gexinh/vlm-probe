@@ -7,7 +7,7 @@ from importlib.metadata import version
 
 import torch
 
-from .spec import CapabilityError, HeadSite, ModelSpec, TokenLayout
+from .spec import CapabilityError, HeadSite, MJSpec, ModelSpec, TokenLayout
 from .torch import HookPoint, ModelReadout, TorchModelAdapter
 from .hf_attention import install_eager_taps, install_support_only
 
@@ -27,6 +27,7 @@ MODEL_CONTRACTS = {
         ("idefics3", "Idefics3ForConditionalGeneration", "model.text_model", ("image_token_id",)),
         ("internvl", "InternVLForConditionalGeneration", "model.language_model", ("image_token_id",)),
         ("llava", "LlavaForConditionalGeneration", "model.language_model", ("image_token_index",)),
+        ("janus", "JanusForConditionalGeneration", "model.language_model", ("image_token_id",)),
     )
 }
 
@@ -46,7 +47,8 @@ def make_adapter(model):
     # Composite architectures allow other text backbones; only audited ones count.
     allowed = {"Idefics3ForConditionalGeneration": {"llama"},
                "InternVLForConditionalGeneration": {"qwen2", "llama"},
-               "LlavaForConditionalGeneration": {"llama", "mistral"}}
+               "LlavaForConditionalGeneration": {"llama", "mistral"},
+               "JanusForConditionalGeneration": {"llama"}}
     if name in allowed and decoder.config.model_type not in allowed[name]:
         raise CapabilityError(f"{name} text backbone {decoder.config.model_type!r} is not supported")
     hybrid = name == "Qwen3_5ForConditionalGeneration"
@@ -173,6 +175,19 @@ def make_adapter(model):
         notes.append("GPT2 Q/K/V use disjoint packed-projection slices; fixed-scale head logit attribution is not exposed for its affine LayerNorm.")
     if name == "Qwen3VLForConditionalGeneration":
         notes.append("Rollout/relevance summarize language self-attention; DeepStack injection is not an attention edge.")
+    mj = None
+    if not gpt2 and release == ["5", "3"]:
+        mj = MJSpec(
+            sources={i: "embeddings" if i == 0 else residuals[i - 1] for i in range(len(layers))},
+            final=residuals[len(layers) - 1], norm=norm,
+            text_unembedding=model.lm_head.weight,
+            norm_gain=1.0 + norm.weight if hybrid else norm.weight,
+            visual_head=model.model.generation_head if name == "JanusForConditionalGeneration" else None,
+            decode_visual_codes=model.decode_image_tokens if name == "JanusForConditionalGeneration" else None,
+        )
+        notes.append("MJ-Lens uses decoder block-input indices; layer 0 is the merged embedding input.")
+    if name == "JanusForConditionalGeneration":
+        notes.append("Janus image-output replay requires explicit generation embeddings and token layout; codebook IDs are not text IDs.")
     spec = ModelSpec(
         residuals, attentions=attentions, attention_scores=attention_scores,
         heads=heads, embeddings="embeddings",
@@ -185,7 +200,7 @@ def make_adapter(model):
         alignment_keys=("image_grid_thw", "video_grid_thw", "position_ids", "second_per_grid_ts",
                         "pixel_attention_mask", "image_sizes", "token_type_ids", "mm_token_type_ids"),
         forward_defaults={"use_cache": False, "return_dict": True}, notes=tuple(notes),
-        attention_supports=attention_supports, causal_attention=True,
+        attention_supports=attention_supports, causal_attention=True, mj=mj,
     )
     model_id = getattr(model.config, "_name_or_path", "") or name
     return TorchModelAdapter(model, sites, model_id=model_id,

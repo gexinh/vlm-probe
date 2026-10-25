@@ -72,6 +72,11 @@ faithfulness checks. Grad-CAM and ATTATTR do not compose the same transition
 stack and receive no propagation warning; this is not a claim that they are
 free of other attention-explanation limitations.
 
+The [positional concentration diagnostic](attention_rollout.md#inspect-positional-concentration)
+also accepts explicitly selected nonnegative TAM and Beyond Intuition scores.
+A gradient-conditioned method can still inherit sequence-position effects;
+check matched controls rather than treating any variant as automatically immune.
+
 ## Memory and numerical precision
 
 `queries` and `keys` select entries after full attention and the required

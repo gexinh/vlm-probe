@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210" height="46" viewBox="0 0 210 46" role="img" aria-label="MJ-Lens">
+  <title>MJ-Lens</title>
+  <rect x="0.5" y="0.5" width="199" height="35" rx="7" fill="#effaf8" stroke="#b8dfd9"/>
+  <g stroke="#087d79" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M12 11h7v7h-7zM22 21h7v7h-7zM19 14h6v7M15 18v6h7"/></g>
+  <text x="36" y="18" dominant-baseline="central" fill="#24364b" font-family="Arial, Helvetica, sans-serif" font-size="13.5" font-weight="500">MJ-Lens</text>
+</svg>

@@ -100,5 +100,23 @@
     "error_outputs": 0,
     "code_sha256": "ff75de6c296c96a76517861517adb6e2023ade78fc8ec892a0b30a0a4ac240fb",
     "optional_training_skipped_by_default": []
+  },
+  {
+    "notebook": "10_mj_lens.ipynb",
+    "mode": "pretrained model execution; verified 32-image calibration resume; fresh held-out readouts",
+    "success": true,
+    "executed_code_cells": 9,
+    "total_code_cells": 9,
+    "rendered_image_outputs": 4,
+    "error_outputs": 0,
+    "code_sha256": "56da9c878c87933fecec17673b12fdccf769a976f74edd94ee739d19cf2bf71c",
+    "optional_training_skipped_by_default": [],
+    "source_script_sha256": "bfdc8e0514e72275f8a601e94fd35ac7527bcf2555064e9c0ed99699fb59e54f",
+    "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+    "n_calibration": 32,
+    "n_showcase": 8,
+    "question_swap_visual_max_abs_diff": 0.0,
+    "save_load_max_abs_diff": 0.0
   }
 ]

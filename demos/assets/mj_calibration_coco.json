@@ -1,0 +1,531 @@
+{
+  "schema_version": 1,
+  "role": "independent image-caption calibration inputs for the MJ-Lens demonstration",
+  "dataset": "COCO 2014 validation images and human captions",
+  "official_dataset_split": "val2014",
+  "calibration_split": "train: internal image-disjoint calibration partition, not official COCO train2014",
+  "selection": "First 32 records in the existing seed-20261007 internal training partition after explicit report/showcase exclusion checks; preserve this manifest order.",
+  "source_partition_seed": 20261007,
+  "source_train_images": 1024,
+  "source_validation_images": 256,
+  "source_manifest_sha256": "cb91c4565637614ba16e56cfeb54ddc37df8e372f6c2fc26f82206670775dce9",
+  "annotation_source": {
+    "archive_url": "https://s3.amazonaws.com/images.cocodataset.org/annotations/annotations_trainval2014.zip",
+    "member": "annotations/captions_val2014.json",
+    "archive_bytes": 252872794,
+    "archive_etag": "\"0a379cfc70b0e71301e0f377548639bd\"",
+    "member_crc32": 2398172659,
+    "member_sha256": "7da4cc45cb76ee1642d163e846e1e0a33feffac2e841c9c426d585ea499165a4"
+  },
+  "cache_policy": "Download raw images into a caller-selected external dataset cache using file_name, image_url and image_sha256; no calibration images or probe outputs are bundled here.",
+  "overlap_verification": {
+    "heldout_case_ids": [
+      "gqa_07302654",
+      "gqa_19225230",
+      "mmvp-1",
+      "mmvp-2",
+      "vsr-zeroshot-test-0",
+      "vsr-zeroshot-test-1",
+      "visonly_geometry__triangle",
+      "visonly_charts__extraction"
+    ],
+    "additional_excluded_coco_image_ids": [
+      9378,
+      14439,
+      17697,
+      199940,
+      210789,
+      263463,
+      310196,
+      532575
+    ],
+    "selected_image_files_sha256_verified": 32,
+    "selected_shared_sha256": [],
+    "selected_shared_coco_image_ids": [],
+    "source_manifest_records_checked": 1280,
+    "source_manifest_shared_sha256_image_ids": [],
+    "source_manifest_shared_coco_image_ids": []
+  },
+  "samples": [
+    {
+      "id": "coco2014-val-image-214503-caption-668840",
+      "image_id": 214503,
+      "caption_id": 668840,
+      "caption": "a rainbow umbrella that has people under it",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000214503.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000214503.jpg",
+      "image_size_wh": [
+        375,
+        500
+      ],
+      "image_sha256": "66b382ea59a8777de3d92b595a6d2a8fd866d38488381e11ef5c872f6ed22967"
+    },
+    {
+      "id": "coco2014-val-image-333294-caption-424767",
+      "image_id": 333294,
+      "caption_id": 424767,
+      "caption": "A small bird standing on a dock on the water.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000333294.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000333294.jpg",
+      "image_size_wh": [
+        640,
+        524
+      ],
+      "image_sha256": "e3ee479decc031b30b25c49f9d487a37155356f16c4c9755e340c7ce8acb4fc6"
+    },
+    {
+      "id": "coco2014-val-image-71171-caption-125437",
+      "image_id": 71171,
+      "caption_id": 125437,
+      "caption": "A meal at a restaurant of a salad, a toasted sandwich and a pickle",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000071171.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000071171.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "58f211eea5b415f7644bc58bb9cd71743c758431642bc6618c7f80d37113fd09"
+    },
+    {
+      "id": "coco2014-val-image-274298-caption-1869",
+      "image_id": 274298,
+      "caption_id": 1869,
+      "caption": "Two horses in a field by a stone fence.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000274298.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000274298.jpg",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "image_sha256": "a4a37523b2790ce54a3577f9ce7b9a81d6663107ba8892ccc30e4eb341938ebc"
+    },
+    {
+      "id": "coco2014-val-image-573926-caption-364569",
+      "image_id": 573926,
+      "caption_id": 364569,
+      "caption": "a close up of two luggage bags on a counter",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000573926.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000573926.jpg",
+      "image_size_wh": [
+        375,
+        500
+      ],
+      "image_sha256": "13e11565709b129f024c90aaed6f0195ad395d06d09381be59d358a0c90b4de8"
+    },
+    {
+      "id": "coco2014-val-image-531563-caption-200282",
+      "image_id": 531563,
+      "caption_id": 200282,
+      "caption": "A wall mounted black oven next to a counter top.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000531563.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000531563.jpg",
+      "image_size_wh": [
+        500,
+        375
+      ],
+      "image_sha256": "dd227c0f6a7136ff2c1d2a04f8340b99cfec9f15feea104afa8795f2901c5e31"
+    },
+    {
+      "id": "coco2014-val-image-95161-caption-662765",
+      "image_id": 95161,
+      "caption_id": 662765,
+      "caption": "A lot of blue and yellow umbrellas sitting under a clock.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000095161.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000095161.jpg",
+      "image_size_wh": [
+        640,
+        428
+      ],
+      "image_sha256": "0f5f303ae60ccc59b02b1af2f2522d44130b861d5cf0b110ce1f5b6880fdb127"
+    },
+    {
+      "id": "coco2014-val-image-263223-caption-705288",
+      "image_id": 263223,
+      "caption_id": 705288,
+      "caption": "A man riding skis down a snow covered slope.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000263223.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000263223.jpg",
+      "image_size_wh": [
+        640,
+        425
+      ],
+      "image_sha256": "4772615877b109967956395fc29e9de88d5a7999a15bc4a1c2de4c2792c4b6ee"
+    },
+    {
+      "id": "coco2014-val-image-121188-caption-76056",
+      "image_id": 121188,
+      "caption_id": 76056,
+      "caption": "A large boat sailing across a large lake.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000121188.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000121188.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "3f7f35dcf8ceedd0fa1e85f9dd50b0c9c054f51c99b6f5a807d2344f60eb281e"
+    },
+    {
+      "id": "coco2014-val-image-471273-caption-13346",
+      "image_id": 471273,
+      "caption_id": 13346,
+      "caption": "A young man attempting to fly a kite on a forest hillside.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000471273.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000471273.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "51b971a4d6f5a85359b6abfe4456590f1ee32445ae6d2519d6f98dd47447b590"
+    },
+    {
+      "id": "coco2014-val-image-523869-caption-731452",
+      "image_id": 523869,
+      "caption_id": 731452,
+      "caption": "A white foam tray filled with lots of food.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000523869.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000523869.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "6e2c54a395875f1260f0e453a0eb45ef2915e1ebb2a9bf33468188baea6edc4a"
+    },
+    {
+      "id": "coco2014-val-image-95677-caption-687633",
+      "image_id": 95677,
+      "caption_id": 687633,
+      "caption": "A man ina  yellow rain coat waits in the rain",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000095677.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000095677.jpg",
+      "image_size_wh": [
+        409,
+        640
+      ],
+      "image_sha256": "ab335ecaf5dd92ef963cbc35575ddc9585b9ae07f4521166470a06153f39d099"
+    },
+    {
+      "id": "coco2014-val-image-97159-caption-214015",
+      "image_id": 97159,
+      "caption_id": 214015,
+      "caption": "a compact kitchen with stainless-steel cabinets behind glass blocks",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000097159.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000097159.jpg",
+      "image_size_wh": [
+        424,
+        640
+      ],
+      "image_sha256": "7993fd5df038d58704ec5369970b39386a6f4d5b38de0610bfec6ebba05715b3"
+    },
+    {
+      "id": "coco2014-val-image-447124-caption-445526",
+      "image_id": 447124,
+      "caption_id": 445526,
+      "caption": "A man is in the park playing frisbee with his friends.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000447124.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000447124.jpg",
+      "image_size_wh": [
+        424,
+        640
+      ],
+      "image_sha256": "4f6b6e508d916ce60b1fd0b1607fd3077488d0aa06342bb99c40b483de4f7871"
+    },
+    {
+      "id": "coco2014-val-image-5352-caption-702664",
+      "image_id": 5352,
+      "caption_id": 702664,
+      "caption": "A piece of pizza that is on a plate.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000005352.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000005352.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "f1e6e6e2c15923941061362974f05626b01e3d0f0d7d54514dbcaca8690b2cbb"
+    },
+    {
+      "id": "coco2014-val-image-179599-caption-169846",
+      "image_id": 179599,
+      "caption_id": 169846,
+      "caption": "A baseball player pitching a ball on a field.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000179599.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000179599.jpg",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "image_sha256": "b29bb4ab3a09bac59f0658873eaaabf6e9722a5f71a4a7f0d27fdc4b215f38fc"
+    },
+    {
+      "id": "coco2014-val-image-113223-caption-124205",
+      "image_id": 113223,
+      "caption_id": 124205,
+      "caption": "A little girl putting decorations on top of pink cup cakes.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000113223.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000113223.jpg",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "image_sha256": "7eff44a1c550327a7fb14d77659f14587e44fd4f3a19c2dcc13e373f2b457337"
+    },
+    {
+      "id": "coco2014-val-image-510642-caption-620860",
+      "image_id": 510642,
+      "caption_id": 620860,
+      "caption": "A table filled with sandwiches and trays of fruit.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000510642.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000510642.jpg",
+      "image_size_wh": [
+        427,
+        640
+      ],
+      "image_sha256": "dd80ef4e92d20388d8d25903ec580faa14c284326a20373af1db1df405ff6fc5"
+    },
+    {
+      "id": "coco2014-val-image-156370-caption-309791",
+      "image_id": 156370,
+      "caption_id": 309791,
+      "caption": "A street sign near many cars at a stop.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000156370.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000156370.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "746f3fafa58df63fe763a787552fd17fcedddc73a5af11e517b543cb5af6e4e4"
+    },
+    {
+      "id": "coco2014-val-image-165422-caption-479179",
+      "image_id": 165422,
+      "caption_id": 479179,
+      "caption": "A large brick tower with a massive clock on it's side.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000165422.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000165422.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "19b5244c88d3b6bc91dc97154bcff896872e976b440cfd507280bf286da4d0ec"
+    },
+    {
+      "id": "coco2014-val-image-103863-caption-304712",
+      "image_id": 103863,
+      "caption_id": 304712,
+      "caption": "A refrigerator and a stove in a small kitchen.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000103863.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000103863.jpg",
+      "image_size_wh": [
+        500,
+        375
+      ],
+      "image_sha256": "5a2f24e631d6c627d2f35008773cc0a521f5a8d410223b846c37b7f187952e8c"
+    },
+    {
+      "id": "coco2014-val-image-296865-caption-707464",
+      "image_id": 296865,
+      "caption_id": 707464,
+      "caption": "A sheep standing near some black sheep on a field.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000296865.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000296865.jpg",
+      "image_size_wh": [
+        640,
+        506
+      ],
+      "image_sha256": "d4b5a5a65c2fed8d03e4728c4e2b5f63fa9eb4c3c247077ce6fecb82a1c0697e"
+    },
+    {
+      "id": "coco2014-val-image-185686-caption-519050",
+      "image_id": 185686,
+      "caption_id": 519050,
+      "caption": "A group of men sitting around a table eating food.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000185686.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000185686.jpg",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "image_sha256": "c62150a52a34d0159f8737aba27886eeaa61ba738528b98d5cafe2d2d25b7f69"
+    },
+    {
+      "id": "coco2014-val-image-341196-caption-741129",
+      "image_id": 341196,
+      "caption_id": 741129,
+      "caption": "A man riding a wave on top of a surfboard.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000341196.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000341196.jpg",
+      "image_size_wh": [
+        640,
+        451
+      ],
+      "image_sha256": "e52e592ba38fec51c3df751bbc7ec2cbbf4b43726da1a4e1bc9a556e7cf8e748"
+    },
+    {
+      "id": "coco2014-val-image-565485-caption-462007",
+      "image_id": 565485,
+      "caption_id": 462007,
+      "caption": "A red bench and a person in a train station.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000565485.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000565485.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "73533d1bc38ee0127cdd6031fbbd55b2366338ace110ef08fce129638a7b8896"
+    },
+    {
+      "id": "coco2014-val-image-455267-caption-98234",
+      "image_id": 455267,
+      "caption_id": 98234,
+      "caption": "a wok on a stove cooking some food",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000455267.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000455267.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "b15979551bf26ce97f41b22860e99787ab9c1602f12afb133b5ad2818c455777"
+    },
+    {
+      "id": "coco2014-val-image-220255-caption-32358",
+      "image_id": 220255,
+      "caption_id": 32358,
+      "caption": "A large commercial airplane sitting on the runway.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000220255.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000220255.jpg",
+      "image_size_wh": [
+        640,
+        429
+      ],
+      "image_sha256": "f19712a8cfab57733567076bbf95abe10020a80ae3a8c618480d05cb921769c3"
+    },
+    {
+      "id": "coco2014-val-image-2240-caption-370579",
+      "image_id": 2240,
+      "caption_id": 370579,
+      "caption": "A pile of teddy bears and dolls in a toy box.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000002240.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000002240.jpg",
+      "image_size_wh": [
+        600,
+        600
+      ],
+      "image_sha256": "37c6229d05ec8980d30843b9d532bf2195e0d9d6c36691eb736ee1c4e8caca65"
+    },
+    {
+      "id": "coco2014-val-image-531299-caption-661370",
+      "image_id": 531299,
+      "caption_id": 661370,
+      "caption": "a person riding a skate board on a city street ",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000531299.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000531299.jpg",
+      "image_size_wh": [
+        427,
+        640
+      ],
+      "image_sha256": "69049fa04c05cbac0c10bfce2901c3e1443f6c861e2246acc2f5fb647fac850b"
+    },
+    {
+      "id": "coco2014-val-image-316968-caption-310102",
+      "image_id": 316968,
+      "caption_id": 310102,
+      "caption": "A white horse drawing a carriage through a street.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000316968.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000316968.jpg",
+      "image_size_wh": [
+        640,
+        429
+      ],
+      "image_sha256": "fbbda12f81c1858aece6f5ea5627544d420168884bc58d6733c89963d477d05a"
+    },
+    {
+      "id": "coco2014-val-image-249246-caption-530107",
+      "image_id": 249246,
+      "caption_id": 530107,
+      "caption": "Lots of people are surfing and swimming in the ocean.",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000249246.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000249246.jpg",
+      "image_size_wh": [
+        640,
+        425
+      ],
+      "image_sha256": "cc78b96f5401340bbc7ef9061ee9f6bf030fee0173ddea1d3679dd7ebe6099cb"
+    },
+    {
+      "id": "coco2014-val-image-514049-caption-106963",
+      "image_id": 514049,
+      "caption_id": 106963,
+      "caption": "A baseball player standing at home plate on a baseball field..",
+      "official_split": "val2014",
+      "split": "train",
+      "file_name": "COCO_val2014_000000514049.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2014/COCO_val2014_000000514049.jpg",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "image_sha256": "20a5b8aab7fb170605c8aeb1dd9ad329320cc35f43767101104d5ac6fac40249"
+    }
+  ]
+}

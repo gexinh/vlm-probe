@@ -93,6 +93,8 @@ class Prober:
             "lens.logit": (residual if readout else [], "residual sites and model readout"),
             "lens.tuned": (residual if readout else [], "residual sites and model readout"),
             "lens.jacobian": (residual if readout else [], "residual sites and model readout"),
+            "lens.mj": (sorted(s.mj.sources) if s.mj is not None and s.causal_attention is True else [],
+                        "causal block-input sites, actual final RMSNorm target and explicit modality layout"),
             "lens.embed": (["embeddings"] if s.embeddings and s.input_embeddings is not None else [], "embedding-space site and input embeddings"),
             "lens.attention": (sorted(s.heads) if s.input_embeddings is not None else [], "projected heads and vocabulary dimensions"),
             "lens.patchscope": (residual, "residual sites"),
@@ -133,6 +135,9 @@ class Prober:
             edge_method.update(available=True, missing=None,
                                requires="graph='transformer' for the native GPT-2 residual-message graph")
         from .sae.registry import list_methods
+        if s.mj is not None:
+            methods["lens.mj"]["tap_convention"] = "decoder_block_input"
+            methods["lens.mj"]["output_channels"] = ["text"] + (["visual"] if s.mj.visual_head is not None else [])
         return {"model_id": self.adapter.model_id, "adapter": type(self.adapter).__name__,
                 "output_kind": s.output_kind,
                 "sae_methods": list_methods(),

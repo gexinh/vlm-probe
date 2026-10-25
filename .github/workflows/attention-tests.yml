@@ -11,6 +11,7 @@ on:
       - "tests/test_qwen_text_adapters.py"
       - "tests/test_jacobian_contract.py"
       - "tests/test_input_geometry.py"
+      - "tests/test_mj*.py"
       - "tests/test_visualization*.py"
       - "examples/hf_model_matrix.py"
       - "examples/hf_smoke.py"
@@ -25,6 +26,7 @@ on:
       - "tests/test_qwen_text_adapters.py"
       - "tests/test_jacobian_contract.py"
       - "tests/test_input_geometry.py"
+      - "tests/test_mj*.py"
       - "tests/test_visualization*.py"
       - "examples/hf_model_matrix.py"
       - "examples/hf_smoke.py"
@@ -64,4 +66,5 @@ jobs:
           python -m unittest discover -s tests -p test_qwen_text_adapters.py -v
           python -m unittest discover -s tests -p test_jacobian_contract.py -v
           python -m unittest discover -s tests -p test_input_geometry.py -v
+          python -m unittest discover -s tests -p 'test_mj*.py' -v
           python -m unittest discover -s tests -p 'test_visualization*.py' -v
