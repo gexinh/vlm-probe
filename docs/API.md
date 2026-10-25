@@ -47,6 +47,11 @@ the processor output or claims that geometric retention proves subject visibilit
 
 ## Select layers and tokens
 
+MJ-Lens uses an explicit **decoder block-input** convention; ordinary lens
+indices refer to the residual sites below. Its source/target modalities and
+final-normalization target are declared by the adapter. See the
+[MJ-Lens guide](methods/mj_lens.md) before reusing another lens's layer IDs.
+
 Factory configuration is reusable: `method = probe.lens.logit(...)`, followed
 by `method.run(batch)` for each batch. Layers are zero-based. For native HF
 adapters, residual layer `i` is the next block's input (or final norm input),
@@ -208,7 +213,7 @@ GQA. See the [method guide](methods/path_patching.md) for scope and model suppor
 
 ## Fitted-lens artifacts
 
-Tuned, Attention, and Jacobian Lens need `fit` or `load` before `run`.
+Tuned, Attention, Jacobian and MJ-Lens need calibration or `load` before `run`.
 The model's parameters and accumulated gradients are preserved.
 
 ```python
@@ -228,9 +233,15 @@ result = restored.run(evaluation_inputs)
 `fit` accepts one batch; `fit` and `load` return the bound object. Tuned/Attention
 retain weights across repeated fits but restart optimizers; their losses are
 available in `.losses[layer]`. Jacobian fitting replaces the transport estimate.
-For dataset calibration, use `.fit_batches(train_inputs, validation_inputs,
+For Tuned/Attention dataset calibration, use `.fit_batches(train_inputs, validation_inputs,
 directory, ...)`: it caches inputs once, keeps Adam across minibatches, validates
 each epoch and saves resumable optimizer state. Inspect `.training_history[layer]`.
+Jacobian Lens instead uses `vlmprobe.training.fit_jacobian_lenses`; MJ-Lens uses
+its own modality-conditioned `method.fit_batches(input_batches, ...)`. Neither
+derivative estimator uses Adam. MJ calibration records causal-pair counts,
+odd/even split-half diagnostics and resume counts. Its
+[complete guide](methods/mj_lens.md) explains block-input indices and
+text-versus-visual output heads.
 The [training guide](TRAINING.md) covers this interface, disk-backed readouts,
 the validated author-checkpoint importer and grouped Jacobian estimation.
 Artifact saving requires explicit identities and writes one file per layer.

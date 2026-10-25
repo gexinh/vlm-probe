@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Publish matching library trees with a README tailored to each repository."""
+"""Promote one reviewed library tree; only the lab README adds a beta link."""
 from __future__ import annotations
 
 import argparse
@@ -17,6 +17,43 @@ LEGACY_PERSONAL_REPOSITORY = "gexinh/vlm-probing"
 LAB_REPOSITORY = "ubc-tea/vlm-probe"
 REPOSITORIES = (PERSONAL_REPOSITORY, PREVIOUS_PERSONAL_REPOSITORY,
                 LEGACY_PERSONAL_REPOSITORY, LAB_REPOSITORY)
+PRERELEASE_START = "<!-- vlmprobe:prerelease-link:start -->"
+PRERELEASE_END = "<!-- vlmprobe:prerelease-link:end -->"
+PRERELEASE_LINE = (
+    "Pre-release version: "
+    "[![Beta](https://img.shields.io/badge/Beta-gexinh%2Fvlm--probe-6f42c1?style=flat-square&logo=github)]"
+    "(https://github.com/gexinh/vlm-probe)"
+)
+
+
+def release_readme(text: str, repository: str) -> str:
+    """Render the shared stable README body and the lab-only trailing beta link.
+
+    This is the current publishing policy. ``render_readme`` remains the
+    historical URL renderer, used to validate old mirror-only commits safely.
+    Only a single managed block at the end may be removed; malformed markers or
+    text following that block fail rather than silently deleting user content.
+    """
+    if repository not in REPOSITORIES:
+        raise ValueError("Unknown repository for README rendering.")
+    newline = "\r\n" if "\r\n" in text else "\n"
+    if PRERELEASE_START in text or PRERELEASE_END in text:
+        if text.count(PRERELEASE_START) != 1 or text.count(PRERELEASE_END) != 1:
+            raise ValueError("README must have exactly one complete managed pre-release footer.")
+        if text.index(PRERELEASE_END) < text.index(PRERELEASE_START):
+            raise ValueError("README managed pre-release footer markers must be in start/end order.")
+        before, rest = text.split(PRERELEASE_START, 1)
+        _, after = rest.split(PRERELEASE_END, 1)
+        if after.strip():
+            raise ValueError("Managed pre-release footer must be at the end; preserve and review following text.")
+        text = before
+    # Both repositories carry the exact same body, with stable documentation
+    # URLs. Remove the managed footer before URL rendering so its beta link is
+    # never retargeted back to the stable repository.
+    body = render_readme(text, LAB_REPOSITORY).rstrip("\r\n") + newline
+    if repository != LAB_REPOSITORY:
+        return body
+    return body + newline + newline.join((PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, ""))
 
 
 def render_readme(text: str, repository: str) -> str:
@@ -89,7 +126,7 @@ def lab_tree(repo: Path, target: str) -> str:
     entry = git(repo, "ls-tree", target, "--", "README.md").stdout.split()
     if not entry or entry[0] not in ("100644", "100755") or entry[1] != "blob":
         raise ValueError("The reviewed commit must contain a regular README.md. Nothing was pushed.")
-    rendered = render_readme(readme_at(repo, target), LAB_REPOSITORY)
+    rendered = release_readme(readme_at(repo, target), LAB_REPOSITORY)
     blob = git(repo, "hash-object", "-w", "--stdin", input=rendered).stdout.strip()
     with tempfile.TemporaryDirectory(prefix="vlmprobe-sync-index-") as directory:
         environment = {**os.environ, "GIT_INDEX_FILE": str(Path(directory) / "index")}
@@ -112,9 +149,10 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
         raise ValueError("Commit or set aside local changes before publishing.")
     target = git(repo, "rev-parse", f"refs/heads/{branch}").stdout.strip()
     readme = readme_at(repo, target)
-    if readme != render_readme(readme, PERSONAL_REPOSITORY):
-        raise ValueError("Local README.md must use the personal repository URLs; "
-                         "the lab README is derived automatically. Nothing was pushed.")
+    if readme != release_readme(readme, PERSONAL_REPOSITORY):
+        raise ValueError("Local README.md must use the shared stable repository URLs and omit "
+                         "the managed pre-release footer; render it with release_readme(text, "
+                         "PERSONAL_REPOSITORY) before committing. Nothing was pushed.")
     for remote in remotes:
         git(repo, "remote", "get-url", remote)
         git(repo, "fetch", remote, f"refs/heads/{branch}:refs/remotes/{remote}/{branch}")
@@ -133,7 +171,8 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
         # Previous sync versions left pinned pip VCS URLs on the personal
         # repository. Accept that exact historical rendering, not arbitrary
         # README edits, while always producing fully retargeted URLs now.
-        historical_renderings = {render_readme(base_readme, LAB_REPOSITORY),
+        historical_renderings = {release_readme(base_readme, LAB_REPOSITORY),
+                                 render_readme(base_readme, LAB_REPOSITORY),
                                  _render_readme(base_readme, LAB_REPOSITORY, retarget_pinned=False)}
         if readme_at(repo, heads[lab]) not in historical_renderings:
             raise ValueError(f"{lab}/{branch} has unexpected README edits. "
@@ -144,7 +183,7 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
                        and is_ancestor(repo, target, heads[lab]))
     print(f"Personal target: {target}")
     print(f"Lab tree: {tree}" + (" (already synchronized)" if already_current else " (README adapted)"))
-    print("Library, version and report match; repository-specific README links can give different commit hashes.")
+    print("Shared README body and library match; only the lab README adds the trailing beta link.")
     if not push:
         print("Check only. Add --push to update both remotes.")
         return target
@@ -156,7 +195,7 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
         parents = [target] if is_ancestor(repo, heads[lab], target) else [heads[lab], target]
         parent_args = [arg for parent in parents for arg in ("-p", parent)]
         lab_target = git(repo, "commit-tree", tree, *parent_args, "-m",
-                         "Sync library and report; use lab repository links in README").stdout.strip()
+                         "Promote reviewed library; add lab README beta link").stdout.strip()
     targets = {personal: target, lab: lab_target}
     for remote, destination in targets.items():
         if heads[remote] != destination:

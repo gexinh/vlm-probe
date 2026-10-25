@@ -24,3 +24,5 @@ from .sae import plot_sae_feature_overlay, plot_sae_activity
 __all__ += ["plot_sae_feature_overlay", "plot_sae_activity"]
 from .mj import plot_mj_codebook, plot_mj_modality_index
 __all__ += ["plot_mj_codebook", "plot_mj_modality_index"]
+from .mj_pretrained import plot_mj_visual_readout, plot_mj_text_comparison
+__all__ += ["plot_mj_visual_readout", "plot_mj_text_comparison"]

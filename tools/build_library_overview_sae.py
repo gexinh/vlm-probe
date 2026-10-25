@@ -114,7 +114,7 @@ def tools(root: ET.Element) -> None:
         root.remove(by_id(root, name))
     families = (
         ("lens", "Lens", "Readout · optional calibrated decoder", "#17BEBB", "#127D79", "#F7FCFB", "#B9E5DE",
-         ("Logit · Tuned · Jacobian", "Attention Lens · EmbedLens", "Patchscope")),
+         ("Logit · Tuned · Jacobian", "Attention Lens · MJ-Lens", "EmbedLens · Patchscope")),
         ("attention", "Attention", "Observation · target-score attribution", "#4C8DF6", "#326EBF", "#F7FAFF", "#CADDF9",
          ("Rollout · Grad-CAM · ATTATTR", "TAM · Beyond Intuition", "DTD/LRP")),
         ("causal", "Causal", "Intervention · attribution estimates", "#8259E8", "#6A42BB", "#FAF8FF", "#D9CFF5",
@@ -145,7 +145,7 @@ def build() -> Path:
         "Four-stage library overview. Native language, vision-language and vision inputs "
         "are bound through Prober and a model adapter. Layer and head selection, token "
         "groups, target scores and optional training or loading configure four tool "
-        "families: Lens, Attention, Causal and SAE. Results include readouts, attribution "
+        "families: Lens (including MJ-Lens), Attention, Causal and SAE. Results include readouts, attribution "
         "maps, measured interventions and sparse features. Structured experiment "
         "artifacts retain analysis results, figures, fitted lenses and SAE dictionaries."
     )

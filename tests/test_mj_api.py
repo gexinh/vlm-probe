@@ -50,6 +50,8 @@ class MJAPITests(unittest.TestCase):
             torch.testing.assert_close(reference.kernels[layer].jacobian,
                                        singleton.kernels[layer].jacobian, atol=2e-6, rtol=2e-5)
         self.assertEqual(reference.calibration_report["split_half_prompt_counts"], {0: 2, 1: 1})
+        self.assertFalse(reference.calibration_report["resumed"])
+        self.assertEqual(reference.calibration_report["new_prompts"], 3)
         with tempfile.TemporaryDirectory() as directory:
             self.text_lens().fit_batches([a], directory=directory, dim_batch=5)
             resumed = self.text_lens().fit_batches([a, joined], directory=directory,
@@ -57,6 +59,16 @@ class MJAPITests(unittest.TestCase):
             for layer in reference.layers:
                 torch.testing.assert_close(reference.kernels[layer].jacobian,
                                            resumed.kernels[layer].jacobian)
+            self.assertEqual(resumed.calibration_report["elapsed_scope"], "this_fit_batches_call")
+            self.assertTrue(resumed.calibration_report["resumed"])
+            self.assertEqual(resumed.calibration_report["resumed_batches"], 1)
+            self.assertEqual(resumed.calibration_report["resumed_prompts"], 1)
+            self.assertEqual(resumed.calibration_report["new_batches"], 1)
+            self.assertEqual(resumed.calibration_report["new_prompts"], 2)
+            replay = self.text_lens().fit_batches([a, joined], directory=directory,
+                                                 dim_batch=5, resume=True)
+            self.assertEqual(replay.calibration_report["new_batches"], 0)
+            self.assertEqual(replay.calibration_report["new_prompts"], 0)
             with self.assertRaisesRegex(ValueError, "shorter"):
                 self.text_lens().fit_batches([a], directory=directory, dim_batch=5, resume=True)
             with self.assertRaisesRegex(ValueError, "already exists"):

@@ -3,7 +3,7 @@
 [Home](../README.md) / [Documentation](README.md)
 
 Tuned and Attention Lens fit small decoders while keeping the supplied foundation
-model frozen. Jacobian Lens estimates a transport matrix from activation
+model frozen. Jacobian Lens and MJ-Lens estimate transport matrices from activation
 derivatives. Logit Lens, EmbedLens, and an identity Patchscope need no training.
 
 | Method | Calibration | Demonstrated artifacts |
@@ -11,7 +11,7 @@ derivatives. Logit Lens, EmbedLens, and an identity Patchscope need no training.
 | Tuned Lens | One affine residual translator per selected layer, minimizing `KL(model || lens)` | Verified author GPT-2 checkpoint; independently fitted SmolVLM-500M and LLaVA-1.5-7B translators. |
 | Attention Lens | Per-head vocabulary decoders, jointly fitted through summed logits | GPT-2 heads at layers 7 and 10, calibrated on 4,096 BookCorpus contexts and validated on 512 separate WikiText-2 contexts. |
 | Jacobian Lens | Mean downstream residual Jacobian; no optimizer | All 12 GPT-2 residual layers, calibrated on 256 independent WikiText-2 contexts. |
-| [MJ-Lens](methods/mj_lens.md) | Modality-pair causal expectation and optional generation-head mean slopes; no optimizer | Offline tiny native Janus walkthrough fits all four operators and retains odd/even prompt estimates. These fixtures do not establish pretrained accuracy. |
+| [MJ-Lens](methods/mj_lens.md) | Modality-pair causal expectation and optional generation-head mean slopes; no optimizer | Pretrained Qwen2.5-VL-3B: separate V→T and T→T operators calibrated on 32 independent COCO image/caption pairs and evaluated on eight report cases. Native Janus architecture tests additionally cover visual-output contracts. |
 
 VLM Tuned Lens calibration used 1,024 COCO training images and 256 separate
 validation images, with eight caption prediction positions per image. Showcase
@@ -171,7 +171,14 @@ counts and exclusion settings. The dataset estimator also reports the batch
 index; neither path silently drops rows. Repeated `method.fit(inputs)` replaces
 the previous one-batch Jacobian and emits `RuntimeWarning`. Use
 `fit_jacobian_lenses` above to accumulate across input batches; the generic
-`method.fit_batches` is only for Tuned and Attention Lens.
+residual-lens `method.fit_batches` trains Tuned and Attention Lens. MJ-Lens has
+its own modality-specific `fit_batches` estimator, described below.
+
+On resume, supply the full original ordered corpus, including the already
+processed prefix. An exhausted or truncated iterable is rejected. Boolean
+token masks are recorded by value so equivalent cloned masks can resume;
+changed masks are rejected. Reports distinguish resumed and new prompts and
+batches, and timing describes the current call.
 
 Do not fit under `torch.inference_mode()`. Large hidden widths make exact
 Jacobians costly; calibration on one checkpoint is not portable to another.
@@ -180,3 +187,29 @@ Artifact saving requires explicit checkpoint, tokenizer, readout, calibration,
 and site identities. Loading validates these bindings and dimensions. A missing
 artifact means that the method must be calibrated for that model, not that the
 underlying residual layer cannot support the lens.
+
+## Estimate MJ-Lens
+
+MJ-Lens estimates one operator for each selected source/output modality pair.
+Understanding-only models provide V→T and T→T; a native visual generation head
+and discrete codebook are required for visual outputs. It averages admissible
+causal-pair Jacobians within each prompt and then averages prompts equally.
+No optimizer updates the backbone. Its **decoder block-input indices** differ
+from the ordinary residual-output indices used by other lenses.
+
+The [complete pretrained notebook](../demos/10_mj_lens.ipynb) shows raw images,
+native chat prompts, complete caption teacher forcing, explicit target masks,
+exact VJPs and saved artifacts. The 32 calibration pairs come from an independent
+internal partition of COCO val2014; all eight report images remain held out.
+Reprocess the complete teacher-forced sequence with the native processor so
+token-type metadata matches token IDs. Caption targets select states predicting
+the supplied caption tokens and EOS, rather than the final EOS state.
+
+Bind the model revision, tokenizer/codebook, source and final sites, readout,
+modality pair, output context and calibration corpus. An empty output directory
+fits anew; a matching checkpoint resumes the deterministic input iterable.
+Resume counts and current-call timing are explicit. Odd/even split-half cosine
+measures operator stability, while native/plain comparisons test output
+agreement; stable operators can still decode unrelated vocabulary tokens.
+See the [method guide](methods/mj_lens.md) for API defaults, complete examples,
+geometry, save/load and visual-generation requirements.

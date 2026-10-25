@@ -1,5 +1,6 @@
 """Jacobian calibration diagnostics, replacement warnings, and dataset weighting."""
 import importlib.util
+import json
 import tempfile
 import unittest
 import warnings
@@ -180,6 +181,95 @@ class JacobianContractTests(unittest.TestCase):
                 self.assertTrue(probe.model.training)
                 self.assertEqual(flags, [p.requires_grad for p in probe.model.parameters()])
                 self.assertFalse((Path(directory) / "calibration_state.pt").exists())
+
+    @unittest.skipUnless(HAS_TRANSFORMERS, "optional transformers extra not installed")
+    def test_streaming_resume_accumulates_new_prompts_and_complete_replay_does_no_work(self):
+        probe = native_probe()
+        batches = [{"input_ids": torch.tensor([[1, 2, 3, 4], [5, 6, 7, 8]])},
+                   {"input_ids": torch.tensor([[9, 10, 11, 12]])}]
+        options = dict(layers=[0, 1], binding=BINDING, tokens="all", dim_batch=2,
+                       skip_first=0, exclude_last=False, checkpoint_every=1)
+        with tempfile.TemporaryDirectory() as directory:
+            _, first = fit_jacobian_lenses(probe, batches[:1], directory=directory, **options)
+            self.assertFalse(first["resumed"])
+            self.assertEqual((first["new_prompts"], first["new_batches"]), (2, 1))
+            resumed, report = fit_jacobian_lenses(probe, batches, directory=directory, **options)
+            self.assertTrue(report["resumed"])
+            self.assertEqual((report["resumed_prompts"], report["resumed_batches"]), (2, 1))
+            self.assertEqual((report["new_prompts"], report["new_batches"]), (1, 1))
+            joint = probe.lens.jacobian(layers=[0, 1], tokens="all", binding=BINDING)
+            joint.fit({"input_ids": torch.cat([b["input_ids"] for b in batches])},
+                      skip_first=0, exclude_last=False)
+            for layer in joint.layers:
+                torch.testing.assert_close(resumed.kernels[layer].jacobian, joint.kernels[layer].jacobian)
+            with patch.object(probe, "_run", side_effect=AssertionError("completed replay must not capture")):
+                replay, replay_report = fit_jacobian_lenses(probe, batches, directory=directory, **options)
+            self.assertEqual((replay_report["new_prompts"], replay_report["new_batches"]), (0, 0))
+            for layer in joint.layers:
+                torch.testing.assert_close(replay.kernels[layer].jacobian, joint.kernels[layer].jacobian)
+
+    @unittest.skipUnless(HAS_TRANSFORMERS, "optional transformers extra not installed")
+    def test_streaming_short_resume_rejects_exhausted_iterators_and_preserves_artifacts(self):
+        probe = native_probe()
+        batches = [{"input_ids": torch.tensor([[1, 2, 3, 4]])},
+                   {"input_ids": torch.tensor([[5, 6, 7, 8]])}]
+        options = dict(layers=[0], binding=BINDING, tokens="all", dim_batch=2,
+                       skip_first=0, exclude_last=False, checkpoint_every=1)
+        with tempfile.TemporaryDirectory() as directory:
+            fit_jacobian_lenses(probe, batches, directory=directory, **options)
+            before = {p.name: p.read_bytes() for p in Path(directory).iterdir()}
+            probe.model.train()
+            probe.model.transformer.h[0].eval()
+            next(probe.model.parameters()).requires_grad_(False)
+            modes = [m.training for m in probe.model.modules()]
+            flags = [p.requires_grad for p in probe.model.parameters()]
+            exhausted = iter(batches)
+            list(exhausted)
+            for incomplete in ([], batches[:1], exhausted):
+                with self.subTest(kind=type(incomplete).__name__):
+                    with patch.object(probe, "_run", side_effect=AssertionError("short prefix must not capture")):
+                        with self.assertRaisesRegex(ValueError, "shorter than the recorded calibration prefix"):
+                            fit_jacobian_lenses(probe, incomplete, directory=directory, **options)
+                    self.assertEqual(before, {p.name: p.read_bytes() for p in Path(directory).iterdir()})
+                    self.assertEqual(modes, [m.training for m in probe.model.modules()])
+                    self.assertEqual(flags, [p.requires_grad for p in probe.model.parameters()])
+
+    @unittest.skipUnless(HAS_TRANSFORMERS, "optional transformers extra not installed")
+    def test_streaming_tensor_selector_is_serializable_and_resumes_by_values(self):
+        probe = native_probe()
+        inputs = {"input_ids": torch.tensor([[1, 2, 3, 4]])}
+        selector = torch.tensor([[True, True, False, True]])
+        options = dict(layers=[0], binding=BINDING, dim_batch=2,
+                       skip_first=0, exclude_last=False, checkpoint_every=1)
+        with tempfile.TemporaryDirectory() as directory:
+            fitted, report = fit_jacobian_lenses(probe, [inputs], tokens=selector,
+                directory=directory, **options)
+            recorded = json.loads((Path(directory) / "status.json").read_text())
+            self.assertEqual(recorded["settings"]["tokens"], {
+                "kind": "tensor", "dtype": "torch.bool", "shape": [1, 4],
+                "values": [[True, True, False, True]],
+            })
+            self.assertEqual(fitted.kernels[0].calibration["source_selector"],
+                             report["settings"]["tokens"])
+            # Older versions checkpointed the valid estimate before failing
+            # to serialize the Tensor into status.json. Recover that work.
+            state_path = Path(directory) / "calibration_state.pt"
+            legacy = torch.load(state_path, weights_only=True)
+            legacy["settings"]["tokens"] = selector.clone()
+            torch.save(legacy, state_path)
+            # An independently reconstructed mask has the same immutable
+            # identity, while changing a retained source changes that identity.
+            with patch.object(probe, "_run", side_effect=AssertionError("resume must not capture")):
+                replay, replay_report = fit_jacobian_lenses(probe, [inputs], tokens=selector.clone(),
+                    directory=directory, **options)
+                altered = selector.clone()
+                altered[0, 0] = False
+                with self.assertRaisesRegex(ValueError, "resume settings/binding differ"):
+                    fit_jacobian_lenses(probe, [inputs], tokens=altered, directory=directory, **options)
+            self.assertEqual(replay_report["new_prompts"], 0)
+            torch.testing.assert_close(replay.kernels[0].jacobian, fitted.kernels[0].jacobian)
+            self.assertEqual(torch.load(state_path, weights_only=True)["settings"]["tokens"],
+                             recorded["settings"]["tokens"])
 
     @unittest.skipUnless(HAS_TRANSFORMERS, "optional transformers extra not installed")
     def test_generic_fit_batches_points_to_existing_dataset_estimator(self):

@@ -6,7 +6,16 @@ from pathlib import Path
 import torch
 
 from .distribution import _atomic_json, _atomic_torch
+from ..api.common import configuration
 from ..lenses.jacobian import _calibration_masks, _calibration_selection, _selector_description
+
+
+def _selector_configuration(tokens):
+    """JSON-safe selector identity, including old Tensor-bearing checkpoints."""
+    if isinstance(tokens, torch.Tensor):
+        return {"kind": "tensor", "dtype": str(tokens.dtype), "shape": list(tokens.shape),
+                "values": tokens.detach().cpu().tolist()}
+    return configuration(tokens)
 
 
 def jacobian_sums_from_graph(final, sources, source_mask, target_mask, *, dim_batch=32):
@@ -47,25 +56,36 @@ def fit_jacobian_lenses(probe, input_batches, *, layers, binding, directory,
     Uses native adapter sites, one graph per batch, exact grouped VJPs, and
     weighted merging. Model parameters and mode flags are restored afterwards.
     Inputs must be deterministic/re-iterable for resume; provide immutable data
-    identity in binding. Artifacts use the normal public `.load(directory)`.
+    identity in binding. A resumed iterable must include the entire recorded
+    prefix; supplying a shorter or already-consumed iterator raises instead of
+    declaring the old estimate complete. Artifacts use the normal public
+    `.load(directory)`.
     """
     if torch.is_inference_mode_enabled():
         raise ValueError("Jacobian calibration cannot run under inference_mode")
     if not isinstance(skip_first, int) or skip_first < 0:
         raise ValueError("skip_first must be a nonnegative integer")
     method = probe.lens.jacobian(layers=layers, tokens=tokens, binding=binding)
+    # Store selector values, not a Tensor whose equality is elementwise and
+    # which cannot be written to the JSON calibration report. The method keeps
+    # the original selector for native layout selection.
+    selector = _selector_configuration(tokens)
     root = Path(directory)
     root.mkdir(parents=True, exist_ok=True)
     state_path = root / "calibration_state.pt"
     sums, prompts, completed_batches = {}, 0, 0
     settings = {"dim_batch": dim_batch, "skip_first": skip_first, "exclude_last": exclude_last,
-                "tokens": tokens, "layers": method.layers, "binding": dict(binding),
+                "tokens": selector, "layers": method.layers, "binding": dict(binding),
                 "snapshot_counts": list(snapshot_counts)}
     if resume and state_path.exists():
         state = torch.load(state_path, map_location="cpu", weights_only=True)
-        if state["settings"] != settings:
+        saved_settings = dict(state["settings"])
+        saved_settings["tokens"] = _selector_configuration(saved_settings["tokens"])
+        if saved_settings != settings:
             raise ValueError("Jacobian resume settings/binding differ")
         sums, prompts, completed_batches = state["sums"], state["prompts"], state["batches"]
+    previous_batches, previous_prompts = completed_batches, prompts
+    visited_batches = 0
     earliest = probe.spec.residuals[min(method.layers)]
     final_site = probe.spec.residuals[max(probe.spec.residuals)]
     sites = list(dict.fromkeys([probe.spec.residuals[i] for i in method.layers] + [final_site]))
@@ -77,7 +97,8 @@ def fit_jacobian_lenses(probe, input_batches, *, layers, binding, directory,
         probe.model.eval()
         probe.model.requires_grad_(False)
         for batch_index, inputs in enumerate(input_batches):
-            if batch_index < completed_batches:
+            visited_batches = batch_index + 1
+            if batch_index < previous_batches:
                 continue
             trace = probe._run(inputs, capture=sites, grad=True,
                 interventions={earliest: lambda value: value.detach().requires_grad_(True)})
@@ -112,6 +133,13 @@ def fit_jacobian_lenses(probe, input_batches, *, layers, binding, directory,
             module.training = training
     if not prompts:
         raise ValueError("Jacobian calibration iterable is empty")
+    if visited_batches < previous_batches:
+        raise ValueError(
+            f"Jacobian resume iterable is shorter than the recorded calibration prefix: "
+            f"observed {visited_batches} batches, checkpoint contains {previous_batches}. "
+            "Provide the same ordered corpus, including all previously processed batches; "
+            "do not pass an exhausted iterator. Existing artifacts were not overwritten."
+        )
     _atomic_torch(state_path, {"settings": settings, "sums": sums,
         "prompts": prompts, "batches": completed_batches})
     embedding = probe.spec.input_embeddings
@@ -120,12 +148,15 @@ def fit_jacobian_lenses(probe, input_batches, *, layers, binding, directory,
         kernel.jacobian = (sums[layer] / prompts).float()
         kernel.calibration = {"estimator": kernel.estimator, "n_prompts": prompts,
             "n_batches": completed_batches, "dim_batch": dim_batch, "skip_first": skip_first,
-            "exclude_last": exclude_last, "source_selector": tokens,
+            "exclude_last": exclude_last, "source_selector": selector,
             "calibration_mode": "exact_grouped_vjp_weighted_batch_mean"}
         method.kernels[layer] = kernel
     method.save(root)
     metadata = {"status": "complete", "settings": settings, "prompts": prompts,
         "batches": completed_batches, "elapsed_seconds_this_run": time.monotonic() - started,
+        "resumed": previous_batches > 0,
+        "resumed_batches": previous_batches, "resumed_prompts": previous_prompts,
+        "new_batches": completed_batches - previous_batches, "new_prompts": prompts - previous_prompts,
         "checkpoint_prompt_counts": checkpoints,
         "prefix_artifacts": [path.name for path in sorted(root.glob("prefix_*.pt"))]}
     _atomic_json(root / "status.json", metadata)

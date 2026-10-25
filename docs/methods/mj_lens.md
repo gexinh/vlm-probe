@@ -154,100 +154,182 @@ readout = readout.load(path)
 | `mean_slope` / `n_samples` | Calibrated per-channel mean derivative / number of selected visual positions. |
 | `path` | A calibration-only artifact; native model parameters are not serialized. Loading checks binding, dimensions, activation and exact native parameter fingerprint. |
 
-## Complete pretrained VLM example: visual-to-text
+## Complete pretrained VLM example: report photographs and questions
 
-Install `python -m pip install "vlmprobe[transformers,visualization]"` from a
-version containing MJ-Lens. The native adapter targets Transformers 5.3.
-This example downloads a pretrained Qwen model, draws its own input images,
-calibrates on two independent image/prompt pairs, then reads a held-out image.
-The tiny calibration set demonstrates usage, not benchmark quality.
+Run from a checkout containing this method and the bundled
+[report input manifest](../../demos/assets/mj_report_samples.json). This example
+uses **Qwen2.5-VL-3B-Instruct**, two real COCO calibration image/caption pairs,
+and the two separate GQA shirt questions from the technical report. The full
+[script](../../examples/tutorials/lens_mj.py) and
+[notebook](../../demos/10_mj_lens.ipynb) use 32 independent calibration images
+and all eight report cases: GQA, MMVP, VSR and VisOnlyQA.
+
+Install `python -m pip install -e ".[transformers,visualization]"`. A CUDA GPU
+is recommended: exact VJPs scale with the decoder width, source layers and
+calibration corpus. Changing the number of calibration images changes the
+experiment and its artifact identity; it does not select a different model.
 
 ```python
 import hashlib
 import json
 import os
 from pathlib import Path
+from urllib.request import urlopen
 
 import matplotlib.pyplot as plt
 import torch
-from PIL import Image, ImageDraw
+from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor
-from vlmprobe import Prober
-from vlmprobe.visualization import plot_lens_heatmap
-
-MODEL_ID = os.environ.get("VLM_PROBING_MODEL", "Qwen/Qwen2.5-VL-3B-Instruct")
-DEVICE = os.environ.get("VLM_PROBING_DEVICE", "cuda:0" if torch.cuda.is_available() else "cpu")
-DTYPE = torch.bfloat16 if DEVICE.startswith("cuda") else torch.float32
-OUT = Path("outputs/mj-qwen")
-OUT.mkdir(parents=True, exist_ok=True)
-torch.manual_seed(7)
-model = AutoModelForImageTextToText.from_pretrained(
-    MODEL_ID, dtype=DTYPE, attn_implementation="eager",
-).to(DEVICE).eval()
-processor = AutoProcessor.from_pretrained(
-    MODEL_ID, min_pixels=56 * 56, max_pixels=112 * 112,
+from vlmprobe import MJBatch, Prober, visual_grid
+from vlmprobe.visualization import (
+    plot_lens_heatmap, plot_mj_text_comparison, plot_mj_visual_readout,
 )
-probe = Prober(model, processor)
-print(probe.describe()["methods"]["lens.mj"])
 
-def circle_image(color, offset=0):
-    image = Image.new("RGB", (112, 112), "white")
-    ImageDraw.Draw(image).ellipse((28 + offset, 28, 84 + offset, 84), fill=color)
-    return image
+ROOT = next(p for p in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
+            if (p / "demos/assets/mj_report_samples.json").is_file())
+OUT = ROOT / "outputs/mj-qwen-api"
+CACHE = Path(os.environ.get("VLM_PROBING_DATA_CACHE",
+                           str(Path.home() / ".cache/vlmprobe/coco_calibration")))
+OUT.mkdir(parents=True, exist_ok=True)
+CACHE.mkdir(parents=True, exist_ok=True)
+MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
+DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+PIXELS, CAPTION_LIMIT = 224**2, 24
+
+def checksum(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+report_file = ROOT / "demos/assets/mj_report_samples.json"
+calibration_file = ROOT / "demos/assets/mj_calibration_coco.json"
+cases = json.loads(report_file.read_text())["cases"][:2]
+training_records = json.loads(calibration_file.read_text())["samples"][:2]
+heldout_hashes = {case["image_sha256"] for case in cases}
+for record in training_records:
+    assert record["image_sha256"] not in heldout_hashes
+    path = CACHE / record["file_name"]
+    if not path.exists():
+        with urlopen(record["image_url"], timeout=120) as response:
+            path.write_bytes(response.read())
+    assert checksum(path) == record["image_sha256"], path
+    record["local_image"] = path
+for case in cases:
+    assert checksum(ROOT / case["image_path"]) == case["image_sha256"]
+
+model = AutoModelForImageTextToText.from_pretrained(
+    MODEL_ID, dtype=torch.float32, attn_implementation="eager",
+).to(DEVICE).eval().requires_grad_(False)
+processor = AutoProcessor.from_pretrained(MODEL_ID, use_fast=False)
+tokenizer = processor.tokenizer
+probe = Prober(model, processor)
+revision = getattr(model.config, "_commit_hash", None)
+if not revision:
+    raise ValueError("Use an immutable Hub revision or verified local checkpoint identity")
+layer = max(probe.describe()["methods"]["lens.mj"]["sites"])
 
 def prepare(image, question):
     messages = [{"role": "user", "content": [
         {"type": "image"}, {"type": "text", "text": question},
     ]}]
-    prompt = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = probe.prepare(prompt=prompt, image=image, device=DEVICE)
-    for key, value in inputs.kwargs.items():
-        if isinstance(value, torch.Tensor) and value.is_floating_point():
-            inputs.kwargs[key] = value.to(DTYPE)
-    return inputs
+    prompt = processor.apply_chat_template(messages, tokenize=False,
+                                           add_generation_prompt=True)
+    native = dict(processor(text=prompt, images=image, return_tensors="pt",
+                            min_pixels=56**2, max_pixels=PIXELS))
+    native = {key: value.to(DEVICE) if isinstance(value, torch.Tensor) else value
+              for key, value in native.items()}
+    return prompt, native
 
-calibration_cases = [("red", -4, "Describe the colored object."),
-                     ("green", 4, "What color is the circle?")]
-calibration_inputs = [prepare(circle_image(color, offset), question)
-                      for color, offset, question in calibration_cases]
-heldout = prepare(circle_image("blue"), "What color is the circle? Answer with one color.")
-revision = str(getattr(model.config, "_commit_hash", None) or "local-checkpoint")
-corpus_hash = hashlib.sha256(json.dumps(calibration_cases).encode()).hexdigest()
+def caption_batch(record):
+    image = Image.open(record["local_image"]).convert("RGB")
+    prompt, prefix = prepare(image, "Describe this image in one sentence.")
+    ids = tokenizer.encode(record["caption"], add_special_tokens=False)[:CAPTION_LIMIT]
+    caption = tokenizer.decode(ids, skip_special_tokens=False)
+    # Process the full teacher-forced sequence so native sequence metadata,
+    # including mm_token_type_ids, remains aligned with input_ids.
+    native = dict(processor(text=prompt + caption + tokenizer.eos_token,
+                            images=image, return_tensors="pt",
+                            min_pixels=56**2, max_pixels=PIXELS))
+    boundary = prefix["input_ids"].shape[1]
+    assert torch.equal(prefix["input_ids"].cpu(), native["input_ids"][:, :boundary])
+    native = {key: value.to(DEVICE) if isinstance(value, torch.Tensor) else value
+              for key, value in native.items()}
+    targets = torch.zeros_like(native["input_ids"], dtype=torch.bool)
+    targets[:, boundary - 1:-1] = True  # States predicting supplied caption/EOS.
+    return MJBatch(native, target_masks={"text": targets}, context="text_output")
+
 binding = {
-    "model_id": MODEL_ID, "model_revision": revision,
-    "tokenizer_id": processor.tokenizer.name_or_path + "@" + revision,
-    "calibration_id": "drawn-circles-v1:" + corpus_hash,
+    "model_id": MODEL_ID, "model_revision": str(revision),
+    "tokenizer_id": MODEL_ID + "@" + str(revision),
+    "calibration_id": "coco-report-api-v2:" + checksum(calibration_file)
+                      + ":first2:pixels50176:cap24:float32",
 }
-layers = [probe.describe()["methods"]["lens.mj"]["sites"][-1]]
-method = probe.lens.mj(layers=layers, source="visual", target="text", binding=binding)
-method.fit_batches(calibration_inputs, directory=OUT / "calibration", dim_batch=16)
-result = method.run(heldout)
-print("positions:", result.tensors["positions"])
-print("logits:", tuple(result.tensors["logits"].shape))
-print("split-half:", method.calibration_report["split_half_cosine"])
+methods = {}
+for source in ("visual", "text"):
+    method = probe.lens.mj(layers=[layer], source=source, target="text", binding=binding)
+    method.fit_batches((caption_batch(record) for record in training_records), dim_batch=16)
+    method.save(OUT / (source + "-to-text"))
+    methods[source] = method
 
-# One subword's vocabulary rank, not a whole-word or concept correctness score.
-answer_ids = processor.tokenizer.encode("blue", add_special_tokens=False)
-target_id = answer_ids[0]
-print("Displayed subword:", repr(processor.tokenizer.decode([target_id])))
-ax = plot_lens_heatmap(result, target_token_id=target_id,
-                       title="MJ visual-to-text: held-out circle, last block input")
-ax.figure.savefig(OUT / "mj-text.png", dpi=160, bbox_inches="tight")
+for case in cases:
+    image = Image.open(ROOT / case["image_path"]).convert("RGB")
+    _, inputs = prepare(image, case["prompt_question"])
+    vt = methods["visual"].run(inputs)
+    tt = methods["text"].run(inputs, tokens="last_prompt")
+    answer = tokenizer.encode(case["answer_surface"], add_special_tokens=False)
+    foil = tokenizer.encode(case["other_answer_surface"], add_special_tokens=False)
+    assert len(answer) == len(foil) == 1  # These two fixed GQA choices are single tokens.
+    grid = tuple(visual_grid(probe, inputs)["grids"][0]["grid_shape"])
+    raw_grid = inputs["image_grid_thw"][0].tolist()
+    patch = model.config.vision_config.patch_size
+    size = (raw_grid[2] * patch, raw_grid[1] * patch)
+    resized = image.resize(size, Image.Resampling.BICUBIC)  # Qwen still-image resize only.
+    x, y, width, height = case["bbox_xywh"]
+    sx, sy = size[0] / image.width, size[1] / image.height
+    bbox = [x * sx, y * sy, width * sx, height * sy]
+    ax = plot_mj_visual_readout(resized, vt, positive_token_id=answer[0],
+        negative_token_id=foil[0], grid_shape=grid, layer=layer, bbox=bbox,
+        token_label=case["answer_surface"], negative_label=case["other_answer_surface"])
+    ax.figure.savefig(OUT / (case["id"] + "-spatial.png"), dpi=160, bbox_inches="tight")
+    top_ids = tt.tensors["logits"].argmax(-1)
+    annotations = [[str(int(i)) + ": " + tokenizer.convert_ids_to_tokens(int(i)) for i in row]
+                   for row in top_ids]
+    ax = plot_lens_heatmap(tt, target_token_id=answer[0], annotations=annotations,
+                           title=case["id"] + ": text-source last prompt")
+    ax.figure.savefig(OUT / (case["id"] + "-text.png"), dpi=160, bbox_inches="tight")
+    # MJ block-input layer L is post-block residual L-1 for these Qwen sites.
+    plain = probe.lens.logit(layers=[layer - 1], tokens="last_prompt").run(inputs)
+    final_layer = max(probe.spec.residuals)
+    native = probe.lens.logit(layers=[final_layer], tokens="last_prompt").run(inputs)
+    ax = plot_mj_text_comparison(tt, plain.tensors["logits"],
+        native.tensors["logits"][0, 0], positive_token_id=answer[0],
+        negative_token_id=foil[0])
+    ax.figure.savefig(OUT / (case["id"] + "-controls.png"), dpi=160, bbox_inches="tight")
+    print(case["id"], "V->T:", tuple(vt.tensors["logits"].shape),
+          "T->T:", tuple(tt.tensors["logits"].shape),
+          "exact displayed token:", repr(tokenizer.convert_ids_to_tokens(answer[0])))
 plt.show()
-result.save(OUT / "heldout-result")
 
-# Loading uses this library's fitted artifact; it performs no new calibration.
-restored = probe.lens.mj(layers=layers, source="visual", target="text", binding=binding)
-restored.load(OUT / "calibration")
-torch.testing.assert_close(restored.run(heldout).tensors["logits"], result.tensors["logits"])
+restored = probe.lens.mj(layers=[layer], source="visual", target="text", binding=binding)
+restored.load(OUT / "visual-to-text")
 ```
 
-Select `source="text"` to calibrate the corresponding text-to-text transport.
-Qwen2.5-VL and Qwen3-VL provide understanding-side readouts, not Janus-style
-visual output codebooks. Change their native loading/input preparation as
-described in the [model guides](../models/README.md); the MJ calls remain the same.
-For reproducible releases, pin model/processor revisions and use a checksum
-for local checkpoint files instead of the illustrative fallback identity.
+The shorter API example above uses two calibration images; the report-case
+walkthrough uses the manifest's first 32. Both keep showcase images out of
+fitting and retain their raw-byte checksums. The calibration source is official
+**COCO val2014**, partitioned internally for calibration; `split="train"` in
+this manifest does not mean official COCO train2014.
+
+The `V->T` display reads **decoder image-token states**, not the visual encoder
+itself. In this causal image-then-question template, an image position precedes
+the question and cannot attend to it. The question chooses which vocabulary
+contrast is displayed, but the image-token state is not retrospectively
+question-conditioned. The `T->T` readout at the last prompt position can use the
+image and the complete question. The full walkthrough compares this readout
+with both a plain lens at the same source site and the actual final output.
+
+Qwen2.5-VL and Qwen3-VL supply these two text-output operators. They do not
+supply the discrete image-generation alphabet required for `T->V`, `V->V` or
+a text-versus-visual dictionary modality index. Use the native Janus image head
+for those operations.
 
 ## Unified model example: Janus visual output
 
@@ -396,21 +478,93 @@ reconstructions, nonnegative coefficients, atom IDs and visual-atom masks.
 Inactive support entries have ID `-1`. Size-matched atom IDs index its reduced
 union; `size_matched_text_ids` maps text atoms back to the full dictionary.
 
-The [offline executable tutorial](../../examples/tutorials/lens_mj.py) and
-[notebook](../../demos/10_mj_lens.ipynb) walk through model construction,
-input preparation, calibration, held-out inference, artifact loading and
-visualization without reading cached probe results. Its small models are
-analytic integration examples, not pretrained-model findings.
+Both plotting helpers return a Matplotlib `Axes` and accept an existing `ax`.
+Import them from `vlmprobe.visualization`.
 
-![MJ text readout from the executed tutorial](../assets/tutorials/lens-mj-text.png)
+```text
+ax = plot_mj_visual_readout(
+    image, result, *, positive_token_id, negative_token_id=None,
+    grid_shape, layer, bbox=None, token_label=None, negative_label=None,
+    image_alpha=0.65, batch_index=0, alpha=0.85, colorbar=True,
+    cmap=None, vmin=None, vmax=None, ax=None,
+)
+ax = plot_mj_text_comparison(
+    mj_result, plain_logits, native_logits, *, positive_token_id,
+    negative_token_id, labels=None, ax=None,
+)
+```
 
-![MJ visual codebook readout from the executed tutorial](../assets/tutorials/lens-mj-visual.png)
+| Visual readout argument | Meaning |
+| --- | --- |
+| `image` / `grid_shape` | The actual processed image and its `(height, width)` visual-token grid. Selected native positions are sorted and must fill this grid exactly. Split multi-image or tiled inputs explicitly. |
+| `result` / `layer` | A visual-to-text MJ result and an actual fitted block-input index from its metadata. |
+| `positive_token_id` / `negative_token_id` | Display a vocabulary logit, or their signed logit difference when both IDs are supplied. |
+| `bbox` | Optional `(x, y, width, height)` in the supplied processed image's coordinates; drawn in orange. Transform source annotations before passing them. |
+| `token_label` / `negative_label` | Optional labels for the exact chosen tokenizer pieces. |
+| `batch_index` | Select one batch item; defaults to `0`. |
+| `image_alpha` / `alpha` | Photograph opacity / heatmap opacity, respectively. |
+| `colorbar` / `cmap` / `vmin` / `vmax` | Display controls. The default signed palette uses cyan-to-blue for positive and pale gray for negative values; limits are computed per map unless supplied. |
 
-The Qwen and Janus loaders above provide pretrained execution paths; they do
-not establish pretrained calibration quality. No external pretrained MJ
-artifact is bundled or downloaded by `.load(...)`: it loads this library's
-identity-bound calibration files. Neither a vocabulary readout, reconstruction
-nor modality index establishes a causal concept or a global-workspace claim.
+| Text comparison argument | Meaning |
+| --- | --- |
+| `mj_result` | A text-to-text MJ result with exactly one prediction position. |
+| `plain_logits` | Final normalization/head applied directly to the same source states, in the same layer order: `[L,V]` or `[L,1,V]`. |
+| `native_logits` | The model's final vocabulary vector at that same prediction position. |
+| `positive_token_id` / `negative_token_id` | Plot their raw signed logit difference for MJ, plain and native readouts. |
+| `labels` | Optional tick labels, one per captured MJ layer. |
+
+The visual helper preserves signed values; independent color scaling does not
+make map intensities comparable across layers or models. The text helper keeps
+raw margins without normalizing individual curves. Neither helper computes an
+attention map, causal attribution or bounding-box prediction.
+
+## Reading the report-case figures
+
+The [executable tutorial](../../examples/tutorials/lens_mj.py) and
+[notebook](../../demos/10_mj_lens.ipynb) load the pretrained Qwen checkpoint,
+construct native image/question inputs, calibrate on independent COCO captions,
+and compute the report readouts before plotting. The notebook contains all
+steps; it does not load saved showcase tensors or pre-rendered results.
+
+The supplied execution uses 32 independent calibration images and eight held-out
+questions on Qwen2.5-VL-3B-Instruct. It illustrates both useful readouts and
+failures: intermediate text-state vocabulary predictions are often unrelated
+tokens, despite stable split-half operators. At block input 35, MJ's top token
+matches the reference in 4 of 8 cases, versus 5 of 8 for the plain readout and
+native model. These are case counts, not benchmark accuracy. MJ has greater
+native top-20 overlap at this layer but worse mean KL divergence; the two
+fidelity measurements should be inspected separately.
+
+The first figure aligns vocabulary contrasts with the native Qwen image grid.
+Original photographs and supplied GQA target boxes are shown alongside the
+measured readouts. A vocabulary contrast is not an attention map or proof of
+causal localization; no boxes are invented for MMVP, VSR or VisOnlyQA.
+
+![MJ visual-to-text readouts on report photographs](../assets/tutorials/lens-mj-report-spatial.png)
+
+The text comparison reads the question-conditioned last prompt state. It
+compares MJ-Lens with the plain final normalization/head applied to the same
+source state and with the model's actual final output. Token labels identify
+exact tokenizer pieces, not automatically inferred whole-word concepts.
+
+![MJ text readout and native/plain controls](../assets/tutorials/lens-mj-report-text-controls.png)
+
+The fidelity figure records agreement with the native final distribution.
+Agreement depends on the layer, calibration data and case; this small shared
+case study does not establish a universal faithfulness band or benchmark score.
+
+![MJ readout fidelity on the fixed report cases](../assets/tutorials/lens-mj-report-fidelity.png)
+
+No external pretrained MJ artifact is bundled or downloaded by `.load(...)`:
+it loads this library's identity-bound calibration files. The Janus codebook
+example is a separate execution path; the Qwen report walkthrough makes no
+image-generation claim. Neither a vocabulary readout, reconstruction nor
+modality index establishes a causal concept or a global-workspace claim.
+
+Calibration reports distinguish previously accumulated and newly processed
+prompts/batches. `elapsed_seconds` covers the current `fit_batches` call
+(`elapsed_scope="this_fit_batches_call"`); a completed resume can process zero
+new prompts and must not be interpreted as the cost of a fresh fit.
 
 [Paper](https://openreview.net/forum?id=Xrp8mNku6R) ·
 [Tensor implementation](../../src/vlm_probing/lenses/mj.py) ·

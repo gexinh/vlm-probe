@@ -42,6 +42,7 @@ def fit_mj_lens(method, input_batches, *, directory=None, dim_batch=32, resume=F
         sums, groups, group_counts = state["sums"], state["groups"], state["group_counts"]
         prompts, batches, pair_counts = state["prompts"], state["batches"], state["pair_counts"]
     previous_batches = batches
+    previous_prompts = prompts
     visited_batches = 0
     probe, spec = method.probe, method.spec
     sites = list(dict.fromkeys([spec.sources[i] for i in method.layers] + [spec.final]))
@@ -121,6 +122,10 @@ def fit_mj_lens(method, input_batches, *, directory=None, dim_batch=32, resume=F
         "n_prompts": prompts, "n_batches": batches, "pair_counts": pair_counts,
         "split_half_prompt_counts": group_counts, "split_half_cosine": cosines,
         "elapsed_seconds": time.monotonic() - started,
+        "elapsed_scope": "this_fit_batches_call",
+        "resumed": previous_batches > 0,
+        "resumed_batches": previous_batches, "resumed_prompts": previous_prompts,
+        "new_batches": batches - previous_batches, "new_prompts": prompts - previous_prompts,
         "interpretation": "numeric calibration diagnostic; not a semantic validity or steering test"}
     if root is not None:
         method.save(root)

@@ -13,10 +13,12 @@ from .tam import TransitionAttentionMaps
 from .beyond_intuition import BeyondIntuition
 from .chefer import CheferTransformerAttribution
 from .lrp import CheferLRP, create_chefer_vit
+from .diagnostics import attention_position_diagnostics
 
 __all__ = [
     "BaseAttention", "AttentionProfile", "HeadLogitAttribution", "AttentionRollout",
     "AttentionRelevance", "AttentionReweight", "AttentionTemperature",
     "AttentionGradCAM", "AttentionAttribution", "TransitionAttentionMaps", "BeyondIntuition",
     "CheferTransformerAttribution", "CheferLRP", "create_chefer_vit",
+    "attention_position_diagnostics",
 ]

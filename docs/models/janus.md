@@ -8,6 +8,7 @@ The original `deepseek-ai` format declares a different model class and is not
 automatically interchangeable. Install `vlmprobe[transformers,visualization]`.
 
 ```python
+from pathlib import Path
 import torch
 from PIL import Image
 from transformers import AutoProcessor, JanusForConditionalGeneration
@@ -20,7 +21,8 @@ model = JanusForConditionalGeneration.from_pretrained(
 ).to(device).eval()
 processor = AutoProcessor.from_pretrained(model_id)
 probe = Prober(model, processor)
-image = Image.new("RGB", (384, 384), (80, 145, 190))
+# Run from the repository root; this is a raw GQA report photograph.
+image = Image.open(Path("demos/assets/images/2341576.jpg")).convert("RGB")
 messages = [{"role": "user", "content": [
     {"type": "image"}, {"type": "text", "text": "Describe the image."},
 ]}]
@@ -48,5 +50,8 @@ explicitly during MJ visual-readout calibration; `pixel_values` does not itself
 activate that output channel. See the [complete MJ-Lens guide](../methods/mj_lens.md)
 for the four operators, calibration, loading and native codebook visualization.
 
-Architecture support is tested with tiny random native models. No new
-pretrained accuracy or image-generation benchmark is claimed by those tests.
+The public [MJ-Lens report notebook](../../demos/10_mj_lens.ipynb) uses
+pretrained Qwen for understanding-side text outputs. Janus visual-codebook
+calibration is a separate workflow described in the method guide; it does not
+turn Qwen image inputs into an image-generation alphabet. This loading example
+does not establish a pretrained Janus image-generation benchmark.

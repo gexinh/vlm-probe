@@ -26,8 +26,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "project-page"
 REPORT = ROOT / "docs" / "assets" / "vlmprobe-technical-report.pdf"
 OVERVIEW = ROOT / "docs" / "assets" / "library-overview-sae.svg"
+MJ_PREVIEW = ROOT / "docs/assets/tutorials/lens-mj-report-spatial.png"
 REPORT_LINK = "assets/vlmprobe-technical-report.pdf"
-REPOSITORIES = ("gexinh/vlm-prob", "gexinh/vlm-probing", "ubc-tea/vlm-probe")
+REPOSITORIES = ("gexinh/vlm-probe", "gexinh/vlm-prob", "gexinh/vlm-probing", "ubc-tea/vlm-probe")
 CATALOG_RESOURCE = ROOT / "src/vlm_probing/sae/resources/published_model_cards.json.gz"
 BUILD_MARKER = ".vlmprobe-site-build"
 HREF = re.compile(r"(?P<prefix>\bhref\s*=\s*)(?P<quote>[\"'])(?P<url>.*?)(?P=quote)")
@@ -80,6 +81,8 @@ def build(repository: str, output: Path, *, ref: str | None = None) -> Path:
         raise FileNotFoundError(f"missing latest technical report: {REPORT}")
     if not OVERVIEW.is_file():
         raise FileNotFoundError(f"missing current library overview: {OVERVIEW}")
+    if not MJ_PREVIEW.is_file():
+        raise FileNotFoundError(f"missing measured MJ-Lens preview: {MJ_PREVIEW}")
     with REPORT.open("rb") as stream:
         if stream.read(5) != b"%PDF-":
             raise ValueError(f"technical report is not a PDF: {REPORT}")
@@ -97,6 +100,7 @@ def build(repository: str, output: Path, *, ref: str | None = None) -> Path:
     shutil.copytree(SOURCE / "assets", output / "assets")
     shutil.copy2(REPORT, output / REPORT_LINK)
     shutil.copy2(OVERVIEW, output / "assets" / OVERVIEW.name)
+    shutil.copy2(MJ_PREVIEW, output / "assets/lens-mj-report-spatial.png")
     # Generate directly in the build tree: each mirror gets its own navigation,
     # and building a site must not rewrite the checked-in documentation.
     payload = json.loads(gzip.decompress(CATALOG_RESOURCE.read_bytes()))
@@ -119,7 +123,7 @@ def main() -> None:
         "--repository",
         type=repository_name,
         default=os.environ.get("GITHUB_REPOSITORY", REPOSITORIES[0]),
-        help="GitHub owner/repository (default: GITHUB_REPOSITORY or gexinh/vlm-prob)",
+        help="GitHub owner/repository (default: GITHUB_REPOSITORY or gexinh/vlm-probe)",
     )
     parser.add_argument("--ref", help="Git ref for model-card source links (default: GITHUB_REF_NAME or main)")
     parser.add_argument("--output", type=Path, default=ROOT / "_site")

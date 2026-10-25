@@ -40,6 +40,17 @@ Use shared `vmin`/`vmax` for comparable panels, and retain the same selected
 target and positions. A fragment's token rank is not a complete word's
 probability.
 
+## MJ-Lens readouts
+
+For modality-split readouts, use `plot_mj_visual_readout` and
+`plot_mj_text_comparison` from this same namespace. The
+[MJ-Lens guide](methods/mj_lens.md#reading-the-report-case-figures) documents all
+parameters and measured examples. The spatial plot requires the actual
+processed image, explicit visual grid and MJ block-input index. It preserves
+signed answer-token contrasts; the text comparison uses the same-state plain
+readout and native final output as controls. In an image-before-question causal
+template, image-state readouts precede the later question.
+
 ## Attention overlays
 
 ```python

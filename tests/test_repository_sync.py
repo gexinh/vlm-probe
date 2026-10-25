@@ -5,10 +5,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.sync_repositories import changed_paths, is_ancestor, readme_at, render_readme, synchronize
+from tools.sync_repositories import (
+    LAB_REPOSITORY, PERSONAL_REPOSITORY, PRERELEASE_END, PRERELEASE_LINE, PRERELEASE_START,
+    changed_paths, is_ancestor, readme_at, release_readme, render_readme, synchronize,
+)
 
 
-PERSONAL_README = '''# vlmprobe
+LEGACY_README = '''# vlmprobe
 [Project page](https://gexinh.github.io/vlm-probe/)
 [Code](https://github.com/gexinh/vlm-probe)
 ![Icon](https://raw.githubusercontent.com/gexinh/vlm-probe/main/icon.svg)
@@ -16,6 +19,8 @@ Install: git+https://github.com/gexinh/vlm-probe.git
 [Report source](https://github.com/gexinh/vlm-probing-report)
 [External](https://github.com/another/library)
 '''
+
+PERSONAL_README = release_readme(LEGACY_README, PERSONAL_REPOSITORY)
 
 
 class RepositorySyncTests(unittest.TestCase):
@@ -56,14 +61,19 @@ class RepositorySyncTests(unittest.TestCase):
     def assert_matching_trees(self, personal, lab, personal_readme=PERSONAL_README):
         self.assertEqual(changed_paths(self.repo, personal, lab), {"README.md"})
         self.assertEqual(readme_at(self.repo, personal), personal_readme)
-        expected = render_readme(personal_readme, "ubc-tea/vlm-probe")
+        expected = release_readme(personal_readme, LAB_REPOSITORY)
         self.assertEqual(readme_at(self.repo, lab), expected)
         self.assertEqual(expected.count("https://ubc-tea.github.io/vlm-probe/"), 1)
         self.assertNotIn("https://gexinh.github.io/vlm-prob", expected)
         self.assertIn("https://github.com/gexinh/vlm-probing-report", expected)
+        self.assertEqual(release_readme(expected, PERSONAL_REPOSITORY), personal_readme)
+        self.assertEqual(expected.count(PRERELEASE_START), 1)
+        self.assertEqual(expected.count(PRERELEASE_LINE), 1)
+        self.assertNotIn(PRERELEASE_START, personal_readme)
+        self.assertEqual(expected.split(PRERELEASE_START)[0].rstrip(), personal_readme.rstrip())
 
     def test_rendering_retargets_only_own_urls_and_preserves_readme_structure(self):
-        expected = (PERSONAL_README.replace("https://gexinh.github.io/vlm-probe/",
+        expected = (LEGACY_README.replace("https://gexinh.github.io/vlm-probe/",
                                            "https://ubc-tea.github.io/vlm-probe/")
                     .replace("https://github.com/gexinh/vlm-probe)",
                              "https://github.com/ubc-tea/vlm-probe)")
@@ -71,29 +81,29 @@ class RepositorySyncTests(unittest.TestCase):
                              "https://github.com/ubc-tea/vlm-probe.git")
                     .replace("https://raw.githubusercontent.com/gexinh/vlm-probe/",
                              "https://raw.githubusercontent.com/ubc-tea/vlm-probe/"))
-        self.assertEqual(render_readme(PERSONAL_README, "ubc-tea/vlm-probe"), expected)
+        self.assertEqual(render_readme(LEGACY_README, "ubc-tea/vlm-probe"), expected)
         self.assertEqual(render_readme(expected, "ubc-tea/vlm-probe"), expected)
-        self.assertEqual(render_readme(expected, "gexinh/vlm-probe"), PERSONAL_README)
-        crlf = PERSONAL_README.replace("\n", "\r\n")
+        self.assertEqual(render_readme(expected, "gexinh/vlm-probe"), LEGACY_README)
+        crlf = LEGACY_README.replace("\n", "\r\n")
         self.assertEqual(render_readme(crlf, "ubc-tea/vlm-probe"), expected.replace("\n", "\r\n"))
 
     def test_legacy_personal_alias_renders_to_current_repo_and_lab(self):
         for alias in ("vlm-prob", "vlm-probing"):
             with self.subTest(alias=alias):
-                legacy = (PERSONAL_README
+                legacy = (LEGACY_README
                           .replace("gexinh.github.io/vlm-probe/", f"gexinh.github.io/{alias}/")
                           .replace("github.com/gexinh/vlm-probe)", f"github.com/gexinh/{alias})")
                           .replace("github.com/gexinh/vlm-probe.git", f"github.com/gexinh/{alias}.git")
                           .replace("raw.githubusercontent.com/gexinh/vlm-probe/",
                                    f"raw.githubusercontent.com/gexinh/{alias}/"))
-                self.assertEqual(render_readme(legacy, "gexinh/vlm-probe"), PERSONAL_README)
-                self.assertEqual(render_readme(PERSONAL_README, f"gexinh/{alias}"), legacy)
+                self.assertEqual(render_readme(legacy, "gexinh/vlm-probe"), LEGACY_README)
+                self.assertEqual(render_readme(LEGACY_README, f"gexinh/{alias}"), legacy)
                 self.assertEqual(render_readme(legacy, "ubc-tea/vlm-probe"),
-                                 render_readme(PERSONAL_README, "ubc-tea/vlm-probe"))
+                                 render_readme(LEGACY_README, "ubc-tea/vlm-probe"))
                 self.assertIn("https://github.com/gexinh/vlm-probing-report", legacy)
                 crlf = legacy.replace("\n", "\r\n")
                 self.assertEqual(render_readme(crlf, "gexinh/vlm-probe"),
-                                 PERSONAL_README.replace("\n", "\r\n"))
+                                 LEGACY_README.replace("\n", "\r\n"))
 
     def test_renaming_keeps_paths_queries_fragments_and_other_repo_names(self):
         original = '''[Method](https://github.com/gexinh/vlm-probing/blob/main/docs/API.md?plain=1#sae)
@@ -120,16 +130,52 @@ class RepositorySyncTests(unittest.TestCase):
                         expected = original.replace(f"gexinh/{source}.git@", f"{target}.git@")
                         self.assertEqual(render_readme(original, target), expected)
 
+    def test_release_readme_has_identical_stable_body_and_idempotent_lab_footer(self):
+        for newline in ("\n", "\r\n"):
+            original = LEGACY_README.replace("\n", newline)
+            personal = release_readme(original, PERSONAL_REPOSITORY)
+            lab = release_readme(original, LAB_REPOSITORY)
+            self.assertEqual(personal, render_readme(original, LAB_REPOSITORY))
+            self.assertNotIn(PRERELEASE_START, personal)
+            self.assertEqual(lab, personal + newline + newline.join(
+                (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, "")))
+            self.assertEqual(release_readme(lab, PERSONAL_REPOSITORY), personal)
+            self.assertEqual(release_readme(lab, LAB_REPOSITORY), lab)
+            self.assertEqual(release_readme(personal, PERSONAL_REPOSITORY), personal)
+            self.assertIn("(https://github.com/gexinh/vlm-probe)", lab)
+            self.assertNotIn("\n##", lab[len(personal):])
+
+    def test_release_readme_refuses_malformed_or_nontrailing_managed_blocks(self):
+        for text in (PERSONAL_README + PRERELEASE_START,
+                     PERSONAL_README + PRERELEASE_END,
+                     PERSONAL_README + PRERELEASE_END + PRERELEASE_START,
+                     release_readme(PERSONAL_README, LAB_REPOSITORY) + PRERELEASE_START,
+                     release_readme(PERSONAL_README, LAB_REPOSITORY) + "Collaborator text\n"):
+            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "pre-release footer"):
+                release_readme(text, PERSONAL_REPOSITORY)
+
+    def test_legacy_local_readme_requires_explicit_reviewed_migration(self):
+        previous_personal, previous_lab = self.head("personal"), self.head("lab")
+        (self.repo / "README.md").write_text(LEGACY_README)
+        self.commit("legacy local URLs")
+        with self.assertRaisesRegex(ValueError, "shared stable repository URLs.*Nothing was pushed"):
+            synchronize(self.repo, ("personal", "lab"), "main", True)
+        self.assertEqual(self.head("personal"), previous_personal)
+        self.assertEqual(self.head("lab"), previous_lab)
+
     def test_sync_after_repo_rename_accepts_historical_lab_readme(self):
         self.assert_historical_rename_sync("gexinh/vlm-probing")
 
     def test_sync_after_short_alias_rename_accepts_historical_lab_readme(self):
         self.assert_historical_rename_sync("gexinh/vlm-prob", pinned_install=True)
 
+    def test_sync_migrates_existing_per_repository_urls_to_footer_only_difference(self):
+        self.assert_historical_rename_sync(PERSONAL_REPOSITORY)
+
     def assert_historical_rename_sync(self, alias, *, pinned_install=False):
         # The lab's existing README was rendered from the previous repository
         # name; its history must still be retained when personal links change.
-        personal_readme = PERSONAL_README
+        personal_readme = LEGACY_README
         if pinned_install:
             personal_readme += "Pinned: git+https://github.com/gexinh/vlm-probe.git@v1.0.1\n"
         legacy = render_readme(personal_readme, alias)
@@ -148,8 +194,9 @@ class RepositorySyncTests(unittest.TestCase):
         old_lab = self.run_git(self.repo, "rev-parse", "HEAD")
         self.run_git(self.repo, "push", "lab", "main")
         self.run_git(self.repo, "reset", "--hard", old_base)
+        personal_readme = release_readme(personal_readme, PERSONAL_REPOSITORY)
         (self.repo / "README.md").write_text(personal_readme)
-        target = self.commit("new personal name")
+        target = self.commit("new shared README policy")
         synchronize(self.repo, ("personal", "lab"), "main", True)
         new_lab = self.head("lab")
         self.assert_matching_trees(target, new_lab, personal_readme)
@@ -199,13 +246,29 @@ class RepositorySyncTests(unittest.TestCase):
         self.assertEqual(self.head("personal"), target)
         self.assertEqual(self.head("lab"), new_lab)
 
-    def test_lab_checkout_cannot_publish_lab_links_to_personal_readme(self):
+    def test_personal_beta_push_waits_for_explicit_lab_promotion(self):
+        self.commit("reviewed")
+        synchronize(self.repo, ("personal", "lab"), "main", True)
+        stable = self.head("lab")
+        beta = self.commit("personal beta")
+        self.run_git(self.repo, "push", "personal", "main")
+        self.assertEqual(self.head("personal"), beta)
+        self.assertEqual(self.head("lab"), stable)
+        synchronize(self.repo, ("personal", "lab"), "main", False)
+        self.assertEqual(self.head("lab"), stable)
+        synchronize(self.repo, ("personal", "lab"), "main", True)
+        promoted = self.head("lab")
+        self.assertTrue(is_ancestor(self.repo, stable, promoted))
+        self.assertTrue(is_ancestor(self.repo, beta, promoted))
+        self.assert_matching_trees(beta, promoted)
+
+    def test_lab_footer_cannot_be_published_to_personal_readme(self):
         self.commit("first")
         synchronize(self.repo, ("personal", "lab"), "main", True)
         personal, lab = self.head("personal"), self.head("lab")
         self.run_git(self.repo, "reset", "--hard", lab)
         self.commit("edit-from-lab-checkout")
-        with self.assertRaisesRegex(ValueError, "must use the personal repository URLs"):
+        with self.assertRaisesRegex(ValueError, "must use the shared stable repository URLs and omit"):
             synchronize(self.repo, ("personal", "lab"), "main", True)
         self.assertEqual(self.head("personal"), personal)
         self.assertEqual(self.head("lab"), lab)

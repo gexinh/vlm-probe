@@ -1,0 +1,1379 @@
+{
+  "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+  "revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+  "dtype": "torch.float32",
+  "layers": [
+    8,
+    16,
+    24,
+    35
+  ],
+  "torch_version": "2.6.0+cu124",
+  "transformers_version": "5.3.0",
+  "seed": 0,
+  "float32_matmul_precision": "high",
+  "calibration_max_pixels": 50176,
+  "evaluation_max_pixels": 200704,
+  "caption_max_tokens": 24,
+  "dim_batch": 64,
+  "image_processor_class": "Qwen2VLImageProcessor",
+  "n_calibration": 32,
+  "calibration_image_ids": [
+    214503,
+    333294,
+    71171,
+    274298,
+    573926,
+    531563,
+    95161,
+    263223,
+    121188,
+    471273,
+    523869,
+    95677,
+    97159,
+    447124,
+    5352,
+    179599,
+    113223,
+    510642,
+    156370,
+    165422,
+    103863,
+    296865,
+    185686,
+    341196,
+    565485,
+    455267,
+    220255,
+    2240,
+    531299,
+    316968,
+    249246,
+    514049
+  ],
+  "calibration_manifest_sha256": "a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f",
+  "report_manifest_sha256": "0a42f74c97fb404d17214c42f6ee5789d68db5054420790b1b25d8776301b050",
+  "calibration": {
+    "visual": {
+      "status": "complete",
+      "settings": {
+        "layers": [
+          8,
+          16,
+          24,
+          35
+        ],
+        "source": "visual",
+        "target": "text",
+        "context": "text_output",
+        "binding": {
+          "8": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.7",
+            "readout_id": "adapter.readout",
+            "source_modality": "visual",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.7",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "16": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.15",
+            "readout_id": "adapter.readout",
+            "source_modality": "visual",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.15",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "24": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.23",
+            "readout_id": "adapter.readout",
+            "source_modality": "visual",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.23",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "35": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.34",
+            "readout_id": "adapter.readout",
+            "source_modality": "visual",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.34",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          }
+        },
+        "dim_batch": 64,
+        "skip_first": 0,
+        "exclude_last": false
+      },
+      "n_prompts": 32,
+      "n_batches": 32,
+      "pair_counts": [
+        486,
+        672,
+        864,
+        594,
+        594,
+        648,
+        756,
+        648,
+        540,
+        810,
+        594,
+        780,
+        648,
+        810,
+        594,
+        594,
+        702,
+        594,
+        594,
+        756,
+        594,
+        672,
+        648,
+        702,
+        648,
+        540,
+        540,
+        686,
+        648,
+        594,
+        648,
+        702
+      ],
+      "split_half_prompt_counts": {
+        "0": 16,
+        "1": 16
+      },
+      "split_half_cosine": {
+        "8": 0.9294516103738119,
+        "16": 0.9381970987288898,
+        "24": 0.9610944507750289,
+        "35": 0.9877745525038617
+      },
+      "elapsed_seconds": 1.324520034948364,
+      "elapsed_scope": "this_fit_batches_call",
+      "resumed": true,
+      "resumed_batches": 32,
+      "resumed_prompts": 32,
+      "new_batches": 0,
+      "new_prompts": 0,
+      "interpretation": "numeric calibration diagnostic; not a semantic validity or steering test"
+    },
+    "text": {
+      "status": "complete",
+      "settings": {
+        "layers": [
+          8,
+          16,
+          24,
+          35
+        ],
+        "source": "text",
+        "target": "text",
+        "context": "text_output",
+        "binding": {
+          "8": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.7",
+            "readout_id": "adapter.readout",
+            "source_modality": "text",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.7",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "16": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.15",
+            "readout_id": "adapter.readout",
+            "source_modality": "text",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.15",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "24": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.23",
+            "readout_id": "adapter.readout",
+            "source_modality": "text",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.23",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          },
+          "35": {
+            "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+            "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "tokenizer_id": "Qwen/Qwen2.5-VL-3B-Instruct@66285546d2b821cf421d4f5eb2576359d3770cd3",
+            "calibration_id": "coco-caption-v2:a336d4cd487b13a85fadc89c5718bbf85012b823fe0d61ba1e02425de086ea2f:first32:pixels50176:cap24:dtypetorch.float32",
+            "site": "residual.34",
+            "readout_id": "adapter.readout",
+            "source_modality": "text",
+            "target_modality": "text",
+            "output_context": "text_output",
+            "source_site": "residual.34",
+            "target_site": "residual.35",
+            "tap_convention": "decoder_block_input",
+            "target_convention": "input_to_final_rmsnorm"
+          }
+        },
+        "dim_batch": 64,
+        "skip_first": 0,
+        "exclude_last": false
+      },
+      "n_prompts": 32,
+      "n_batches": 32,
+      "pair_counts": [
+        288,
+        402,
+        568,
+        363,
+        363,
+        402,
+        483,
+        402,
+        325,
+        525,
+        363,
+        442,
+        402,
+        525,
+        363,
+        363,
+        442,
+        363,
+        363,
+        483,
+        363,
+        402,
+        402,
+        442,
+        402,
+        325,
+        325,
+        483,
+        402,
+        363,
+        402,
+        442
+      ],
+      "split_half_prompt_counts": {
+        "0": 16,
+        "1": 16
+      },
+      "split_half_cosine": {
+        "8": 0.9324982980277186,
+        "16": 0.9342839911802356,
+        "24": 0.9364048867764604,
+        "35": 0.9991422149718613
+      },
+      "elapsed_seconds": 1.1962539380183443,
+      "elapsed_scope": "this_fit_batches_call",
+      "resumed": true,
+      "resumed_batches": 32,
+      "resumed_prompts": 32,
+      "new_batches": 0,
+      "new_prompts": 0,
+      "interpretation": "numeric calibration diagnostic; not a semantic validity or steering test"
+    }
+  },
+  "records": [
+    {
+      "id": "gqa_07302654",
+      "dataset": "GQA",
+      "question": "Is the shirt black or yellow?",
+      "prompt_question": "Is the shirt black or yellow?\nAnswer with exactly one of: Black, Yellow. Do not add punctuation or explanation.",
+      "answer": "Yellow",
+      "foil": "Black",
+      "generated": "Yellow",
+      "native_margin": 0.23015213012695312,
+      "native_answer_rank": 1,
+      "answer_token_id": 47699,
+      "foil_token_id": 14417,
+      "image_sha256": "f2f5880022dce631fd23240b2d690a56dd1fa551205c48b16db210b147d2f968",
+      "processed_size": [
+        504,
+        336
+      ],
+      "grid_shape": [
+        12,
+        18
+      ],
+      "bbox_processed": [
+        266.112,
+        33.29729729729729,
+        57.456,
+        89.80180180180179
+      ],
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 91945,
+          "mj_margin": 0.16029119491577148,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 14.674330711364746,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "从容",
+            " vö",
+            "☉"
+          ],
+          "plain_answer_rank": 66070,
+          "plain_margin": 3.9335203170776367,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 17.943538665771484,
+          "plain_top_tokens": [
+            "(___",
+            " Można",
+            "应用查看",
+            "(gcf",
+            "尴"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 25497,
+          "mj_margin": -0.14581602811813354,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 11.864065170288086,
+          "mj_top_tokens": [
+            "点儿",
+            " `'",
+            "='%",
+            " [`",
+            "显著"
+          ],
+          "plain_answer_rank": 51299,
+          "plain_margin": 3.1699295043945312,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 14.416962623596191,
+          "plain_top_tokens": [
+            "个项目",
+            "偌",
+            "咣",
+            "胜负",
+            "钞"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 51144,
+          "mj_margin": -0.6546144485473633,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.378421783447266,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            " duże",
+            "`.",
+            "('@/",
+            "levance"
+          ],
+          "plain_answer_rank": 47470,
+          "plain_margin": 4.404604434967041,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 14.845132827758789,
+          "plain_top_tokens": [
+            ".bunifuFlatButton",
+            "应用查看",
+            "×\n\n",
+            "(\"\");\n\n",
+            "-opacity"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 2,
+          "mj_margin": -0.19380664825439453,
+          "mj_native_top20_overlap": 0.55,
+          "mj_kl_native": 0.6847571730613708,
+          "mj_top_tokens": [
+            "Black",
+            "Yellow",
+            " Yellow",
+            " Black",
+            "black"
+          ],
+          "plain_answer_rank": 1,
+          "plain_margin": 0.9857664108276367,
+          "plain_native_top20_overlap": 0.35,
+          "plain_kl_native": 0.3465300500392914,
+          "plain_top_tokens": [
+            "Yellow",
+            "Black",
+            " Yellow",
+            "yellow",
+            " Black"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gqa_19225230",
+      "dataset": "GQA",
+      "question": "Is the shirt black or yellow?",
+      "prompt_question": "Is the shirt black or yellow?\nAnswer with exactly one of: Black, Yellow. Do not add punctuation or explanation.",
+      "answer": "Black",
+      "foil": "Yellow",
+      "generated": "Black",
+      "native_margin": 5.739345550537109,
+      "native_answer_rank": 1,
+      "answer_token_id": 14417,
+      "foil_token_id": 47699,
+      "image_sha256": "cff15093668bfc3d3c24c2f392176033f1f855d7b4bb37e35bf83adca169d5e4",
+      "processed_size": [
+        504,
+        364
+      ],
+      "grid_shape": [
+        13,
+        18
+      ],
+      "bbox_processed": [
+        76.608,
+        142.688,
+        124.992,
+        130.06933333333333
+      ],
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 92337,
+          "mj_margin": -0.13005447387695312,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 15.371920585632324,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "从容",
+            " vö",
+            "☉"
+          ],
+          "plain_answer_rank": 126078,
+          "plain_margin": -3.8484644889831543,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 20.970840454101562,
+          "plain_top_tokens": [
+            "(___",
+            " Można",
+            "(gcf",
+            "应用查看",
+            "尴"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 32266,
+          "mj_margin": -0.33590030670166016,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.194491386413574,
+          "mj_top_tokens": [
+            "点儿",
+            "显著",
+            "='%",
+            "＠",
+            " [`"
+          ],
+          "plain_answer_rank": 133276,
+          "plain_margin": -3.8360395431518555,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 17.729948043823242,
+          "plain_top_tokens": [
+            "胜负",
+            "偌",
+            "咣",
+            "锦标",
+            "个项目"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 26938,
+          "mj_margin": 1.210294246673584,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.042832374572754,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "levance",
+            " duże",
+            "description",
+            "('@/"
+          ],
+          "plain_answer_rank": 145468,
+          "plain_margin": -4.357147216796875,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 19.762998580932617,
+          "plain_top_tokens": [
+            "应用查看",
+            ".bunifuFlatButton",
+            "\".\n\n\n\n",
+            "DevExpress",
+            ".Cursors"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 1,
+          "mj_margin": 4.782445907592773,
+          "mj_native_top20_overlap": 0.65,
+          "mj_kl_native": 0.33929818868637085,
+          "mj_top_tokens": [
+            "Black",
+            " Black",
+            "black",
+            " black",
+            "Yellow"
+          ],
+          "plain_answer_rank": 1,
+          "plain_margin": 6.020249366760254,
+          "plain_native_top20_overlap": 0.4,
+          "plain_kl_native": 0.09066376090049744,
+          "plain_top_tokens": [
+            "Black",
+            " Black",
+            "black",
+            "黑",
+            " black"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mmvp-1",
+      "dataset": "MMVP",
+      "question": "Are the butterfly's wings closer to being open or closed?",
+      "prompt_question": "Are the butterfly's wings closer to being open or closed?\nAnswer with exactly one of: Closed, Open. Do not add punctuation or explanation.",
+      "answer": "Open",
+      "foil": "Closed",
+      "generated": "Open",
+      "native_margin": 0.16473007202148438,
+      "native_answer_rank": 1,
+      "answer_token_id": 5002,
+      "foil_token_id": 26884,
+      "image_sha256": "f8d0bc636a6d91845bea622e7a851a09be866bf895b1e745e052c3c8a89162b3",
+      "processed_size": [
+        224,
+        224
+      ],
+      "grid_shape": [
+        8,
+        8
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 104613,
+          "mj_margin": -2.5915307998657227,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.934187889099121,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "从容",
+            " vö",
+            "—\n\n"
+          ],
+          "plain_answer_rank": 110486,
+          "plain_margin": -3.8339691162109375,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 17.573604583740234,
+          "plain_top_tokens": [
+            "(___",
+            " Można",
+            "llx",
+            "尴",
+            " Jeśli"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 12855,
+          "mj_margin": -0.6171461343765259,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 11.27502727508545,
+          "mj_top_tokens": [
+            " ‘",
+            "‘",
+            " ('",
+            "—",
+            "显著"
+          ],
+          "plain_answer_rank": 64024,
+          "plain_margin": -1.5948734283447266,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 13.23032283782959,
+          "plain_top_tokens": [
+            "咣",
+            "季后",
+            "游戏里的",
+            "阈",
+            "尴"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 33125,
+          "mj_margin": -0.950620174407959,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 12.158044815063477,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "(\"$.",
+            "('@/",
+            "('.')",
+            " pewnością"
+          ],
+          "plain_answer_rank": 97607,
+          "plain_margin": -0.8559656143188477,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 14.815728187561035,
+          "plain_top_tokens": [
+            "应用查看",
+            "内马",
+            "在床上",
+            ".bunifuFlatButton",
+            "。。\n\n"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 1,
+          "mj_margin": 0.6596145629882812,
+          "mj_native_top20_overlap": 0.45,
+          "mj_kl_native": 0.7191562056541443,
+          "mj_top_tokens": [
+            "Open",
+            "Closed",
+            " Open",
+            " Closed",
+            "open"
+          ],
+          "plain_answer_rank": 1,
+          "plain_margin": 1.571187973022461,
+          "plain_native_top20_overlap": 0.35,
+          "plain_kl_native": 0.553352952003479,
+          "plain_top_tokens": [
+            "Open",
+            "Closed",
+            "-open",
+            " Closed",
+            " Open"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mmvp-2",
+      "dataset": "MMVP",
+      "question": "Are the butterfly's wings closer to being open or closed?",
+      "prompt_question": "Are the butterfly's wings closer to being open or closed?\nAnswer with exactly one of: Closed, Open. Do not add punctuation or explanation.",
+      "answer": "Closed",
+      "foil": "Open",
+      "generated": "Open",
+      "native_margin": -0.1330280303955078,
+      "native_answer_rank": 2,
+      "answer_token_id": 26884,
+      "foil_token_id": 5002,
+      "image_sha256": "e90500960115d85ace57365062e9237ceaafa3acbd04cafc3180a171055b23de",
+      "processed_size": [
+        224,
+        224
+      ],
+      "grid_shape": [
+        8,
+        8
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 39256,
+          "mj_margin": 2.5685625076293945,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.95327377319336,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            " vö",
+            "从容",
+            "—\n\n"
+          ],
+          "plain_answer_rank": 50764,
+          "plain_margin": 3.6615209579467773,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 17.367637634277344,
+          "plain_top_tokens": [
+            "llx",
+            " Można",
+            "(___",
+            "尴",
+            " Jeśli"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 8201,
+          "mj_margin": 0.6365669965744019,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 11.290507316589355,
+          "mj_top_tokens": [
+            " ‘",
+            "‘",
+            "显著",
+            "—",
+            " ('"
+          ],
+          "plain_answer_rank": 29947,
+          "plain_margin": 1.595491886138916,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 13.275174140930176,
+          "plain_top_tokens": [
+            "咣",
+            "季后",
+            "游戏里的",
+            "在床上",
+            "阈"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 17140,
+          "mj_margin": 1.189680576324463,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 12.065135955810547,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "(\"$.",
+            "('@/",
+            "('.')",
+            "().\""
+          ],
+          "plain_answer_rank": 77694,
+          "plain_margin": 1.1577954292297363,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 14.968466758728027,
+          "plain_top_tokens": [
+            "应用查看",
+            "内马",
+            "在床上",
+            ".bunifuFlatButton",
+            "当之"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 2,
+          "mj_margin": -0.6231880187988281,
+          "mj_native_top20_overlap": 0.5,
+          "mj_kl_native": 0.7305117845535278,
+          "mj_top_tokens": [
+            "Open",
+            "Closed",
+            " Open",
+            " Closed",
+            "open"
+          ],
+          "plain_answer_rank": 2,
+          "plain_margin": -1.5057563781738281,
+          "plain_native_top20_overlap": 0.35,
+          "plain_kl_native": 0.5429262518882751,
+          "plain_top_tokens": [
+            "Open",
+            "Closed",
+            "-open",
+            " Closed",
+            " Open"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vsr-zeroshot-test-0",
+      "dataset": "VSR",
+      "question": "Is this statement true? The car is behind the suitcase.",
+      "prompt_question": "Is this statement true? The car is behind the suitcase.\nAnswer with exactly one of: No, Yes. Do not add punctuation or explanation.",
+      "answer": "Yes",
+      "foil": "No",
+      "generated": "No",
+      "native_margin": -0.8683433532714844,
+      "native_answer_rank": 2,
+      "answer_token_id": 9454,
+      "foil_token_id": 2753,
+      "image_sha256": "891768e7572f142cfdc52b4e58a4525fcb5b26ecba3d22778aa640b92c1d06f7",
+      "processed_size": [
+        448,
+        448
+      ],
+      "grid_shape": [
+        16,
+        16
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 66282,
+          "mj_margin": -0.9458041191101074,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.058117866516113,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "从容",
+            " vö",
+            "☉"
+          ],
+          "plain_answer_rank": 48503,
+          "plain_margin": 5.218585014343262,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 19.141155242919922,
+          "plain_top_tokens": [
+            "(___",
+            "llx",
+            " Można",
+            "(gcf",
+            "讣"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 4534,
+          "mj_margin": 1.922411561012268,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 11.182868957519531,
+          "mj_top_tokens": [
+            "点儿",
+            " ‘",
+            " populace",
+            "‘",
+            "就得"
+          ],
+          "plain_answer_rank": 1335,
+          "plain_margin": 7.742733001708984,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 13.953632354736328,
+          "plain_top_tokens": [
+            "钞",
+            "咣",
+            "个项目",
+            "在床上",
+            "在网上"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 146,
+          "mj_margin": 2.6202268600463867,
+          "mj_native_top20_overlap": 0.05,
+          "mj_kl_native": 8.430620193481445,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "无法",
+            "否",
+            "不存在",
+            " Cannot"
+          ],
+          "plain_answer_rank": 35,
+          "plain_margin": 8.870609283447266,
+          "plain_native_top20_overlap": 0.05,
+          "plain_kl_native": 11.955133438110352,
+          "plain_top_tokens": [
+            "在床上",
+            "摇头",
+            "应用查看",
+            "autocomplete",
+            "/window"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 2,
+          "mj_margin": -1.1967754364013672,
+          "mj_native_top20_overlap": 0.5,
+          "mj_kl_native": 0.3013751804828644,
+          "mj_top_tokens": [
+            "No",
+            "Yes",
+            "no",
+            " No",
+            "yes"
+          ],
+          "plain_answer_rank": 2,
+          "plain_margin": -1.1990814208984375,
+          "plain_native_top20_overlap": 0.4,
+          "plain_kl_native": 0.07123921066522598,
+          "plain_top_tokens": [
+            "No",
+            "Yes",
+            " No",
+            " Yes",
+            " no"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vsr-zeroshot-test-1",
+      "dataset": "VSR",
+      "question": "Is this statement true? The cat is under the backpack.",
+      "prompt_question": "Is this statement true? The cat is under the backpack.\nAnswer with exactly one of: No, Yes. Do not add punctuation or explanation.",
+      "answer": "No",
+      "foil": "Yes",
+      "generated": "No",
+      "native_margin": 2.0434226989746094,
+      "native_answer_rank": 1,
+      "answer_token_id": 2753,
+      "foil_token_id": 9454,
+      "image_sha256": "2c0ac02fdf41eff574970666a1f138b740b4ce0b10ce56e4d395b49af6225359",
+      "processed_size": [
+        504,
+        364
+      ],
+      "grid_shape": [
+        13,
+        18
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 40272,
+          "mj_margin": 0.9356603622436523,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 13.153731346130371,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "从容",
+            " vö",
+            "☉"
+          ],
+          "plain_answer_rank": 127385,
+          "plain_margin": -4.738333225250244,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 20.78550910949707,
+          "plain_top_tokens": [
+            "(___",
+            "(gcf",
+            "llx",
+            "尴",
+            "应用查看"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 22864,
+          "mj_margin": -1.9849997758865356,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 11.732368469238281,
+          "mj_top_tokens": [
+            "点儿",
+            "事儿",
+            "这儿",
+            "就得",
+            "‘"
+          ],
+          "plain_answer_rank": 121824,
+          "plain_margin": -7.752399444580078,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 15.940814971923828,
+          "plain_top_tokens": [
+            "钞",
+            "偌",
+            "咣",
+            "胜负",
+            "虚空"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 1552,
+          "mj_margin": -2.3728675842285156,
+          "mj_native_top20_overlap": 0.05,
+          "mj_kl_native": 9.311017990112305,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "无法",
+            "否",
+            " Cannot",
+            "不存在"
+          ],
+          "plain_answer_rank": 102706,
+          "plain_margin": -8.606099128723145,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 14.694714546203613,
+          "plain_top_tokens": [
+            "在床上",
+            "摇头",
+            "应用查看",
+            "/window",
+            "在当地"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 1,
+          "mj_margin": 2.228668212890625,
+          "mj_native_top20_overlap": 0.45,
+          "mj_kl_native": 0.22691519558429718,
+          "mj_top_tokens": [
+            "No",
+            "Yes",
+            "no",
+            " No",
+            " no"
+          ],
+          "plain_answer_rank": 1,
+          "plain_margin": 2.979990005493164,
+          "plain_native_top20_overlap": 0.35,
+          "plain_kl_native": 0.08498968929052353,
+          "plain_top_tokens": [
+            "No",
+            "Yes",
+            " No",
+            " no",
+            "no"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "visonly_geometry__triangle",
+      "dataset": "VisOnlyQA",
+      "question": "There is no triangle ADP in the figure. True or False?\n\nA triangle is a polygon with three edges and three vertices, which are explicitly connected in the figure.",
+      "prompt_question": "There is no triangle ADP in the figure. True or False?\n\nA triangle is a polygon with three edges and three vertices, which are explicitly connected in the figure.\n\nYour response should only include the final answer (True, False). Do not include any reasoning or explanation in your response.",
+      "answer": "False",
+      "foil": "True",
+      "generated": "False",
+      "native_margin": 0.5132961273193359,
+      "native_answer_rank": 1,
+      "answer_token_id": 4049,
+      "foil_token_id": 2514,
+      "image_sha256": "a2079fefddf5ef7c558c13e19c182cedbb9188c6082f8c7ac0b24dc346c2e0a8",
+      "processed_size": [
+        112,
+        168
+      ],
+      "grid_shape": [
+        6,
+        4
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 121668,
+          "mj_margin": -2.072350025177002,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 15.667959213256836,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "—\n\n",
+            "从容",
+            " vö"
+          ],
+          "plain_answer_rank": 75946,
+          "plain_margin": 0.6327300071716309,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 16.773296356201172,
+          "plain_top_tokens": [
+            "llx",
+            "ndata",
+            "edBy",
+            ")>>",
+            "WindowSize"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 60784,
+          "mj_margin": 0.20583057403564453,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 16.513195037841797,
+          "mj_top_tokens": [
+            " (\\",
+            "✕",
+            " (`",
+            "—\n\n",
+            " …\n\n"
+          ],
+          "plain_answer_rank": 63178,
+          "plain_margin": 1.9756050109863281,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 17.08568572998047,
+          "plain_top_tokens": [
+            "季后",
+            "​\n\n",
+            "•\n\n",
+            "]**",
+            " Aydın"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 47954,
+          "mj_margin": 0.6236953735351562,
+          "mj_native_top20_overlap": 0.05,
+          "mj_kl_native": 15.481681823730469,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            " ```",
+            "```",
+            "\n\n",
+            "：\n\n"
+          ],
+          "plain_answer_rank": 73424,
+          "plain_margin": 0.3591928482055664,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 15.214960098266602,
+          "plain_top_tokens": [
+            "季后",
+            "应用查看",
+            "Triangles",
+            "(gcf",
+            "的答案"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 1,
+          "mj_margin": 0.1268482208251953,
+          "mj_native_top20_overlap": 0.45,
+          "mj_kl_native": 0.21733374893665314,
+          "mj_top_tokens": [
+            "False",
+            "True",
+            " False",
+            " True",
+            "false"
+          ],
+          "plain_answer_rank": 1,
+          "plain_margin": 0.18793487548828125,
+          "plain_native_top20_overlap": 0.4,
+          "plain_kl_native": 0.2791282534599304,
+          "plain_top_tokens": [
+            "False",
+            "True",
+            " False",
+            " True",
+            " false"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "visonly_charts__extraction",
+      "dataset": "VisOnlyQA",
+      "question": "Answer the following question about the chart in the figure. Select the most reasonable answer from the provided options.\n\nWhich of the following options is a reasonable estimate of the y-value for 2008? (a) 47077 (b) 44169 (c) 45158 (d) 47433 (e) 46670 ",
+      "prompt_question": "Answer the following question about the chart in the figure. Select the most reasonable answer from the provided options.\n\nWhich of the following options is a reasonable estimate of the y-value for 2008? (a) 47077 (b) 44169 (c) 45158 (d) 47433 (e) 46670 \n\nYour response should only include the final answer (a, b, c, d, e). Do not include any reasoning or explanation in your response.",
+      "answer": "e",
+      "foil": "a",
+      "generated": "a",
+      "native_margin": -3.3649444580078125,
+      "native_answer_rank": 5,
+      "answer_token_id": 68,
+      "foil_token_id": 64,
+      "image_sha256": "ae13194379170ce39b24d333e66823297624ebb6563f4ede7c50ddd22f651f87",
+      "processed_size": [
+        532,
+        364
+      ],
+      "grid_shape": [
+        13,
+        19
+      ],
+      "bbox_processed": null,
+      "metrics": [
+        {
+          "layer": 8,
+          "mj_answer_rank": 122646,
+          "mj_margin": 2.678036689758301,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 18.18838882446289,
+          "mj_top_tokens": [
+            " Gäste",
+            "ㅤ",
+            "—\n\n",
+            " vö",
+            "从容"
+          ],
+          "plain_answer_rank": 151723,
+          "plain_margin": -0.06034529209136963,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 27.057512283325195,
+          "plain_top_tokens": [
+            "llx",
+            "应用查看",
+            "魔法师和",
+            "(gcf",
+            "阃"
+          ]
+        },
+        {
+          "layer": 16,
+          "mj_answer_rank": 18167,
+          "mj_margin": 1.867016077041626,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 12.615240097045898,
+          "mj_top_tokens": [
+            " ('",
+            "([\\",
+            "显著",
+            " (\\",
+            " (["
+          ],
+          "plain_answer_rank": 148537,
+          "plain_margin": 1.0880225896835327,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 21.778196334838867,
+          "plain_top_tokens": [
+            "季后",
+            "啜",
+            "艏",
+            "爱奇",
+            "华尔"
+          ]
+        },
+        {
+          "layer": 24,
+          "mj_answer_rank": 125119,
+          "mj_margin": -1.0288746356964111,
+          "mj_native_top20_overlap": 0.0,
+          "mj_kl_native": 16.273616790771484,
+          "mj_top_tokens": [
+            "<|im_end|>",
+            "('#",
+            " Correct",
+            "('.')",
+            "(\"$."
+          ],
+          "plain_answer_rank": 151097,
+          "plain_margin": -2.148618698120117,
+          "plain_native_top20_overlap": 0.0,
+          "plain_kl_native": 18.12295150756836,
+          "plain_top_tokens": [
+            "(gcf",
+            "﻿\n\n",
+            "岿",
+            "难民",
+            " darm"
+          ]
+        },
+        {
+          "layer": 35,
+          "mj_answer_rank": 6,
+          "mj_margin": -3.4116125106811523,
+          "mj_native_top20_overlap": 0.7,
+          "mj_kl_native": 0.3504396975040436,
+          "mj_top_tokens": [
+            "a",
+            "(a",
+            "c",
+            "d",
+            "b"
+          ],
+          "plain_answer_rank": 5,
+          "plain_margin": -5.746265411376953,
+          "plain_native_top20_overlap": 0.65,
+          "plain_kl_native": 0.17842574417591095,
+          "plain_top_tokens": [
+            "a",
+            "(a",
+            "d",
+            "c",
+            "e"
+          ]
+        }
+      ]
+    }
+  ],
+  "question_swap_visual_max_abs_diff": 0.0,
+  "question_swap_visual_relative_diff": 0.0,
+  "question_swap_control": {
+    "question": "Is the shirt red or blue?\nAnswer with exactly one of: Red, Blue. Do not add punctuation or explanation.",
+    "length_matched": true,
+    "identical_image_prefix": true,
+    "sequence_length": 261
+  },
+  "save_load_max_abs_diff": 0.0,
+  "scope": "Eight fixed report cases on one pretrained checkpoint; not a dataset benchmark or causal attribution study",
+  "notebook_execution": {
+    "notebook": "10_mj_lens.ipynb",
+    "mode": "pretrained model execution; verified 32-image calibration resume; fresh held-out readouts",
+    "success": true,
+    "executed_code_cells": 9,
+    "total_code_cells": 9,
+    "rendered_image_outputs": 4,
+    "error_outputs": 0,
+    "code_sha256": "56da9c878c87933fecec17673b12fdccf769a976f74edd94ee739d19cf2bf71c",
+    "optional_training_skipped_by_default": [],
+    "source_script_sha256": "bfdc8e0514e72275f8a601e94fd35ac7527bcf2555064e9c0ed99699fb59e54f",
+    "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
+    "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+    "n_calibration": 32,
+    "n_showcase": 8,
+    "question_swap_visual_max_abs_diff": 0.0,
+    "save_load_max_abs_diff": 0.0
+  },
+  "original_full_run": {
+    "overall_seconds": 856.9749267101288,
+    "visual_calibration_input_loop_seconds": 419.02089834213257,
+    "text_calibration_input_loop_seconds": 419.5045976638794,
+    "compute": "one NVIDIA A100 80GB GPU",
+    "calibration": "fresh estimation on 32 independent images per channel",
+    "subsequent_notebook": "verified complete calibration resume; all held-out analysis computed fresh"
+  },
+  "figure_sha256": {
+    "lens-mj-report-spatial.png": "4123ac77c9adb796cb89fd14a67efe03e1559d29999947658dee57fb7ce2e40f",
+    "lens-mj-report-text-controls.png": "7de7cdf1bae789e7e55c9a5aec099a144389b26ce8913c0efb415a4dbd4dc99f",
+    "lens-mj-report-fidelity.png": "a9659f93545a59244088ae8c14bb05a437d2b0d763294a609ff40aa8c9ac0436",
+    "lens-mj-report-inputs.png": "4b4d7def96808febc525725a9d5402a463b562ef4f112f52e888d35eed35df85"
+  }
+}
