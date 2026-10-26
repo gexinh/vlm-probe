@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="172" height="32" viewBox="0 0 172 32" role="img" aria-label="Vision classifier">
+  <title>Vision classifier</title>
+  <rect x=".5" y=".5" width="171" height="31" rx="6" fill="#f0f7fc" stroke="#cadfea"/>
+  <g stroke="#3f7c9d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="10" y="8" width="17" height="16" rx="2"/><path d="M16 8v16M21 8v16M10 13h17M10 19h17"/></g>
+  <text x="36" y="16" dominant-baseline="central" fill="#293d55" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="600">Vision classifier</text>
+</svg>

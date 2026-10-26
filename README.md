@@ -167,17 +167,17 @@ see the [capability matrix](docs/models/README.md).
 
 | Family | Example checkpoint | Guide |
 | --- | --- | --- |
-| Qwen3-VL | Qwen3-VL-2B-Instruct | [Usage](docs/models/qwen3_vl.md) |
-| Qwen2.5-VL | Qwen2.5-VL-3B-Instruct | [Usage](docs/models/qwen2_5_vl.md) |
-| Qwen2-VL | Qwen2-VL-2B-Instruct | [Usage](docs/models/qwen2_vl.md) |
-| Qwen3.5 | Qwen3.5-4B; hybrid attention restrictions | [Usage](docs/models/qwen3_5.md) |
-| SmolVLM | SmolVLM-500M-Instruct | [Usage](docs/models/smolvlm.md) |
-| InternVL | InternVL3-1B-hf | [Usage](docs/models/internvl.md) |
-| LLaVA | llava-1.5-7b-hf | [Usage](docs/models/llava.md) |
-| Pixtral | Pixtral-12B-2409 | [Usage](docs/models/pixtral.md) |
-| Janus | Janus-Pro-1B / 7B, native Transformers format | [Usage](docs/models/janus.md) |
-| Language models | GPT-2 / Llama / Qwen2 / Qwen3 | [GPT-2](docs/models/gpt2.md) · [Llama](docs/models/llama.md) · [Qwen](docs/models/qwen_text.md) |
-| Vision classifier | ViT-B/16 | [Usage](docs/models/vit.md) |
+| <a href="docs/models/qwen3_vl.md"><img src="docs/assets/model-buttons/qwen3-vl.svg" alt="Qwen3-VL" width="172" height="32"></a> | Qwen3-VL-2B-Instruct | [Usage](docs/models/qwen3_vl.md) |
+| <a href="docs/models/qwen2_5_vl.md"><img src="docs/assets/model-buttons/qwen2-5-vl.svg" alt="Qwen2.5-VL" width="172" height="32"></a> | Qwen2.5-VL-3B-Instruct | [Usage](docs/models/qwen2_5_vl.md) |
+| <a href="docs/models/qwen2_vl.md"><img src="docs/assets/model-buttons/qwen2-vl.svg" alt="Qwen2-VL" width="172" height="32"></a> | Qwen2-VL-2B-Instruct | [Usage](docs/models/qwen2_vl.md) |
+| <a href="docs/models/qwen3_5.md"><img src="docs/assets/model-buttons/qwen3-5.svg" alt="Qwen3.5" width="172" height="32"></a> | Qwen3.5-4B; hybrid attention restrictions | [Usage](docs/models/qwen3_5.md) |
+| <a href="docs/models/smolvlm.md"><img src="docs/assets/model-buttons/smolvlm.svg" alt="SmolVLM" width="172" height="32"></a> | SmolVLM-500M-Instruct | [Usage](docs/models/smolvlm.md) |
+| <a href="docs/models/internvl.md"><img src="docs/assets/model-buttons/internvl.svg" alt="InternVL" width="172" height="32"></a> | InternVL3-1B-hf | [Usage](docs/models/internvl.md) |
+| <a href="docs/models/llava.md"><img src="docs/assets/model-buttons/llava.svg" alt="LLaVA" width="172" height="32"></a> | llava-1.5-7b-hf | [Usage](docs/models/llava.md) |
+| <a href="docs/models/pixtral.md"><img src="docs/assets/model-buttons/pixtral.svg" alt="Pixtral" width="172" height="32"></a> | Pixtral-12B-2409 | [Usage](docs/models/pixtral.md) |
+| <a href="docs/models/janus.md"><img src="docs/assets/model-buttons/janus.svg" alt="Janus" width="172" height="32"></a> | Janus-Pro-1B / 7B, native Transformers format | [Usage](docs/models/janus.md) |
+| <a href="docs/models/README.md"><img src="docs/assets/model-buttons/language-models.svg" alt="Language models" width="172" height="32"></a> | GPT-2 / Llama / Qwen2 / Qwen3 | [GPT-2](docs/models/gpt2.md) · [Llama](docs/models/llama.md) · [Qwen](docs/models/qwen_text.md) |
+| <a href="docs/models/vit.md"><img src="docs/assets/model-buttons/vision-classifier.svg" alt="Vision classifier" width="172" height="32"></a> | ViT-B/16 | [Usage](docs/models/vit.md) |
 
 ## Methods
 
