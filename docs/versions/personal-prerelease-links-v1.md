@@ -43,6 +43,8 @@ publication. The lab code remains at its current stable commit for review.
 - Both MJ and SAE notebooks completed all 10 code cells with zero errors and
   seven/two inline figures after the launch-binding update. Existing nine
   workflow cells and scientific outputs are preserved.
+- Colab notebook launch revision is
+  `gexinh/vlm-probe@c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6`.
 - Runtime source is pinned to
   `gexinh/vlm-probe@e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1`.
   Hosted Colab itself is not exercised by these local checks.

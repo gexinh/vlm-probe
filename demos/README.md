@@ -8,11 +8,13 @@ probe tensors or pre-rendered figures for live method execution.
 
 ## Start here
 
-Clone the repository to obtain the notebooks and attributed raw input samples:
+Clone the verified tutorial revision to obtain the notebooks and attributed
+raw input samples:
 
 ```bash
-git clone https://github.com/ubc-tea/vlm-probe.git
+git clone https://github.com/gexinh/vlm-probe.git
 cd vlm-probe
+git checkout c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6
 python -m pip install -e ".[sae,evaluation,transformers,visualization,notebooks]"
 jupyter lab demos
 ```
