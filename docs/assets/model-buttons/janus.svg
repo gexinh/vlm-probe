@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="172" height="32" viewBox="0 0 172 32" role="img" aria-label="Janus">
+  <title>Janus</title>
+  <rect x=".5" y=".5" width="171" height="31" rx="6" fill="#f1f3ff" stroke="#d2d8f2"/>
+  <g stroke="#626eb1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><circle cx="14.5" cy="16" r="6"/><circle cx="21.5" cy="16" r="6"/><path d="M18 11v10"/></g>
+  <text x="36" y="16" dominant-baseline="central" fill="#293d55" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="600">Janus</text>
+</svg>

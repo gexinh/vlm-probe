@@ -2,6 +2,7 @@
 """Build the README's local, individually linked method buttons."""
 from __future__ import annotations
 
+import re
 from html import escape
 from pathlib import Path
 
@@ -17,6 +18,7 @@ FAMILIES = (
         ("Tuned Lens", "tuned-lens", "tuned_lens.md"),
         ("Attention Lens", "attention-lens", "attention_lens.md"),
         ("Jacobian Lens", "jacobian-lens", "jacobian_lens.md"),
+        ("MJ-Lens", "mj-lens", "mj_lens.md"),
         ("EmbedLens", "embed-lens", "embed_lens.md"),
         ("Patchscopes", "patchscopes", "patchscope.md"),
     )),
@@ -78,6 +80,13 @@ def button_svg(label: str, fill: str, border: str, colour: str, icon: str) -> st
 
 
 def main() -> None:
+    readme = ROOT / "README.md"
+    text = readme.read_text()
+    before, rest = text.split("## Methods\n", 1)
+    next_section = re.search(r"(?m)^## [^\n]+(?:\n|$)", rest)
+    if next_section is None:
+        raise ValueError("README Methods section must have a following level-two heading.")
+    after = rest[next_section.start():]
     ASSETS.mkdir(parents=True, exist_ok=True)
     lines = []
     expected_assets = set()
@@ -99,15 +108,11 @@ def main() -> None:
     for path in ASSETS.glob("*.svg"):
         if path.name not in expected_assets:
             path.unlink()
-    readme = ROOT / "README.md"
-    text = readme.read_text()
-    before, rest = text.split("## Methods\n", 1)
-    _, after = rest.split("\n## Package Architecture\n", 1)
     intro = ("## Methods\n\n"
              "Each guide explains the implemented computation, parameters, outputs, and\n"
              "relationship to its original paper. Reusable primitives are labeled separately\n"
              "from paper methods.\n\n")
-    readme.write_text(before + intro + "\n".join(lines) + "\n## Package Architecture\n" + after)
+    readme.write_text(before + intro + "\n".join(lines) + "\n" + after)
     print(f"Built {len(expected_assets)} method buttons across {len(FAMILIES)} groups.")
 
 
