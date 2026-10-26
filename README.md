@@ -40,31 +40,6 @@ a measured zero effect.
 [Technical report](docs/assets/vlmprobe-technical-report.pdf) ·
 [Papers and datasets](docs/REFERENCES.md)
 
-## Notebook Tutorials
-
-Start with a complete input-to-result walkthrough. Each notebook shows native
-preprocessing, method calls, output inspection and visualization; calibration
-steps are included when the method needs them.
-
-| Feature | Notebook | Compute |
-| --- | --- | --- |
-| Text lenses: Logit, Tuned, Attention and Jacobian | [Open notebook](demos/lens_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/lens_comparison_demo.ipynb) | CPU or GPU; costly optional fits are labeled. |
-| VLM lenses: image inputs, readouts and calibration | [Open notebook](demos/vlm_lens_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/vlm_lens_demo.ipynb) | GPU recommended. |
-| MJ-Lens: bbox-region vocabulary across decoder layers | [Open notebook](demos/10_mj_lens.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/10_mj_lens.ipynb) | 24 GB+ CUDA recommended; independent image/caption calibration. |
-| ViT attention and attribution maps | [Open notebook](demos/attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/attention_comparison_demo.ipynb) | CPU or GPU. |
-| VLM attention: shared image and answer target | [Open notebook](demos/vlm_attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/vlm_attention_comparison_demo.ipynb) | GPU recommended. |
-| Activation and attribution patching | [Open notebook](demos/activation_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/activation_patching_demo.ipynb) | CPU or GPU. |
-| Attention Knockout | [Open notebook](demos/attention_knockout_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/attention_knockout_demo.ipynb) | GPU recommended. |
-| Path patching | [Open notebook](demos/path_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/path_patching_demo.ipynb) | CPU or GPU. |
-| Residual steering / VSV | [Open notebook](demos/steering_vsv_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/steering_vsv_demo.ipynb) | GPU recommended. |
-| EAP / EAP-IG | [Open notebook](demos/eap_ig_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/eap_ig_demo.ipynb) | CPU or GPU. |
-| Pretrained visual SAE: features, reconstruction and evaluation | [Open notebook](demos/11_sae_pretrained.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/11_sae_pretrained.ipynb) | 8 GB+ GPU recommended; no SAE training. |
-
-The [tutorial index](demos/README.md) lists checkpoints, input provenance and
-execution requirements. Colab buttons open a verified notebook revision with
-a pinned runtime source. Select a runtime with enough memory for the stated
-model and calibration workload.
-
 ## Installation
 
 Python 3.10+ is required. Install the current source version from GitHub:
@@ -272,6 +247,31 @@ from paper methods.
   <a href="docs/methods/attention_reweight.md"><img src="docs/assets/method-buttons/probability-reweighting.svg" alt="Probability reweighting" width="200" height="44"></a>
   <a href="docs/methods/attention_temperature.md"><img src="docs/assets/method-buttons/temperature.svg" alt="Temperature" width="200" height="44"></a>
 </p>
+
+## Notebook Tutorials
+
+Start with a complete input-to-result walkthrough. Each notebook shows native
+preprocessing, method calls, output inspection and visualization; calibration
+steps are included when the method needs them.
+
+| Feature | Notebook | Compute |
+| --- | --- | --- |
+| Text lenses: Logit, Tuned, Attention and Jacobian | [Open notebook](demos/lens_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/lens_comparison_demo.ipynb) | CPU or GPU; costly optional fits are labeled. |
+| VLM lenses: image inputs, readouts and calibration | [Open notebook](demos/vlm_lens_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/vlm_lens_demo.ipynb) | GPU recommended. |
+| MJ-Lens: bbox-region vocabulary across decoder layers | [Open notebook](demos/10_mj_lens.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/10_mj_lens.ipynb) | 24 GB+ CUDA recommended; independent image/caption calibration. |
+| ViT attention and attribution maps | [Open notebook](demos/attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/attention_comparison_demo.ipynb) | CPU or GPU. |
+| VLM attention: shared image and answer target | [Open notebook](demos/vlm_attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/vlm_attention_comparison_demo.ipynb) | GPU recommended. |
+| Activation and attribution patching | [Open notebook](demos/activation_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/activation_patching_demo.ipynb) | CPU or GPU. |
+| Attention Knockout | [Open notebook](demos/attention_knockout_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/attention_knockout_demo.ipynb) | GPU recommended. |
+| Path patching | [Open notebook](demos/path_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/path_patching_demo.ipynb) | CPU or GPU. |
+| Residual steering / VSV | [Open notebook](demos/steering_vsv_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/steering_vsv_demo.ipynb) | GPU recommended. |
+| EAP / EAP-IG | [Open notebook](demos/eap_ig_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/eap_ig_demo.ipynb) | CPU or GPU. |
+| Pretrained visual SAE: features, reconstruction and evaluation | [Open notebook](demos/11_sae_pretrained.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gexinh/vlm-probe/blob/c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6/demos/11_sae_pretrained.ipynb) | 8 GB+ GPU recommended; no SAE training. |
+
+The [tutorial index](demos/README.md) lists checkpoints, input provenance and
+execution requirements. Colab buttons open a verified notebook revision with
+a pinned runtime source. Select a runtime with enough memory for the stated
+model and calibration workload.
 
 ## Package Architecture
 
