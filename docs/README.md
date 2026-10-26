@@ -14,13 +14,14 @@ demo workflows.
 - [Visualization](VISUALIZATION.md): reusable lens heatmaps, image overlays, causal grids, curves, and graphs.
 - [Input geometry](INPUT_GEOMETRY.md): native visual grids, token counts, preprocessing summaries, and coordinate limits.
 - [Lens calibration](TRAINING.md): training and validation splits, author checkpoints, persistent optimization, and resumable Jacobian estimation.
-- [MJ-Lens](methods/mj_lens.md): pretrained VLM report-case walkthrough, modality-split calibration, native/plain controls and optional Janus visual-codebook readout.
+- [MJ-Lens](methods/mj_lens.md): bbox-region vocabulary across decoder layers, modality-split calibration, native/plain controls and optional Janus visual-codebook readout.
 - [SAE platform](methods/sae/README.md): native methods, one training engine, model cards, checkpoint imports and visualization.
-- [SAE tutorial](methods/sae/examples/README.md): a complete live image-to-feature workflow, including training and plots.
+- [Pretrained SAE notebook](../demos/11_sae_pretrained.ipynb): DINO/Prisma ReLU feature maps on raw report images, native [evaluation](methods/sae/evaluation/README.md) and plots, without SAE training.
+- [SAE training example](methods/sae/examples/README.md): a complete image-to-feature workflow for fitting your own dictionary.
 - [Package architecture](ARCHITECTURE.md): family base classes, adapters, execution, and results.
 - [Custom adapters](ADAPTERS.md): connect another architecture through an explicit contract.
 - [Papers and datasets](REFERENCES.md): original algorithms, author code, and data sources.
-- [Demos](../demos/README.md): live input-to-result notebooks, including calibration where required and built-in visualization.
+- [Notebook Tutorials](../README.md#notebook-tutorials): direct notebook and Colab links, with model and compute requirements in the [tutorial index](../demos/README.md).
 - [Technical report](assets/vlmprobe-technical-report.pdf): shared-case comparisons across five pretrained VLMs, plus language and vision controls.
 
 ## Choose a demo
@@ -29,7 +30,8 @@ demo workflows.
 | --- | --- |
 | How do residual and head readouts differ? | [Text lens comparison](../demos/lens_comparison_demo.ipynb) |
 | What do VLM layers and image embeddings decode to? | [VLM lens comparison](../demos/vlm_lens_demo.ipynb) |
-| How do modality-split readouts behave on the report's image/questions? | [Pretrained MJ-Lens](../demos/10_mj_lens.ipynb) |
+| What vocabulary tokens decode from the same boxed region across layers? | [MJ-Lens bbox readouts](../demos/10_mj_lens.ipynb) |
+| Which pretrained SAE features activate, and how well do they reconstruct? | [Pretrained visual SAE](../demos/11_sae_pretrained.ipynb) |
 | How do spatial attribution rules differ on one image? | [ViT attention comparison](../demos/attention_comparison_demo.ipynb) · [VLM attention comparison](../demos/vlm_attention_comparison_demo.ipynb) |
 | Which residual positions support an answer? | [Activation and attribution patching](../demos/activation_patching_demo.ipynb) |
 | Which attention route supports an answer? | [Attention Knockout](../demos/attention_knockout_demo.ipynb) |

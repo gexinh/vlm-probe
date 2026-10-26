@@ -35,10 +35,34 @@ a measured zero effect.
   <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
 
-[Documentation](docs/README.md) · [Demos](demos/README.md) ·
+[Documentation](docs/README.md) · [Notebook Tutorials](#notebook-tutorials) ·
 [Visualization](docs/VISUALIZATION.md) ·
 [Technical report](docs/assets/vlmprobe-technical-report.pdf) ·
 [Papers and datasets](docs/REFERENCES.md)
+
+## Notebook Tutorials
+
+Start with a complete input-to-result walkthrough. Each notebook shows native
+preprocessing, method calls, output inspection and visualization; calibration
+steps are included when the method needs them.
+
+| Feature | Notebook | Compute |
+| --- | --- | --- |
+| Text lenses: Logit, Tuned, Attention and Jacobian | [Open notebook](demos/lens_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/lens_comparison_demo.ipynb) | CPU or GPU; costly optional fits are labeled. |
+| VLM lenses: image inputs, readouts and calibration | [Open notebook](demos/vlm_lens_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/vlm_lens_demo.ipynb) | GPU recommended. |
+| MJ-Lens: bbox-region vocabulary across decoder layers | [Open notebook](demos/10_mj_lens.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/10_mj_lens.ipynb) | 24 GB+ CUDA recommended; independent image/caption calibration. |
+| ViT attention and attribution maps | [Open notebook](demos/attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/attention_comparison_demo.ipynb) | CPU or GPU. |
+| VLM attention: shared image and answer target | [Open notebook](demos/vlm_attention_comparison_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/vlm_attention_comparison_demo.ipynb) | GPU recommended. |
+| Activation and attribution patching | [Open notebook](demos/activation_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/activation_patching_demo.ipynb) | CPU or GPU. |
+| Attention Knockout | [Open notebook](demos/attention_knockout_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/attention_knockout_demo.ipynb) | GPU recommended. |
+| Path patching | [Open notebook](demos/path_patching_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/path_patching_demo.ipynb) | CPU or GPU. |
+| Residual steering / VSV | [Open notebook](demos/steering_vsv_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/steering_vsv_demo.ipynb) | GPU recommended. |
+| EAP / EAP-IG | [Open notebook](demos/eap_ig_demo.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/eap_ig_demo.ipynb) | CPU or GPU. |
+| Pretrained visual SAE: features, reconstruction and evaluation | [Open notebook](demos/11_sae_pretrained.ipynb) · [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ubc-tea/vlm-probe/blob/main/demos/11_sae_pretrained.ipynb) | 8 GB+ GPU recommended; no SAE training. |
+
+The [tutorial index](demos/README.md) lists checkpoints, input provenance and
+execution requirements. Colab buttons open the notebooks; select a runtime with
+enough memory for the stated model and calibration workload.
 
 ## Installation
 
@@ -75,8 +99,8 @@ Transformers 5.3.x and includes Accelerate, Torchvision, and Pillow;
 `visualization` provides the plotting dependencies. Add `notebooks` when using
 Jupyter. Model weights and complete datasets are downloaded separately.
 
-To develop the library in a checkout, use
-`python -m pip install -e ".[transformers,visualization,notebooks]"`.
+To run all notebook tutorials from a checkout, use
+`python -m pip install -e ".[sae,evaluation,transformers,visualization,notebooks]"`.
 The [package guide](docs/PACKAGING.md) covers wheels and release publication.
 
 ## Quick Start

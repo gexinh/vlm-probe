@@ -1,0 +1,2627 @@
+{
+  "schema": "vlmprobe-sae-report-inputs-v1",
+  "source_dataset": "COCO2017",
+  "annotation_source": "https://images.cocodataset.org/annotations/annotations_trainval2017.zip",
+  "annotation_archive_sha256": "113a836d90195ee1f884e704da6304dfaaecff1f023f49b6ca93c4aaae470268",
+  "calibration_selection": "from the report fixed 500-image train2017 manifest: first eight images by image ID for each declared category, deduplicate, fill to 32 by image ID; annotation-only selection before model execution",
+  "calibration_source_manifest_sha256": "7fa3dd4fa0f11f24b3abcacba6d805f0b3592dc98662964ec3f7b8df72638670",
+  "calibration_role": "select feature IDs and reference mean only; never train SAE/backbone",
+  "showcase_role": "fixed report val2017 examples; not used to choose features",
+  "categories": {
+    "1": "person",
+    "3": "car",
+    "18": "dog"
+  },
+  "calibration": [
+    {
+      "id": "coco2017:train2017:4764",
+      "image_id": 4764,
+      "split": "train2017",
+      "file_name": "000000004764.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000004764.jpg",
+      "image_sha256": "ad15323c3e6ae25a94a9d69cd66c5ef91723f060bf28dd5e1b3f1f50655bc0b2",
+      "image_size_wh": [
+        640,
+        364
+      ],
+      "annotations": [
+        {
+          "id": 150631,
+          "category_id": 4,
+          "bbox_xywh": [
+            9.0,
+            27.81,
+            625.75,
+            326.37
+          ]
+        },
+        {
+          "id": 208416,
+          "category_id": 1,
+          "bbox_xywh": [
+            412.38,
+            0.01,
+            135.55,
+            163.38
+          ]
+        },
+        {
+          "id": 1484969,
+          "category_id": 44,
+          "bbox_xywh": [
+            81.35,
+            22.96,
+            11.75,
+            38.89
+          ]
+        },
+        {
+          "id": 1509567,
+          "category_id": 47,
+          "bbox_xywh": [
+            37.11,
+            42.26,
+            16.96,
+            24.46
+          ]
+        },
+        {
+          "id": 1510115,
+          "category_id": 47,
+          "bbox_xywh": [
+            28.9,
+            46.72,
+            9.0,
+            18.33
+          ]
+        },
+        {
+          "id": 1512288,
+          "category_id": 47,
+          "bbox_xywh": [
+            66.54,
+            36.51,
+            15.22,
+            29.47
+          ]
+        },
+        {
+          "id": 1582615,
+          "category_id": 62,
+          "bbox_xywh": [
+            549.68,
+            103.88,
+            74.44,
+            107.16
+          ]
+        },
+        {
+          "id": 1886194,
+          "category_id": 47,
+          "bbox_xywh": [
+            102.82,
+            36.03,
+            16.58,
+            23.66
+          ]
+        },
+        {
+          "id": 1886615,
+          "category_id": 47,
+          "bbox_xywh": [
+            124.34,
+            43.14,
+            17.93,
+            17.94
+          ]
+        },
+        {
+          "id": 1886793,
+          "category_id": 47,
+          "bbox_xywh": [
+            86.71,
+            29.83,
+            14.88,
+            32.1
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:6996",
+      "image_id": 6996,
+      "split": "train2017",
+      "file_name": "000000006996.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000006996.jpg",
+      "image_sha256": "c15e9aa77d4b5fdc5f7b4e2319db875acf48d0839fc90c7dc08ed9a68ec850e4",
+      "image_size_wh": [
+        333,
+        500
+      ],
+      "annotations": [
+        {
+          "id": 12354,
+          "category_id": 18,
+          "bbox_xywh": [
+            16.68,
+            201.0,
+            57.47,
+            54.14
+          ]
+        },
+        {
+          "id": 125832,
+          "category_id": 2,
+          "bbox_xywh": [
+            112.07,
+            255.93,
+            125.0,
+            219.82
+          ]
+        },
+        {
+          "id": 223826,
+          "category_id": 1,
+          "bbox_xywh": [
+            96.36,
+            75.0,
+            115.65,
+            160.12
+          ]
+        },
+        {
+          "id": 2203983,
+          "category_id": 1,
+          "bbox_xywh": [
+            101.79,
+            155.49,
+            137.61,
+            257.69
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:7178",
+      "image_id": 7178,
+      "split": "train2017",
+      "file_name": "000000007178.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000007178.jpg",
+      "image_sha256": "e7ead86f08340a27d3d4772b01cedd1bdf23ab06f98398b0b965702b979ffbef",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 398460,
+          "category_id": 8,
+          "bbox_xywh": [
+            250.28,
+            162.49,
+            196.78,
+            100.3
+          ]
+        },
+        {
+          "id": 1247967,
+          "category_id": 1,
+          "bbox_xywh": [
+            325.55,
+            172.64,
+            9.5,
+            9.43
+          ]
+        },
+        {
+          "id": 1250532,
+          "category_id": 1,
+          "bbox_xywh": [
+            349.0,
+            175.28,
+            25.42,
+            19.55
+          ]
+        },
+        {
+          "id": 1776136,
+          "category_id": 3,
+          "bbox_xywh": [
+            472.82,
+            208.87,
+            27.05,
+            12.92
+          ]
+        },
+        {
+          "id": 1780098,
+          "category_id": 3,
+          "bbox_xywh": [
+            126.1,
+            192.63,
+            36.49,
+            12.61
+          ]
+        },
+        {
+          "id": 2039908,
+          "category_id": 3,
+          "bbox_xywh": [
+            550.5,
+            203.47,
+            53.83,
+            30.57
+          ]
+        },
+        {
+          "id": 2040198,
+          "category_id": 3,
+          "bbox_xywh": [
+            532.91,
+            205.6,
+            15.75,
+            8.39
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:9836",
+      "image_id": 9836,
+      "split": "train2017",
+      "file_name": "000000009836.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000009836.jpg",
+      "image_sha256": "195cf8cdca253a7fc1ffa17300b91b6d726cc8890caa1fbeea034d7c600e9005",
+      "image_size_wh": [
+        429,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 637866,
+          "category_id": 41,
+          "bbox_xywh": [
+            95.81,
+            162.27,
+            49.95,
+            79.83
+          ]
+        },
+        {
+          "id": 1233001,
+          "category_id": 1,
+          "bbox_xywh": [
+            113.61,
+            112.56,
+            234.73,
+            197.41
+          ]
+        },
+        {
+          "id": 1241173,
+          "category_id": 1,
+          "bbox_xywh": [
+            98.87,
+            471.69,
+            31.43,
+            88.19
+          ]
+        },
+        {
+          "id": 1261188,
+          "category_id": 1,
+          "bbox_xywh": [
+            284.97,
+            530.99,
+            40.34,
+            75.37
+          ]
+        },
+        {
+          "id": 1289613,
+          "category_id": 1,
+          "bbox_xywh": [
+            316.35,
+            532.32,
+            31.61,
+            70.63
+          ]
+        },
+        {
+          "id": 1291480,
+          "category_id": 1,
+          "bbox_xywh": [
+            339.86,
+            528.99,
+            27.13,
+            80.29
+          ]
+        },
+        {
+          "id": 1334598,
+          "category_id": 2,
+          "bbox_xywh": [
+            347.46,
+            497.78,
+            61.68,
+            49.14
+          ]
+        },
+        {
+          "id": 1400114,
+          "category_id": 16,
+          "bbox_xywh": [
+            231.23,
+            555.99,
+            29.08,
+            32.64
+          ]
+        },
+        {
+          "id": 1682083,
+          "category_id": 1,
+          "bbox_xywh": [
+            54.88,
+            513.88,
+            35.59,
+            72.6
+          ]
+        },
+        {
+          "id": 1692083,
+          "category_id": 1,
+          "bbox_xywh": [
+            363.25,
+            540.84,
+            31.92,
+            64.48
+          ]
+        },
+        {
+          "id": 1734129,
+          "category_id": 1,
+          "bbox_xywh": [
+            405.42,
+            526.14,
+            23.16,
+            63.76
+          ]
+        },
+        {
+          "id": 1813594,
+          "category_id": 15,
+          "bbox_xywh": [
+            278.66,
+            547.79,
+            61.07,
+            50.7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:12891",
+      "image_id": 12891,
+      "split": "train2017",
+      "file_name": "000000012891.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000012891.jpg",
+      "image_sha256": "e0a3a7732c6007cfb098699cc492cf555f920972812e181e8b63298065da65bc",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "annotations": [
+        {
+          "id": 135539,
+          "category_id": 3,
+          "bbox_xywh": [
+            88.92,
+            273.37,
+            33.28,
+            13.64
+          ]
+        },
+        {
+          "id": 172853,
+          "category_id": 7,
+          "bbox_xywh": [
+            121.9,
+            230.02,
+            287.35,
+            76.19
+          ]
+        },
+        {
+          "id": 189683,
+          "category_id": 1,
+          "bbox_xywh": [
+            41.96,
+            287.42,
+            8.52,
+            25.35
+          ]
+        },
+        {
+          "id": 204899,
+          "category_id": 1,
+          "bbox_xywh": [
+            35.32,
+            288.82,
+            7.64,
+            24.26
+          ]
+        },
+        {
+          "id": 206428,
+          "category_id": 1,
+          "bbox_xywh": [
+            552.07,
+            245.77,
+            19.46,
+            63.5
+          ]
+        },
+        {
+          "id": 223277,
+          "category_id": 1,
+          "bbox_xywh": [
+            535.5,
+            268.49,
+            10.09,
+            34.79
+          ]
+        },
+        {
+          "id": 225314,
+          "category_id": 1,
+          "bbox_xywh": [
+            513.08,
+            251.86,
+            9.14,
+            28.03
+          ]
+        },
+        {
+          "id": 255487,
+          "category_id": 1,
+          "bbox_xywh": [
+            497.32,
+            251.93,
+            13.46,
+            30.11
+          ]
+        },
+        {
+          "id": 257968,
+          "category_id": 1,
+          "bbox_xywh": [
+            48.62,
+            286.44,
+            5.61,
+            23.31
+          ]
+        },
+        {
+          "id": 1236053,
+          "category_id": 1,
+          "bbox_xywh": [
+            504.18,
+            249.99,
+            9.06,
+            31.35
+          ]
+        },
+        {
+          "id": 2229546,
+          "category_id": 1,
+          "bbox_xywh": [
+            487.74,
+            253.82,
+            9.58,
+            31.86
+          ]
+        },
+        {
+          "id": 2229560,
+          "category_id": 1,
+          "bbox_xywh": [
+            479.84,
+            248.34,
+            10.31,
+            37.83
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:14676",
+      "image_id": 14676,
+      "split": "train2017",
+      "file_name": "000000014676.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000014676.jpg",
+      "image_sha256": "84b9c9b2741a17ba59626940f6ce5bb20d69c9f0b5ab06aeab2f27bae840f831",
+      "image_size_wh": [
+        640,
+        478
+      ],
+      "annotations": [
+        {
+          "id": 103244,
+          "category_id": 62,
+          "bbox_xywh": [
+            338.2,
+            3.08,
+            120.27,
+            79.16
+          ]
+        },
+        {
+          "id": 119038,
+          "category_id": 67,
+          "bbox_xywh": [
+            1.13,
+            37.01,
+            638.46,
+            435.06
+          ]
+        },
+        {
+          "id": 663738,
+          "category_id": 46,
+          "bbox_xywh": [
+            279.75,
+            0.77,
+            81.61,
+            141.62
+          ]
+        },
+        {
+          "id": 685911,
+          "category_id": 48,
+          "bbox_xywh": [
+            26.85,
+            230.94,
+            154.68,
+            204.09
+          ]
+        },
+        {
+          "id": 695551,
+          "category_id": 49,
+          "bbox_xywh": [
+            423.68,
+            112.94,
+            188.49,
+            61.17
+          ]
+        },
+        {
+          "id": 702350,
+          "category_id": 50,
+          "bbox_xywh": [
+            238.64,
+            69.86,
+            76.14,
+            28.11
+          ]
+        },
+        {
+          "id": 1073336,
+          "category_id": 59,
+          "bbox_xywh": [
+            160.05,
+            124.67,
+            365.21,
+            192.28
+          ]
+        },
+        {
+          "id": 1076411,
+          "category_id": 59,
+          "bbox_xywh": [
+            1.07,
+            46.93,
+            195.5,
+            63.38
+          ]
+        },
+        {
+          "id": 1685643,
+          "category_id": 1,
+          "bbox_xywh": [
+            406.33,
+            333.83,
+            233.67,
+            144.17
+          ]
+        },
+        {
+          "id": 1943659,
+          "category_id": 62,
+          "bbox_xywh": [
+            466.33,
+            2.94,
+            148.24,
+            114.77
+          ]
+        },
+        {
+          "id": 1946405,
+          "category_id": 62,
+          "bbox_xywh": [
+            457.45,
+            1.06,
+            97.11,
+            37.62
+          ]
+        },
+        {
+          "id": 1947263,
+          "category_id": 62,
+          "bbox_xywh": [
+            191.08,
+            0.0,
+            101.48,
+            41.51
+          ]
+        },
+        {
+          "id": 2006767,
+          "category_id": 1,
+          "bbox_xywh": [
+            0.0,
+            0.0,
+            194.12,
+            62.77
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:19134",
+      "image_id": 19134,
+      "split": "train2017",
+      "file_name": "000000019134.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000019134.jpg",
+      "image_sha256": "0a6ae3b71f379623424ca9cb648dae569c5303a67cb897cf8e623a66e534aa95",
+      "image_size_wh": [
+        640,
+        511
+      ],
+      "annotations": [
+        {
+          "id": 350789,
+          "category_id": 3,
+          "bbox_xywh": [
+            316.89,
+            131.46,
+            49.11,
+            24.05
+          ]
+        },
+        {
+          "id": 355594,
+          "category_id": 3,
+          "bbox_xywh": [
+            270.14,
+            131.56,
+            68.04,
+            23.17
+          ]
+        },
+        {
+          "id": 501218,
+          "category_id": 1,
+          "bbox_xywh": [
+            212.44,
+            119.42,
+            296.26,
+            344.5
+          ]
+        },
+        {
+          "id": 638823,
+          "category_id": 41,
+          "bbox_xywh": [
+            482.67,
+            231.71,
+            51.01,
+            118.78
+          ]
+        },
+        {
+          "id": 1372882,
+          "category_id": 8,
+          "bbox_xywh": [
+            222.73,
+            123.21,
+            69.25,
+            30.83
+          ]
+        },
+        {
+          "id": 1374021,
+          "category_id": 8,
+          "bbox_xywh": [
+            415.11,
+            120.08,
+            74.19,
+            48.52
+          ]
+        },
+        {
+          "id": 1374124,
+          "category_id": 8,
+          "bbox_xywh": [
+            542.47,
+            123.27,
+            76.74,
+            54.9
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:19471",
+      "image_id": 19471,
+      "split": "train2017",
+      "file_name": "000000019471.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000019471.jpg",
+      "image_sha256": "7e2deba77bd412a7dae77a0e2513026357f9a250a3eacf388297208340932aed",
+      "image_size_wh": [
+        640,
+        426
+      ],
+      "annotations": [
+        {
+          "id": 56239,
+          "category_id": 19,
+          "bbox_xywh": [
+            177.1,
+            165.61,
+            93.82,
+            201.99
+          ]
+        },
+        {
+          "id": 56948,
+          "category_id": 19,
+          "bbox_xywh": [
+            249.86,
+            192.42,
+            177.1,
+            171.36
+          ]
+        },
+        {
+          "id": 254176,
+          "category_id": 1,
+          "bbox_xywh": [
+            448.56,
+            170.91,
+            55.25,
+            80.85
+          ]
+        },
+        {
+          "id": 260460,
+          "category_id": 1,
+          "bbox_xywh": [
+            404.4,
+            175.67,
+            52.07,
+            73.81
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:8179",
+      "image_id": 8179,
+      "split": "train2017",
+      "file_name": "000000008179.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000008179.jpg",
+      "image_sha256": "2937ba70ec4af39509462d6a4105908e0478e8483ed0ce105569bf91b9aa209b",
+      "image_size_wh": [
+        500,
+        333
+      ],
+      "annotations": [
+        {
+          "id": 346298,
+          "category_id": 3,
+          "bbox_xywh": [
+            94.24,
+            175.68,
+            54.02,
+            41.4
+          ]
+        },
+        {
+          "id": 407302,
+          "category_id": 10,
+          "bbox_xywh": [
+            292.59,
+            0.0,
+            196.06,
+            180.34
+          ]
+        },
+        {
+          "id": 1382896,
+          "category_id": 10,
+          "bbox_xywh": [
+            186.0,
+            0.0,
+            116.82,
+            147.66
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:28560",
+      "image_id": 28560,
+      "split": "train2017",
+      "file_name": "000000028560.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000028560.jpg",
+      "image_sha256": "ea0d3835f991d629652d703d3e796897ffa21e1a8c7fd8d9d81cac840d1243f5",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 104219,
+          "category_id": 62,
+          "bbox_xywh": [
+            0.0,
+            112.6,
+            98.75,
+            166.41
+          ]
+        },
+        {
+          "id": 109371,
+          "category_id": 62,
+          "bbox_xywh": [
+            0.92,
+            110.19,
+            26.63,
+            76.22
+          ]
+        },
+        {
+          "id": 151159,
+          "category_id": 4,
+          "bbox_xywh": [
+            223.78,
+            244.27,
+            114.89,
+            151.83
+          ]
+        },
+        {
+          "id": 202062,
+          "category_id": 1,
+          "bbox_xywh": [
+            132.12,
+            125.42,
+            125.42,
+            293.92
+          ]
+        },
+        {
+          "id": 225319,
+          "category_id": 1,
+          "bbox_xywh": [
+            281.12,
+            166.16,
+            99.61,
+            219.03
+          ]
+        },
+        {
+          "id": 242845,
+          "category_id": 3,
+          "bbox_xywh": [
+            480.29,
+            98.71,
+            159.71,
+            328.16
+          ]
+        },
+        {
+          "id": 1373363,
+          "category_id": 8,
+          "bbox_xywh": [
+            40.3,
+            99.79,
+            342.56,
+            165.05
+          ]
+        },
+        {
+          "id": 1677158,
+          "category_id": 1,
+          "bbox_xywh": [
+            405.0,
+            119.95,
+            12.64,
+            11.21
+          ]
+        },
+        {
+          "id": 1719827,
+          "category_id": 1,
+          "bbox_xywh": [
+            378.47,
+            112.3,
+            14.0,
+            40.36
+          ]
+        },
+        {
+          "id": 2015480,
+          "category_id": 1,
+          "bbox_xywh": [
+            509.5,
+            140.04,
+            69.21,
+            77.37
+          ]
+        },
+        {
+          "id": 2053476,
+          "category_id": 8,
+          "bbox_xywh": [
+            352.69,
+            105.36,
+            140.86,
+            196.31
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:44117",
+      "image_id": 44117,
+      "split": "train2017",
+      "file_name": "000000044117.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000044117.jpg",
+      "image_sha256": "f0c5f797795a6f090e3dbe9fa65cfd7996e34b09f1470311e192a4536aaca157",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 140050,
+          "category_id": 3,
+          "bbox_xywh": [
+            402.22,
+            107.73,
+            20.26,
+            13.18
+          ]
+        },
+        {
+          "id": 185010,
+          "category_id": 1,
+          "bbox_xywh": [
+            269.8,
+            202.87,
+            65.59,
+            113.01
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:57071",
+      "image_id": 57071,
+      "split": "train2017",
+      "file_name": "000000057071.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000057071.jpg",
+      "image_sha256": "2e2be24993bd9ab104cf07338d45ae88ad5975f996e50995b5c60b729497cdaf",
+      "image_size_wh": [
+        480,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 345186,
+          "category_id": 3,
+          "bbox_xywh": [
+            125.91,
+            76.2,
+            89.66,
+            32.76
+          ]
+        },
+        {
+          "id": 346799,
+          "category_id": 3,
+          "bbox_xywh": [
+            100.77,
+            75.5,
+            9.1,
+            8.26
+          ]
+        },
+        {
+          "id": 355576,
+          "category_id": 3,
+          "bbox_xywh": [
+            89.96,
+            77.51,
+            17.55,
+            12.56
+          ]
+        },
+        {
+          "id": 362506,
+          "category_id": 3,
+          "bbox_xywh": [
+            65.76,
+            76.84,
+            27.54,
+            15.52
+          ]
+        },
+        {
+          "id": 363079,
+          "category_id": 3,
+          "bbox_xywh": [
+            43.82,
+            79.95,
+            35.95,
+            12.62
+          ]
+        },
+        {
+          "id": 364036,
+          "category_id": 3,
+          "bbox_xywh": [
+            2.13,
+            79.19,
+            21.24,
+            13.84
+          ]
+        },
+        {
+          "id": 364349,
+          "category_id": 3,
+          "bbox_xywh": [
+            9.62,
+            75.35,
+            33.83,
+            18.55
+          ]
+        },
+        {
+          "id": 417375,
+          "category_id": 11,
+          "bbox_xywh": [
+            145.31,
+            238.09,
+            165.42,
+            341.54
+          ]
+        },
+        {
+          "id": 1773535,
+          "category_id": 3,
+          "bbox_xywh": [
+            160.89,
+            76.16,
+            34.52,
+            6.04
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:84396",
+      "image_id": 84396,
+      "split": "train2017",
+      "file_name": "000000084396.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000084396.jpg",
+      "image_sha256": "19a4a88fdc006f5689e83c1572b371b35004efa6a3726e9da9f756c121d997d4",
+      "image_size_wh": [
+        480,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 454728,
+          "category_id": 1,
+          "bbox_xywh": [
+            66.16,
+            138.07,
+            409.88,
+            493.3
+          ]
+        },
+        {
+          "id": 476752,
+          "category_id": 1,
+          "bbox_xywh": [
+            333.49,
+            75.48,
+            71.36,
+            259.88
+          ]
+        },
+        {
+          "id": 1348710,
+          "category_id": 3,
+          "bbox_xywh": [
+            446.43,
+            271.4,
+            24.51,
+            27.52
+          ]
+        },
+        {
+          "id": 1773979,
+          "category_id": 3,
+          "bbox_xywh": [
+            443.32,
+            272.23,
+            6.06,
+            27.19
+          ]
+        },
+        {
+          "id": 1825331,
+          "category_id": 27,
+          "bbox_xywh": [
+            395.13,
+            140.98,
+            40.37,
+            88.81
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:22427",
+      "image_id": 22427,
+      "split": "train2017",
+      "file_name": "000000022427.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000022427.jpg",
+      "image_sha256": "6dfa0e2c7bf01bdd0e1cf8341cdfd8cc13dd00984473e76983d6b0424fa3aed4",
+      "image_size_wh": [
+        427,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 8250,
+          "category_id": 18,
+          "bbox_xywh": [
+            0.0,
+            394.17,
+            238.23,
+            168.69
+          ]
+        },
+        {
+          "id": 464476,
+          "category_id": 1,
+          "bbox_xywh": [
+            79.1,
+            112.18,
+            129.44,
+            312.09
+          ]
+        },
+        {
+          "id": 639667,
+          "category_id": 41,
+          "bbox_xywh": [
+            71.3,
+            517.37,
+            157.54,
+            32.77
+          ]
+        },
+        {
+          "id": 1827160,
+          "category_id": 27,
+          "bbox_xywh": [
+            30.97,
+            265.87,
+            76.91,
+            145.27
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:23737",
+      "image_id": 23737,
+      "split": "train2017",
+      "file_name": "000000023737.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000023737.jpg",
+      "image_sha256": "c69b44c169dce09c10a6497d5788df06a4cb3d4e5128045c0c7dcc2283164688",
+      "image_size_wh": [
+        333,
+        500
+      ],
+      "annotations": [
+        {
+          "id": 16247,
+          "category_id": 18,
+          "bbox_xywh": [
+            158.61,
+            120.84,
+            105.96,
+            94.64
+          ]
+        },
+        {
+          "id": 189201,
+          "category_id": 1,
+          "bbox_xywh": [
+            16.13,
+            154.91,
+            184.95,
+            336.56
+          ]
+        },
+        {
+          "id": 256385,
+          "category_id": 1,
+          "bbox_xywh": [
+            238.66,
+            191.79,
+            4.86,
+            6.47
+          ]
+        },
+        {
+          "id": 645218,
+          "category_id": 41,
+          "bbox_xywh": [
+            122.63,
+            378.21,
+            91.01,
+            95.41
+          ]
+        },
+        {
+          "id": 1205477,
+          "category_id": 1,
+          "bbox_xywh": [
+            254.09,
+            188.36,
+            7.44,
+            23.7
+          ]
+        },
+        {
+          "id": 1214489,
+          "category_id": 1,
+          "bbox_xywh": [
+            226.28,
+            190.54,
+            3.09,
+            12.05
+          ]
+        },
+        {
+          "id": 1244147,
+          "category_id": 1,
+          "bbox_xywh": [
+            280.81,
+            187.77,
+            3.7,
+            7.6
+          ]
+        },
+        {
+          "id": 1274492,
+          "category_id": 1,
+          "bbox_xywh": [
+            283.79,
+            187.58,
+            3.39,
+            12.48
+          ]
+        },
+        {
+          "id": 1275801,
+          "category_id": 1,
+          "bbox_xywh": [
+            291.6,
+            190.05,
+            5.99,
+            13.81
+          ]
+        },
+        {
+          "id": 1276168,
+          "category_id": 1,
+          "bbox_xywh": [
+            47.69,
+            186.98,
+            6.85,
+            10.01
+          ]
+        },
+        {
+          "id": 1477918,
+          "category_id": 41,
+          "bbox_xywh": [
+            250.81,
+            209.38,
+            9.2,
+            1.79
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:24204",
+      "image_id": 24204,
+      "split": "train2017",
+      "file_name": "000000024204.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000024204.jpg",
+      "image_sha256": "118f501b9effea0bdc67eab0fb59f37761295dbaa43fb24072a066ef6faa0afb",
+      "image_size_wh": [
+        500,
+        375
+      ],
+      "annotations": [
+        {
+          "id": 12285,
+          "category_id": 18,
+          "bbox_xywh": [
+            406.82,
+            268.81,
+            54.54,
+            70.46
+          ]
+        },
+        {
+          "id": 114030,
+          "category_id": 63,
+          "bbox_xywh": [
+            76.61,
+            95.97,
+            336.29,
+            225.8
+          ]
+        },
+        {
+          "id": 1111863,
+          "category_id": 75,
+          "bbox_xywh": [
+            286.11,
+            168.65,
+            15.36,
+            17.83
+          ]
+        },
+        {
+          "id": 1589221,
+          "category_id": 62,
+          "bbox_xywh": [
+            1.27,
+            318.85,
+            169.35,
+            55.09
+          ]
+        },
+        {
+          "id": 1671045,
+          "category_id": 86,
+          "bbox_xywh": [
+            22.64,
+            192.8,
+            32.25,
+            45.72
+          ]
+        },
+        {
+          "id": 2127528,
+          "category_id": 64,
+          "bbox_xywh": [
+            303.67,
+            78.93,
+            25.17,
+            18.74
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:136720",
+      "image_id": 136720,
+      "split": "train2017",
+      "file_name": "000000136720.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000136720.jpg",
+      "image_sha256": "1ebd91b259392281a0f8b9d2cb5b23cf21c296cb4f8ffec595fe063eaee76906",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "annotations": [
+        {
+          "id": 82828,
+          "category_id": 44,
+          "bbox_xywh": [
+            404.81,
+            19.65,
+            22.73,
+            61.83
+          ]
+        },
+        {
+          "id": 92152,
+          "category_id": 44,
+          "bbox_xywh": [
+            453.14,
+            26.2,
+            34.25,
+            84.29
+          ]
+        },
+        {
+          "id": 1093983,
+          "category_id": 70,
+          "bbox_xywh": [
+            0.0,
+            3.27,
+            124.08,
+            261.22
+          ]
+        },
+        {
+          "id": 1484311,
+          "category_id": 44,
+          "bbox_xywh": [
+            424.78,
+            56.07,
+            73.25,
+            112.09
+          ]
+        },
+        {
+          "id": 1817340,
+          "category_id": 18,
+          "bbox_xywh": [
+            257.24,
+            69.29,
+            176.03,
+            193.3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:169426",
+      "image_id": 169426,
+      "split": "train2017",
+      "file_name": "000000169426.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000169426.jpg",
+      "image_sha256": "3779c319a10d7a22dd8896538f08e3d7c52403d550f2993be43b6368ad10a37b",
+      "image_size_wh": [
+        494,
+        500
+      ],
+      "annotations": [
+        {
+          "id": 13129,
+          "category_id": 18,
+          "bbox_xywh": [
+            60.61,
+            13.13,
+            162.62,
+            157.58
+          ]
+        },
+        {
+          "id": 17079,
+          "category_id": 18,
+          "bbox_xywh": [
+            251.61,
+            15.05,
+            232.26,
+            315.06
+          ]
+        },
+        {
+          "id": 51943,
+          "category_id": 17,
+          "bbox_xywh": [
+            32.26,
+            191.47,
+            211.83,
+            200.0
+          ]
+        },
+        {
+          "id": 52467,
+          "category_id": 17,
+          "bbox_xywh": [
+            287.47,
+            331.2,
+            195.75,
+            156.6
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:176697",
+      "image_id": 176697,
+      "split": "train2017",
+      "file_name": "000000176697.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000176697.jpg",
+      "image_sha256": "afedf309e028baffeeb4f32c9ed01ad0006e2eb03589b651fd43b5ba4550c95e",
+      "image_size_wh": [
+        640,
+        425
+      ],
+      "annotations": [
+        {
+          "id": 3212,
+          "category_id": 18,
+          "bbox_xywh": [
+            229.18,
+            0.94,
+            236.01,
+            419.01
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:260738",
+      "image_id": 260738,
+      "split": "train2017",
+      "file_name": "000000260738.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000260738.jpg",
+      "image_sha256": "184822051d8fb21f1895e3c7d17ed560e36a10f25e434022d6fb660f40aff00f",
+      "image_size_wh": [
+        640,
+        428
+      ],
+      "annotations": [
+        {
+          "id": 2801,
+          "category_id": 18,
+          "bbox_xywh": [
+            274.96,
+            130.56,
+            65.71,
+            122.78
+          ]
+        },
+        {
+          "id": 85270,
+          "category_id": 44,
+          "bbox_xywh": [
+            543.37,
+            193.9,
+            20.25,
+            50.16
+          ]
+        },
+        {
+          "id": 1043915,
+          "category_id": 52,
+          "bbox_xywh": [
+            350.61,
+            400.7,
+            28.62,
+            27.3
+          ]
+        },
+        {
+          "id": 1044970,
+          "category_id": 52,
+          "bbox_xywh": [
+            281.35,
+            310.45,
+            20.99,
+            10.68
+          ]
+        },
+        {
+          "id": 1046020,
+          "category_id": 52,
+          "bbox_xywh": [
+            339.05,
+            304.84,
+            16.9,
+            16.9
+          ]
+        },
+        {
+          "id": 1046228,
+          "category_id": 52,
+          "bbox_xywh": [
+            448.39,
+            285.64,
+            64.41,
+            68.53
+          ]
+        },
+        {
+          "id": 1046270,
+          "category_id": 52,
+          "bbox_xywh": [
+            527.32,
+            283.09,
+            56.72,
+            49.74
+          ]
+        },
+        {
+          "id": 1046746,
+          "category_id": 52,
+          "bbox_xywh": [
+            511.56,
+            340.95,
+            17.78,
+            16.64
+          ]
+        },
+        {
+          "id": 1046779,
+          "category_id": 52,
+          "bbox_xywh": [
+            376.73,
+            302.76,
+            108.63,
+            103.91
+          ]
+        },
+        {
+          "id": 1046834,
+          "category_id": 52,
+          "bbox_xywh": [
+            300.81,
+            344.58,
+            15.05,
+            16.56
+          ]
+        },
+        {
+          "id": 1046878,
+          "category_id": 52,
+          "bbox_xywh": [
+            179.58,
+            340.62,
+            14.4,
+            16.16
+          ]
+        },
+        {
+          "id": 1046942,
+          "category_id": 52,
+          "bbox_xywh": [
+            149.51,
+            297.47,
+            21.36,
+            10.3
+          ]
+        },
+        {
+          "id": 1046964,
+          "category_id": 52,
+          "bbox_xywh": [
+            234.93,
+            313.5,
+            15.76,
+            12.4
+          ]
+        },
+        {
+          "id": 1046985,
+          "category_id": 52,
+          "bbox_xywh": [
+            176.31,
+            303.16,
+            54.12,
+            33.33
+          ]
+        },
+        {
+          "id": 1046989,
+          "category_id": 52,
+          "bbox_xywh": [
+            157.2,
+            315.76,
+            9.58,
+            6.43
+          ]
+        },
+        {
+          "id": 1046996,
+          "category_id": 52,
+          "bbox_xywh": [
+            319.96,
+            300.43,
+            10.45,
+            12.71
+          ]
+        },
+        {
+          "id": 1543469,
+          "category_id": 52,
+          "bbox_xywh": [
+            242.9,
+            268.82,
+            48.82,
+            22.21
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:3799",
+      "image_id": 3799,
+      "split": "train2017",
+      "file_name": "000000003799.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000003799.jpg",
+      "image_sha256": "5aaea11bd4d39b89f55f162cdadaa94adafcc55371c1dbaa7c6457c1fd2bcf5a",
+      "image_size_wh": [
+        480,
+        640
+      ],
+      "annotations": []
+    },
+    {
+      "id": "coco2017:train2017:5991",
+      "image_id": 5991,
+      "split": "train2017",
+      "file_name": "000000005991.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000005991.jpg",
+      "image_sha256": "e502c69ad435eef13f03137d306ea2dc00711eb6bb7a24c984f49e8bab13ad6c",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 161794,
+          "category_id": 5,
+          "bbox_xywh": [
+            138.24,
+            177.51,
+            364.02,
+            96.86
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:6263",
+      "image_id": 6263,
+      "split": "train2017",
+      "file_name": "000000006263.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000006263.jpg",
+      "image_sha256": "d6e3511e478cb7974c227156440a159704a89c7314d85e905cef299f0cd8b8d8",
+      "image_size_wh": [
+        375,
+        500
+      ],
+      "annotations": [
+        {
+          "id": 113425,
+          "category_id": 63,
+          "bbox_xywh": [
+            0.0,
+            145.49,
+            375.0,
+            273.57
+          ]
+        },
+        {
+          "id": 1151494,
+          "category_id": 86,
+          "bbox_xywh": [
+            159.55,
+            231.12,
+            92.14,
+            249.44
+          ]
+        },
+        {
+          "id": 2194621,
+          "category_id": 67,
+          "bbox_xywh": [
+            1.3,
+            352.86,
+            373.7,
+            140.26
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:8773",
+      "image_id": 8773,
+      "split": "train2017",
+      "file_name": "000000008773.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000008773.jpg",
+      "image_sha256": "9b21b489de1da734246d2f8fa16e04fd7411a3bf8c5d60a3f01f9de4ac2435fa",
+      "image_size_wh": [
+        424,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 1041902,
+          "category_id": 52,
+          "bbox_xywh": [
+            51.78,
+            83.18,
+            340.85,
+            325.03
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:9064",
+      "image_id": 9064,
+      "split": "train2017",
+      "file_name": "000000009064.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000009064.jpg",
+      "image_sha256": "d79292510e1af7742c3f2ded9cdb442a3c28bdfc518d081bf6e5c15e29602d7d",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 170349,
+          "category_id": 7,
+          "bbox_xywh": [
+            5.76,
+            166.0,
+            563.25,
+            184.24
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:10954",
+      "image_id": 10954,
+      "split": "train2017",
+      "file_name": "000000010954.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000010954.jpg",
+      "image_sha256": "8fb24f301c9cdff860518d2c985a78b570b205bc51f2bd89624a7968b9ab443d",
+      "image_size_wh": [
+        500,
+        375
+      ],
+      "annotations": [
+        {
+          "id": 153098,
+          "category_id": 4,
+          "bbox_xywh": [
+            20.22,
+            200.62,
+            169.39,
+            125.56
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:19226",
+      "image_id": 19226,
+      "split": "train2017",
+      "file_name": "000000019226.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000019226.jpg",
+      "image_sha256": "a1b45bea90ba859b813c87ef367f445a589aacf51815e6d879b110bb24444120",
+      "image_size_wh": [
+        425,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 691745,
+          "category_id": 48,
+          "bbox_xywh": [
+            58.6,
+            272.58,
+            48.72,
+            236.73
+          ]
+        },
+        {
+          "id": 692314,
+          "category_id": 48,
+          "bbox_xywh": [
+            86.92,
+            389.41,
+            85.39,
+            153.72
+          ]
+        },
+        {
+          "id": 697272,
+          "category_id": 49,
+          "bbox_xywh": [
+            30.92,
+            280.43,
+            190.42,
+            250.68
+          ]
+        },
+        {
+          "id": 697537,
+          "category_id": 49,
+          "bbox_xywh": [
+            5.75,
+            280.45,
+            117.94,
+            326.47
+          ]
+        },
+        {
+          "id": 1088290,
+          "category_id": 61,
+          "bbox_xywh": [
+            214.77,
+            2.88,
+            210.23,
+            196.04
+          ]
+        },
+        {
+          "id": 1888658,
+          "category_id": 48,
+          "bbox_xywh": [
+            84.5,
+            326.17,
+            163.84,
+            171.54
+          ]
+        },
+        {
+          "id": 1895527,
+          "category_id": 50,
+          "bbox_xywh": [
+            83.9,
+            315.75,
+            163.44,
+            177.37
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:20052",
+      "image_id": 20052,
+      "split": "train2017",
+      "file_name": "000000020052.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000020052.jpg",
+      "image_sha256": "f46fa531118db902937abf3e0ecd9f40dca8b75f5bea0aa84854a25fd8599ea4",
+      "image_size_wh": [
+        500,
+        334
+      ],
+      "annotations": [
+        {
+          "id": 1412017,
+          "category_id": 24,
+          "bbox_xywh": [
+            213.16,
+            43.53,
+            219.91,
+            170.38
+          ]
+        },
+        {
+          "id": 1412743,
+          "category_id": 24,
+          "bbox_xywh": [
+            379.34,
+            40.77,
+            101.24,
+            138.96
+          ]
+        },
+        {
+          "id": 1413038,
+          "category_id": 24,
+          "bbox_xywh": [
+            60.8,
+            79.43,
+            217.66,
+            141.86
+          ]
+        },
+        {
+          "id": 1413207,
+          "category_id": 24,
+          "bbox_xywh": [
+            196.22,
+            50.85,
+            100.64,
+            37.34
+          ]
+        },
+        {
+          "id": 1413445,
+          "category_id": 24,
+          "bbox_xywh": [
+            89.68,
+            48.49,
+            46.66,
+            25.74
+          ]
+        },
+        {
+          "id": 1413457,
+          "category_id": 24,
+          "bbox_xywh": [
+            66.1,
+            51.71,
+            48.99,
+            23.64
+          ]
+        },
+        {
+          "id": 1413531,
+          "category_id": 24,
+          "bbox_xywh": [
+            68.84,
+            57.5,
+            39.22,
+            20.08
+          ]
+        },
+        {
+          "id": 1413564,
+          "category_id": 24,
+          "bbox_xywh": [
+            8.45,
+            50.79,
+            145.7,
+            96.5
+          ]
+        },
+        {
+          "id": 1822392,
+          "category_id": 24,
+          "bbox_xywh": [
+            155.02,
+            51.16,
+            56.63,
+            27.9
+          ]
+        },
+        {
+          "id": 1822695,
+          "category_id": 24,
+          "bbox_xywh": [
+            430.54,
+            85.17,
+            37.43,
+            63.3
+          ]
+        },
+        {
+          "id": 1822743,
+          "category_id": 24,
+          "bbox_xywh": [
+            476.35,
+            66.77,
+            23.65,
+            68.08
+          ]
+        },
+        {
+          "id": 1822887,
+          "category_id": 24,
+          "bbox_xywh": [
+            70.34,
+            35.34,
+            40.57,
+            23.0
+          ]
+        },
+        {
+          "id": 2070597,
+          "category_id": 24,
+          "bbox_xywh": [
+            0.0,
+            39.94,
+            30.76,
+            21.86
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:21084",
+      "image_id": 21084,
+      "split": "train2017",
+      "file_name": "000000021084.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000021084.jpg",
+      "image_sha256": "92d20e48fe2b5bd2d766bde2787be56197a884ed51399f429a662bcffdd4f0d5",
+      "image_size_wh": [
+        480,
+        640
+      ],
+      "annotations": [
+        {
+          "id": 158681,
+          "category_id": 5,
+          "bbox_xywh": [
+            8.59,
+            178.49,
+            342.19,
+            78.75
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:24307",
+      "image_id": 24307,
+      "split": "train2017",
+      "file_name": "000000024307.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000024307.jpg",
+      "image_sha256": "c101a85b2bcfe19b9f68cbd1a88c8b97787a770d421718371f7bcb10151b4e63",
+      "image_size_wh": [
+        612,
+        612
+      ],
+      "annotations": [
+        {
+          "id": 99084,
+          "category_id": 63,
+          "bbox_xywh": [
+            480.66,
+            209.04,
+            93.38,
+            34.55
+          ]
+        },
+        {
+          "id": 297483,
+          "category_id": 32,
+          "bbox_xywh": [
+            272.31,
+            178.29,
+            49.78,
+            155.38
+          ]
+        },
+        {
+          "id": 321663,
+          "category_id": 77,
+          "bbox_xywh": [
+            308.06,
+            154.99,
+            42.64,
+            56.38
+          ]
+        },
+        {
+          "id": 453088,
+          "category_id": 1,
+          "bbox_xywh": [
+            171.14,
+            5.61,
+            279.3,
+            599.68
+          ]
+        },
+        {
+          "id": 1939085,
+          "category_id": 62,
+          "bbox_xywh": [
+            529.13,
+            228.83,
+            82.87,
+            66.16
+          ]
+        },
+        {
+          "id": 1943623,
+          "category_id": 62,
+          "bbox_xywh": [
+            30.2,
+            309.97,
+            109.69,
+            103.33
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:24430",
+      "image_id": 24430,
+      "split": "train2017",
+      "file_name": "000000024430.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000024430.jpg",
+      "image_sha256": "91938537a67fbf2420f7d9a056cd2c4f6c76bdbdb43087eaa4ef60b818dfa9cb",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 176734,
+          "category_id": 9,
+          "bbox_xywh": [
+            224.53,
+            218.78,
+            352.16,
+            72.92
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coco2017:train2017:25485",
+      "image_id": 25485,
+      "split": "train2017",
+      "file_name": "000000025485.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/train2017/000000025485.jpg",
+      "image_sha256": "be63ba2b4f2f5c7d72f70b7ffe079c5bd9dd1865379b8c0de81df0005598aa53",
+      "image_size_wh": [
+        640,
+        480
+      ],
+      "annotations": [
+        {
+          "id": 1152668,
+          "category_id": 86,
+          "bbox_xywh": [
+            329.98,
+            338.57,
+            66.48,
+            96.65
+          ]
+        },
+        {
+          "id": 1399387,
+          "category_id": 16,
+          "bbox_xywh": [
+            344.37,
+            269.48,
+            72.02,
+            36.67
+          ]
+        },
+        {
+          "id": 1954887,
+          "category_id": 64,
+          "bbox_xywh": [
+            42.39,
+            21.19,
+            519.9,
+            412.68
+          ]
+        }
+      ]
+    }
+  ],
+  "showcase": [
+    {
+      "id": "coco2017:val2017:14439",
+      "image_id": 14439,
+      "split": "val2017",
+      "file_name": "000000014439.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000014439.jpg",
+      "image_sha256": "fc23e512cfe33e0b7f5e3445dc4189eb053fed6a16964b2454775a6df3fa5eba",
+      "image_size_wh": [
+        640,
+        404
+      ],
+      "annotations": [
+        {
+          "id": 372865,
+          "category_id": 62,
+          "bbox_xywh": [
+            76.07,
+            122.27,
+            23.91,
+            31.48
+          ]
+        },
+        {
+          "id": 375587,
+          "category_id": 62,
+          "bbox_xywh": [
+            98.01,
+            131.03,
+            20.34,
+            24.79
+          ]
+        },
+        {
+          "id": 622491,
+          "category_id": 38,
+          "bbox_xywh": [
+            163.42,
+            85.34,
+            458.47,
+            255.11
+          ]
+        },
+        {
+          "id": 1170759,
+          "category_id": 27,
+          "bbox_xywh": [
+            86.84,
+            156.36,
+            17.77,
+            15.29
+          ]
+        },
+        {
+          "id": 1213473,
+          "category_id": 1,
+          "bbox_xywh": [
+            413.08,
+            89.88,
+            94.42,
+            198.82
+          ]
+        },
+        {
+          "id": 1681269,
+          "category_id": 1,
+          "bbox_xywh": [
+            268.64,
+            89.82,
+            29.97,
+            79.13
+          ]
+        },
+        {
+          "id": 1684258,
+          "category_id": 1,
+          "bbox_xywh": [
+            279.52,
+            79.88,
+            18.48,
+            32.71
+          ]
+        },
+        {
+          "id": 1695019,
+          "category_id": 1,
+          "bbox_xywh": [
+            363.69,
+            57.51,
+            19.33,
+            56.26
+          ]
+        },
+        {
+          "id": 1720080,
+          "category_id": 1,
+          "bbox_xywh": [
+            328.34,
+            38.55,
+            18.77,
+            41.19
+          ]
+        },
+        {
+          "id": 1729788,
+          "category_id": 1,
+          "bbox_xywh": [
+            378.2,
+            40.08,
+            17.88,
+            42.87
+          ]
+        },
+        {
+          "id": 1733380,
+          "category_id": 1,
+          "bbox_xywh": [
+            505.5,
+            114.08,
+            92.38,
+            157.64
+          ]
+        },
+        {
+          "id": 1749825,
+          "category_id": 1,
+          "bbox_xywh": [
+            578.64,
+            112.47,
+            35.12,
+            86.13
+          ]
+        },
+        {
+          "id": 1751086,
+          "category_id": 1,
+          "bbox_xywh": [
+            25.16,
+            116.99,
+            40.38,
+            37.77
+          ]
+        },
+        {
+          "id": 1754508,
+          "category_id": 1,
+          "bbox_xywh": [
+            187.53,
+            44.57,
+            13.18,
+            16.61
+          ]
+        },
+        {
+          "id": 1755416,
+          "category_id": 1,
+          "bbox_xywh": [
+            169.82,
+            47.27,
+            8.39,
+            14.14
+          ]
+        },
+        {
+          "id": 1755623,
+          "category_id": 1,
+          "bbox_xywh": [
+            164.83,
+            82.07,
+            34.0,
+            84.91
+          ]
+        },
+        {
+          "id": 1826473,
+          "category_id": 27,
+          "bbox_xywh": [
+            100.1,
+            154.8,
+            19.49,
+            14.72
+          ]
+        },
+        {
+          "id": 1826731,
+          "category_id": 27,
+          "bbox_xywh": [
+            57.54,
+            155.24,
+            35.36,
+            18.3
+          ]
+        },
+        {
+          "id": 1827291,
+          "category_id": 27,
+          "bbox_xywh": [
+            64.08,
+            132.45,
+            21.34,
+            21.34
+          ]
+        },
+        {
+          "id": 2016432,
+          "category_id": 1,
+          "bbox_xywh": [
+            103.9,
+            45.12,
+            24.28,
+            48.56
+          ]
+        }
+      ],
+      "category_id": 1,
+      "category": "person",
+      "image_path": "demos/assets/images/sae_report/000000014439.jpg"
+    },
+    {
+      "id": "coco2017:val2017:263463",
+      "image_id": 263463,
+      "split": "val2017",
+      "file_name": "000000263463.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000263463.jpg",
+      "image_sha256": "0f712edce4e14d4b04548a148a36cbb69954c7c001da7406b704d299c91e6eaa",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 10416,
+          "category_id": 18,
+          "bbox_xywh": [
+            297.61,
+            113.87,
+            91.43,
+            137.15
+          ]
+        },
+        {
+          "id": 145584,
+          "category_id": 3,
+          "bbox_xywh": [
+            0.96,
+            71.76,
+            544.76,
+            355.24
+          ]
+        },
+        {
+          "id": 574930,
+          "category_id": 15,
+          "bbox_xywh": [
+            261.0,
+            338.56,
+            378.06,
+            83.48
+          ]
+        },
+        {
+          "id": 2050159,
+          "category_id": 6,
+          "bbox_xywh": [
+            386.58,
+            291.85,
+            30.28,
+            26.05
+          ]
+        }
+      ],
+      "category_id": 3,
+      "category": "car",
+      "image_path": "demos/assets/images/sae_report/000000263463.jpg"
+    },
+    {
+      "id": "coco2017:val2017:532575",
+      "image_id": 532575,
+      "split": "val2017",
+      "file_name": "000000532575.jpg",
+      "image_url": "https://s3.amazonaws.com/images.cocodataset.org/val2017/000000532575.jpg",
+      "image_sha256": "3f2fbcee04c5dbd0ad0939fcb6d000cc16613ea0bc93f2fc406958b71c86cd12",
+      "image_size_wh": [
+        640,
+        427
+      ],
+      "annotations": [
+        {
+          "id": 4318,
+          "category_id": 18,
+          "bbox_xywh": [
+            2.59,
+            64.7,
+            490.83,
+            362.3
+          ]
+        },
+        {
+          "id": 177574,
+          "category_id": 9,
+          "bbox_xywh": [
+            1.91,
+            0.57,
+            638.09,
+            421.26
+          ]
+        }
+      ],
+      "category_id": 18,
+      "category": "dog",
+      "image_path": "demos/assets/images/sae_report/000000532575.jpg"
+    }
+  ]
+}

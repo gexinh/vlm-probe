@@ -27,4 +27,6 @@ and measure the effect of feature edits.
 [Use a pretrained SAE](loading.md) ·
 [Training on your data](training/README.md) ·
 [Shared API](API.md) · [Algorithm reference](ALGORITHMS.md) ·
-[Image-to-feature tutorial](examples/README.md) · [Sources](SOURCES.md)
+[Image-to-feature training tutorial](examples/README.md) ·
+[Pretrained visual notebook](examples/pretrained.md) ·
+[Evaluation](evaluation/README.md) · [Sources](SOURCES.md)

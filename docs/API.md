@@ -321,3 +321,9 @@ and `method.edit(...)`. `probe.sae.load(...)` restores the same native interface
 The [SAE API](methods/sae/API.md) lists every dictionary/training option and result shape;
 the [complete tutorial](methods/sae/examples/README.md) includes image inputs, training,
 native artifacts, model cards and visualization.
+
+For author weights, follow the [pretrained visual SAE walkthrough](methods/sae/examples/pretrained.md).
+`vlmprobe.evaluation.sae.evaluate(...)` reports reconstruction, sparsity and
+optional native-output fidelity/interventions; `localization(...)` evaluates
+aligned patch maps. The [evaluation guide](methods/sae/evaluation/README.md)
+defines inputs, metrics and controls. Evaluation leaves SAE and backbone weights frozen.

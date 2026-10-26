@@ -16,13 +16,16 @@ def without_code(text):
 
 def test_readme_links_to_individual_methods_without_a_separate_preview():
     text = (ROOT / "README.md").read_text()
-    row = next(line for line in text.splitlines() if line.startswith("| SAE |"))
+    section = re.search(r"^### SAE\n(.*?)(?=^### |^## |\Z)", text, re.M | re.S)
+    assert section, "SAE methods must remain visible in the Methods section"
+    destinations = set(re.findall(r'href="([^"\s]+)"', section.group(1)))
+    destinations.update(re.findall(r"\]\(([^\s)]+)\)", section.group(1)))
     assert "## SAE preview" not in text
     assert "fourth" not in text.lower()
     assert not (ROOT / "docs/sae").exists()
     for method in list_methods():
         destination = f"docs/methods/sae/{method['name']}.md"
-        assert f"]({destination})" in row
+        assert destination in destinations
         assert (ROOT / destination).is_file()
 
 

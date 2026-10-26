@@ -7,7 +7,7 @@ on:
       - 'docs/project-page/**'
       - 'docs/assets/vlmprobe-technical-report.pdf'
       - 'docs/assets/library-overview-sae.svg'
-      - 'docs/assets/tutorials/lens-mj-report-spatial.png'
+      - 'docs/assets/tutorials/lens-mj-report-region-tokens.png'
       - 'tools/build_project_page.py'
       - 'tools/build_sae_model_pages.py'
       - 'src/vlm_probing/sae/resources/**'

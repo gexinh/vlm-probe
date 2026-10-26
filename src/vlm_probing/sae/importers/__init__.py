@@ -7,21 +7,80 @@ from matching widths. Unsupported variants raise instead of approximating.
 from __future__ import annotations
 
 import json
+import pickle
+import re
 from pathlib import Path
 
 import torch
 
 
-def _weights(path):
+class _PassivePrismaConfig:
+    """Data-only replacement for a historical pickled Prisma config class.
+
+    The source class is never imported or executed. PyTorch's restricted
+    unpickler may only populate this plain object's attribute dictionary.
+    """
+
+
+def _require_prisma_legacy_loader():
+    """Named safe-global aliases were added to PyTorch's loader in 2.6."""
+    match = re.match(r"(\d+)\.(\d+)", str(torch.__version__))
+    supported = match is not None and tuple(map(int, match.groups())) >= (2, 6)
+    if not supported or not callable(getattr(torch.serialization, "safe_globals", None)):
+        raise RuntimeError(
+            "Loading historical Prisma checkpoints with embedded config objects requires "
+            "PyTorch >=2.6 for named weights-only loader aliases. "
+            "Upgrade the SAE dependencies with: python -m pip install --upgrade 'vlmprobe[sae]'. "
+            "The checkpoint is never loaded with weights_only=False."
+        )
+
+
+def _weights(path, *, source_format=None):
     path = Path(path)
     if path.suffix == ".safetensors":
         from safetensors.torch import load_file
         state = load_file(str(path), device="cpu")
     else:
-        state = torch.load(path, map_location="cpu", weights_only=True)
+        try:
+            state = torch.load(path, map_location="cpu", weights_only=True)
+        except pickle.UnpicklingError:
+            if source_format != "prisma":
+                raise
+            _require_prisma_legacy_loader()
+            # Some published Prisma files wrap tensors with a pickled config.
+            # Permit only its historical name, mapped to our inert container;
+            # all other Python globals still require weights-only approval.
+            with torch.serialization.safe_globals([
+                (_PassivePrismaConfig, "vit_prisma.sae.config.VisionModelSAERunnerConfig"),
+            ]):
+                state = torch.load(path, map_location="cpu", weights_only=True)
     if not isinstance(state, dict):
         raise ValueError("checkpoint must contain a tensor dictionary or a supported safe envelope")
     return state
+
+
+def _validate_prisma_envelope_config(state, config):
+    """Reject conflicting external and embedded inference/binding metadata."""
+    embedded = state.get("cfg")
+    if embedded is None:
+        return
+    if type(embedded) is _PassivePrismaConfig:
+        embedded = vars(embedded)
+    if not isinstance(embedded, dict):
+        raise ValueError("Prisma envelope config must be a plain data dictionary")
+    fields = (
+        "model_name", "hook_point_layer", "layer_subtype", "hook_point_head_index",
+        "architecture", "activation_fn_str", "activation_fn_kwargs", "normalize_activations",
+        "context_size", "cls_token_only", "use_patches_only", "image_size", "is_transcoder",
+        "d_out", "out_hook_point_layer", "layer_out_subtype", "apply_b_dec_to_input",
+    )
+    for name in fields:
+        if (name in embedded) != (name in config):
+            raise ValueError(f"Prisma embedded configuration differs from config.json: missing {name}")
+        if name in embedded and embedded[name] != config[name]:
+            raise ValueError(f"Prisma embedded configuration differs from config.json: {name}")
+    if _dimensions(embedded) != _dimensions(config):
+        raise ValueError("Prisma embedded configuration differs from config.json: dimensions")
 
 
 def _tensor(state, key, shape=None):
@@ -212,7 +271,7 @@ def import_checkpoint(*, source_format, path, binding=None, config_path=None,
         model = load_artifact(path, expected_binding=binding, device=device)
     else:
         binding = validate_sae_binding(binding)
-        weights = _weights(path)
+        weights = _weights(path, source_format=source_format)
         if source_format == "overcomplete":
             model = _overcomplete(weights, binding)
         else:
@@ -220,9 +279,12 @@ def import_checkpoint(*, source_format, path, binding=None, config_path=None,
                 config_path = path.with_name("cfg.json" if source_format == "saelens" else "config.json")
             config_path = Path(config_path)
             config = json.loads(config_path.read_text())
+            if source_format == "prisma":
+                _validate_prisma_envelope_config(weights, config)
             if "state_dict" in weights:
-                # Pure JSON/tensor envelope only; no unsafe config unpickling.
-                if not all(isinstance(value, torch.Tensor) for value in weights["state_dict"].values()):
+                # Tensor envelope; Prisma config was decoded into an inert container above.
+                if (not isinstance(weights["state_dict"], dict)
+                        or not all(isinstance(value, torch.Tensor) for value in weights["state_dict"].values())):
                     raise ValueError("source state_dict must contain only tensors")
                 weights = weights["state_dict"]
             if source_format == "saelens":

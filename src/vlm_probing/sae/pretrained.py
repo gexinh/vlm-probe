@@ -59,6 +59,7 @@ def _verify_backbone(probe, recipe, cache_dir):
     """
     from safetensors import safe_open
     from transformers import AutoTokenizer, GPT2Config
+    from ..adapters.huggingface import make_adapter
     from .data import processor_identity
     model = _check_native_contract(probe, recipe)
     config_path = _download(recipe['base_model'], 'config', cache_dir)
@@ -76,6 +77,10 @@ def _verify_backbone(probe, recipe, cache_dir):
     expected_config._attn_implementation = 'eager'
     with torch.device('meta'):
         reference = type(model)(expected_config)
+    # Prober installs the audited attention-support taps on the runtime model.
+    # Apply that same instrumentation to the canonical model before comparing
+    # complete structures; arbitrary extra modules remain visible and rejected.
+    make_adapter(reference)
     structure = lambda m: [(name, type(module).__module__, type(module).__name__, module.extra_repr())
                            for name, module in m.named_modules()]
     if structure(model) != structure(reference):

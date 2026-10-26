@@ -104,6 +104,20 @@ def test_pretrained_rejects_same_architecture_with_different_actual_weights(setu
         setup['probe'].sae.from_pretrained('test-card', cache_dir=setup['cache'])
 
 
+def test_pretrained_rejects_extra_module_even_with_probe_name(setup):
+    attention = setup['probe'].model.transformer.h[0].attn
+    attention.add_module('_probe_unexpected', torch.nn.Identity())
+    with pytest.raises(ValueError, match='module structure differs'):
+        setup['probe'].sae.from_pretrained('test-card', cache_dir=setup['cache'])
+
+
+def test_pretrained_rejects_replaced_native_probe_tap(setup):
+    attention = setup['probe'].model.transformer.h[0].attn
+    attention._probe_support = torch.nn.ReLU()
+    with pytest.raises(ValueError, match='module structure differs'):
+        setup['probe'].sae.from_pretrained('test-card', cache_dir=setup['cache'])
+
+
 def test_pretrained_rejects_source_checksum_corruption(setup):
     setup['source_config'].write_text(setup['source_config'].read_text() + ' ')
     with pytest.raises(ValueError, match='config checksum differs'):

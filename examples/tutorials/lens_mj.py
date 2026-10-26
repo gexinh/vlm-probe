@@ -1,10 +1,12 @@
 """Pretrained MJ-Lens on the technical report's eight held-out VLM examples.
 
 Raw images -> native prompts -> independent COCO caption calibration -> fresh
-MJ T->T/V->T readouts -> native/plain controls -> measured figures. No saved
+MJ V->T bbox vocabulary readouts -> native/plain controls -> supplementary
+answer-contrast figures. No saved
 probe tensors are read. A CUDA GPU is recommended for exact Jacobian fitting.
 """
 # %% 1. Imports and reproducible configuration
+import csv
 import hashlib
 import json
 import os
@@ -18,11 +20,14 @@ import torch
 from PIL import Image
 from transformers import AutoModelForImageTextToText, AutoProcessor
 from vlmprobe import MJBatch, Prober, visual_grid
-from vlmprobe.visualization import plot_mj_visual_readout, plot_mj_text_comparison
+from vlmprobe.visualization import (
+    plot_mj_visual_readout, plot_mj_text_comparison, region_token_readout,
+    plot_region_tokens, plot_region_patch_tokens,
+)
 
 ROOT = next(p for p in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
             if (p / "demos/assets/mj_report_samples.json").is_file())
-OUT = Path(os.environ.get("VLM_PROBING_OUTPUT", str(ROOT / "outputs/mj_report_cases")))
+OUT = Path(os.environ.get("VLM_PROBING_OUTPUT", str(ROOT / "outputs/mj_bbox_readouts")))
 OUT.mkdir(parents=True, exist_ok=True)
 MODEL_ID = "Qwen/Qwen2.5-VL-3B-Instruct"
 MODEL_REVISION = "66285546d2b821cf421d4f5eb2576359d3770cd3"
@@ -34,6 +39,7 @@ N_CALIBRATION = int(os.environ.get("VLM_PROBING_MJ_CALIBRATION", "32"))
 DIM_BATCH = int(os.environ.get("VLM_PROBING_MJ_DIM_BATCH", "64"))
 CALIBRATION_PIXELS, EVALUATION_PIXELS = 224**2, 448**2
 MAX_CAPTION_TOKENS = 24
+REGION_TOP_K = int(os.environ.get("VLM_PROBING_MJ_REGION_TOP_K", "5"))
 CACHE = Path(os.environ.get("VLM_PROBING_DATA_CACHE", str(Path.home() / ".cache/vlmprobe/coco_calibration")))
 CACHE.mkdir(parents=True, exist_ok=True)
 torch.manual_seed(0)
@@ -101,6 +107,8 @@ model.config._name_or_path = MODEL_ID
 probe = Prober(model, processor)
 if any(layer not in probe.spec.mj.sources for layer in LAYERS):
     raise ValueError("selected MJ block-input indices do not exist on this checkpoint")
+if not 1 <= REGION_TOP_K <= probe.spec.mj.text_unembedding.shape[0]:
+    raise ValueError("region_top_k must fit the checkpoint's full output vocabulary")
 revision = getattr(model.config, "_commit_hash", None)
 metadata_path = Path(MODEL) / ".cache/huggingface/download/config.json.metadata"
 if revision is None and metadata_path.is_file():
@@ -225,7 +233,81 @@ for case in cases:
     write_status("evaluating", completed=len(rows), total=len(cases), case=case["id"],
                  generated=generated, answer=case["answer_surface"])
 
-# %% 6. Inspect spatial vocabulary readouts on the paired report photographs
+# %% 6. Decode bbox visual tokens across layers, without choosing candidate words
+region_rows = [row for row in rows if row["bbox"] is not None]
+region_reports = []
+for row in region_rows:
+    report = region_token_readout(
+        row["vt"], tokenizer, grid_shape=row["grid"], image_size=row["image"].size,
+        bbox=row["bbox"], top_k=REGION_TOP_K, reference_token_id=row["positive"],
+    )
+    report.update(case_id=row["case"]["id"], model_id=MODEL_ID, revision=revision,
+                  question=row["case"]["question"], reference_answer=row["record"]["answer"])
+    row["region"] = report
+    region_reports.append(report)
+    print("\nVisual bbox vocabulary readout:", report["case_id"],
+          "patches", [p["patch_index"] for p in report["patches"]])
+    for layer in report["layer_readouts"]:
+        print("Block input", layer["layer"],
+              [(t["token_repr"], t["token_id"], round(t["probability"], 6))
+               for t in layer["region_top_tokens"]],
+              "exact QA token rank", layer["region_reference"]["rank"])
+
+(OUT / "mj-report-region-tokens.json").write_text(
+    json.dumps(region_reports, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
+# Export every selected patch, layer and raw Top-k token, with post-hoc
+# reference measurements as separately labelled rows. No showcase tensors are loaded.
+fields = ["case_id", "scope", "record_type", "layer", "patch_index", "sequence_position",
+          "row", "column", "intersection_area", "region_weight", "top_k_position",
+          "token_id", "token", "token_repr", "logit", "probability", "reference_rank"]
+with (OUT / "mj-report-region-tokens.csv").open("w", newline="", encoding="utf-8") as stream:
+    writer = csv.DictWriter(stream, fieldnames=fields)
+    writer.writeheader()
+    for report in region_reports:
+        for layer in report["layer_readouts"]:
+            for rank, token in enumerate(layer["region_top_tokens"], 1):
+                writer.writerow({"case_id": report["case_id"], "scope": "bbox_probability_mixture",
+                    "record_type": "top_k", "layer": layer["layer"], "top_k_position": rank, **token})
+            reference = dict(layer["region_reference"])
+            reference["reference_rank"] = reference.pop("rank")
+            writer.writerow({"case_id": report["case_id"], "scope": "bbox_probability_mixture",
+                "record_type": "reference_posthoc", "layer": layer["layer"], **reference})
+            for patch, decoded in zip(report["patches"], layer["patches"]):
+                identity = {name: patch[name] for name in
+                    ("patch_index", "sequence_position", "row", "column", "intersection_area", "region_weight")}
+                for rank, token in enumerate(decoded["top_tokens"], 1):
+                    writer.writerow({"case_id": report["case_id"], "scope": "visual_patch",
+                        "record_type": "top_k", "layer": layer["layer"], "top_k_position": rank,
+                        **identity, **token})
+                reference = dict(decoded["reference"])
+                reference["reference_rank"] = reference.pop("rank")
+                writer.writerow({"case_id": report["case_id"], "scope": "visual_patch",
+                    "record_type": "reference_posthoc", "layer": layer["layer"], **identity, **reference})
+
+fig, axes = plt.subplots(len(region_rows), len(LAYERS) + 1,
+    figsize=(15.3, 3.65 * len(region_rows)), squeeze=False,
+    gridspec_kw={"width_ratios": [1.3] + [1.] * len(LAYERS)})
+for row, row_axes in zip(region_rows, axes):
+    plot_region_tokens(row["image"], row["region"], top_k=min(5, REGION_TOP_K),
+        layer_labels=[f"Block input {layer}" for layer in LAYERS],
+        title=row["case"]["id"], axes=row_axes)
+fig.suptitle("MJ V→T · words decoded from the annotated image regions", y=.99, fontsize=13)
+fig.subplots_adjust(left=.012, right=.99, top=.92, bottom=.09, wspace=.12, hspace=.24)
+fig.text(.5, .025,
+    "BBox mixture = overlap-area-weighted mean of full-vocabulary patch probabilities. "
+    f"Region plot: Top-{min(5, REGION_TOP_K)}; JSON/CSV: Top-{REGION_TOP_K} for every selected patch.\n"
+    "Exact-QA-token ranks use one vocabulary ID; case, leading-space and synonym variants are not pooled.",
+    ha="center", fontsize=8)
+fig.savefig(OUT / "mj-report-region-tokens.png", dpi=180, bbox_inches="tight")
+plt.show()
+for row in region_rows:
+    fig, ax = plot_region_patch_tokens(row["region"], top_k=min(3, REGION_TOP_K),
+        layer_labels=[f"Block input {layer}" for layer in LAYERS],
+        title=row["case"]["id"] + " · every bbox-overlapping visual patch")
+    fig.savefig(OUT / f"mj-report-region-patches-{row['case']['id']}.png", dpi=150, bbox_inches="tight")
+    plt.show()
+
+# %% 7. Supplement: original inputs, selected-word heatmaps and text-state readouts
 fig, axes = plt.subplots(2, 4, figsize=(15, 8), squeeze=False)
 for row, ax in zip(rows, axes.flat):
     ax.imshow(Image.open(row["case"]["local_image"]).convert("RGB"))
@@ -296,7 +378,7 @@ fig.text(.5, .012,
 fig.savefig(OUT / "mj-report-spatial.png", dpi=180, bbox_inches="tight")
 plt.show()
 
-# %% 7. Show question-conditioned text readouts for all eight report examples
+# Question-conditioned text readouts on all eight report examples.
 fig, axes = plt.subplots(2, 4, figsize=(13.2, 5.6), squeeze=False, sharex=True)
 for index, (row, ax) in enumerate(zip(rows, axes.flat)):
     plot_mj_text_comparison(row["tt"], row["plain"], row["native"],
@@ -319,7 +401,7 @@ fig.subplots_adjust(left=.065, right=.99, bottom=.095, top=.81, wspace=.25, hspa
 fig.savefig(OUT / "mj-report-text-controls.png", dpi=180, bbox_inches="tight")
 plt.show()
 
-# %% 8. Check native-output agreement and the question-order boundary
+# %% 8. Supplement: native-output agreement and the question-order boundary
 fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.1))
 for name, color, style in (("mj", "#2166ac", "-"), ("plain", "#7c8796", "--")):
     kl = torch.tensor([[m[name + "_kl_native"] for m in r["metrics"]] for r in records])
@@ -380,7 +462,9 @@ summary = {"model_id": MODEL_ID, "revision": revision, "dtype": str(DTYPE), "lay
            "calibration_manifest_sha256": checksum(calibration_manifest),
            "report_manifest_sha256": checksum(report_manifest),
            "calibration": {k: v.calibration_report for k, v in methods.items()},
-           "records": records, "question_swap_visual_max_abs_diff": question_swap_max,
+           "records": records, "bbox_region_readouts": region_reports,
+           "region_top_k": REGION_TOP_K, "main_display": "bbox visual-token Top-k across declared layers",
+           "question_swap_visual_max_abs_diff": question_swap_max,
            "question_swap_visual_relative_diff": question_swap_max / max(1., float(first["vt"].tensors["logits"].abs().max())),
            "question_swap_control": {"question": swap_question, "length_matched": True,
                                      "identical_image_prefix": True,
@@ -393,7 +477,7 @@ for record in records:
     metric = record["metrics"][-1]
     print(record["id"], record["answer"], repr(record["generated"]),
           metric["mj_answer_rank"], metric["plain_answer_rank"], sep=" | ")
-print("\nDecoded vocabulary readouts for the two shirt examples (whitespace preserved):")
+print("\nSupplement: last-TEXT-position vocabulary readouts (not visual patch decoding):")
 print("case | block input | MJ top-1 token | plain top-1 token")
 for record in records[:2]:
     for metric in record["metrics"]:

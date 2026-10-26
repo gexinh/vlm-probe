@@ -42,14 +42,18 @@ probability.
 
 ## MJ-Lens readouts
 
-For modality-split readouts, use `plot_mj_visual_readout` and
-`plot_mj_text_comparison` from this same namespace. The
-[MJ-Lens guide](methods/mj_lens.md#reading-the-report-case-figures) documents all
-parameters and measured examples. The spatial plot requires the actual
-processed image, explicit visual grid and MJ block-input index. It preserves
-signed answer-token contrasts; the text comparison uses the same-state plain
-readout and native final output as controls. In an image-before-question causal
-template, image-state readouts precede the later question.
+For bbox vocabulary decoding, call `region_token_readout` on a V→T result
+with the processed image size, native visual grid and transformed bbox.
+`plot_region_tokens` shows the original image and layerwise region Top-k;
+`plot_region_patch_tokens` shows every selected patch separately. The region
+summary mixes full-vocabulary patch probabilities by bbox intersection area.
+Raw token IDs and strings are retained, including unrelated outputs.
+
+`plot_mj_visual_readout` displays supplementary answer-token contrasts;
+`plot_mj_text_comparison` shows text-state readouts with same-state plain and
+native final-output controls. The [MJ-Lens guide](methods/mj_lens.md#reading-the-report-case-figures)
+documents the parameters and live examples. Use MJ block-input indices. In an
+image-before-question causal template, image-state readouts precede the question.
 
 ## Attention overlays
 
@@ -192,3 +196,16 @@ they do not recover untested edges or infer functional head labels.
 See the [demo notebooks](../demos/README.md) for end-to-end plots from actual
 measured arrays, sources, and inputs. Figures can be saved as PNG, SVG, or PDF
 with Matplotlib's normal `savefig` interface.
+
+## Pretrained SAE features and evaluation
+
+`plot_sae_feature_overlay` maps a dictionary feature to the declared native patch
+grid; align the image and boxes through the exact source preprocessing first.
+`plot_sae_evaluation` shows feature firing frequencies from an evaluation report.
+`plot_sae_comparison` plots named reports with declared metrics such as L0 and
+FVU; a shared backbone and input contract are required for a matched comparison.
+
+The [pretrained DINO walkthrough](methods/sae/examples/pretrained.md) includes
+raw inputs, dictionary loading, feature selection on independent images,
+[reconstruction/localization and intervention evaluation](methods/sae/evaluation/README.md),
+and both feature and evaluation plots. No SAE training is required.

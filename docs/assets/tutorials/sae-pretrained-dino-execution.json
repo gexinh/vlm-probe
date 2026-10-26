@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "notebook": "demos/11_sae_pretrained.ipynb",
+  "elapsed_seconds": 29.279078006744385,
+  "code_cells": 10,
+  "errors": 0,
+  "inline_png": 2,
+  "executed_cells": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "all_code_sha256": "51f9fe8f0604ba956a4327b3d40fc4a1f5aba400379bb5a3a77ad2cc12c844e4",
+  "setup_sha256": "f2998906f7f9726674646240894d2a13a4517d7b8d4ccd6d021e8b841700223b",
+  "scope": "fresh full analysis execution from raw inputs; pretrained weights/calibrated MJ operator may be reused; no replayed showcase tensors"
+}

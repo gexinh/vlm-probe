@@ -14,3 +14,5 @@
 /* Modality-split readout walkthrough. */
 .method-tags a:hover,.method-tags a:focus-visible{border-color:#3266e5;color:#214cae;background:#eef3ff}.mj-walkthrough{display:grid;grid-template-columns:.85fr 1.35fr;gap:40px;align-items:center}.mj-copy h2{margin:18px 0}.mj-copy p{color:var(--muted);line-height:1.75;margin:15px 0}.mj-copy .text-link{display:inline-block;margin:8px 0}.mj-preview{margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}.mj-preview img{display:block;width:100%;height:auto}.mj-preview figcaption{font-size:12px;line-height:1.6;color:#60708a;padding:14px 18px;border-top:1px solid var(--line)}
 @media(max-width:760px){.mj-walkthrough{grid-template-columns:1fr;gap:24px}.mj-preview figcaption{font-size:11px}.method-tags a{font-size:12px}}
+
+.demo-family.sae{color:#946a16}
