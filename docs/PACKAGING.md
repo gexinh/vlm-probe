@@ -3,9 +3,13 @@
 [Home](../README.md) / [Documentation](README.md)
 
 The library, installable distribution, and recommended Python import are
-**`vlmprobe`**. The laboratory repository is **`ubc-tea/vlm-probe`**, with an
-personal copy at **`gexinh/vlm-probe`** with the same library version. Both
+**`vlmprobe`**. The laboratory repository is **`ubc-tea/vlm-probe`**, with a
+pre-release repository at **`gexinh/vlm-probe`**. Both
 share one PyPI project.
+
+Version **1.1.0** promotes the reviewed MJ-Lens and library-feedback updates
+from the `1.1.0.dev2` development snapshot. The release changes version and
+publication metadata; numerical methods and their defaults remain the same.
 
 ## Install and import
 

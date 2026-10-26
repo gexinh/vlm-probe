@@ -33,7 +33,7 @@ Documentation = "https://github.com/ubc-tea/vlm-probe/tree/main/docs"
 Source = "https://github.com/ubc-tea/vlm-probe"
 Issues = "https://github.com/ubc-tea/vlm-probe/issues"
 Report = "https://github.com/ubc-tea/vlm-probe/blob/main/docs/assets/vlmprobe-technical-report.pdf"
-"Personal mirror" = "https://github.com/gexinh/vlm-prob"
+"Pre-release source" = "https://github.com/gexinh/vlm-probe"
 "Report sources" = "https://github.com/gexinh/vlm-probing-report"
 
 [project.optional-dependencies]
