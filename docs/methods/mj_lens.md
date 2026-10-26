@@ -154,7 +154,7 @@ readout = readout.load(path)
 | `mean_slope` / `n_samples` | Calibrated per-channel mean derivative / number of selected visual positions. |
 | `path` | A calibration-only artifact; native model parameters are not serialized. Loading checks binding, dimensions, activation and exact native parameter fingerprint. |
 
-## Complete pretrained VLM example: report photographs and questions
+## Complete pretrained VLM example: bbox words across layers
 
 Run from a checkout containing this method and the bundled
 [report input manifest](../../demos/assets/mj_report_samples.json). This example
@@ -183,6 +183,7 @@ from transformers import AutoModelForImageTextToText, AutoProcessor
 from vlmprobe import MJBatch, Prober, visual_grid
 from vlmprobe.visualization import (
     plot_lens_heatmap, plot_mj_text_comparison, plot_mj_visual_readout,
+    region_token_readout, plot_region_tokens, plot_region_patch_tokens,
 )
 
 ROOT = next(p for p in (Path.cwd().resolve(), *Path.cwd().resolve().parents)
@@ -224,7 +225,8 @@ probe = Prober(model, processor)
 revision = getattr(model.config, "_commit_hash", None)
 if not revision:
     raise ValueError("Use an immutable Hub revision or verified local checkpoint identity")
-layer = max(probe.describe()["methods"]["lens.mj"]["sites"])
+layers = [8, 16, 24, 35]
+assert set(layers) <= set(probe.describe()["methods"]["lens.mj"]["sites"])
 
 def prepare(image, question):
     messages = [{"role": "user", "content": [
@@ -264,7 +266,7 @@ binding = {
 }
 methods = {}
 for source in ("visual", "text"):
-    method = probe.lens.mj(layers=[layer], source=source, target="text", binding=binding)
+    method = probe.lens.mj(layers=layers, source=source, target="text", binding=binding)
     method.fit_batches((caption_batch(record) for record in training_records), dim_batch=16)
     method.save(OUT / (source + "-to-text"))
     methods[source] = method
@@ -285,18 +287,36 @@ for case in cases:
     x, y, width, height = case["bbox_xywh"]
     sx, sy = size[0] / image.width, size[1] / image.height
     bbox = [x * sx, y * sy, width * sx, height * sy]
-    ax = plot_mj_visual_readout(resized, vt, positive_token_id=answer[0],
-        negative_token_id=foil[0], grid_shape=grid, layer=layer, bbox=bbox,
-        token_label=case["answer_surface"], negative_label=case["other_answer_surface"])
-    ax.figure.savefig(OUT / (case["id"] + "-spatial.png"), dpi=160, bbox_inches="tight")
+    # Main experiment: decode the FULL vocabulary for all bbox-overlapping
+    # visual tokens. The exact QA token only adds a post-hoc rank measurement.
+    region = region_token_readout(vt, tokenizer, grid_shape=grid,
+        image_size=size, bbox=bbox, top_k=5, reference_token_id=answer[0])
+    (OUT / (case["id"] + "-bbox-words.json")).write_text(
+        json.dumps(region, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
+    fig, axes = plot_region_tokens(resized, region, top_k=5,
+        layer_labels=[f"Block input {i}" for i in layers], title=case["id"])
+    fig.savefig(OUT / (case["id"] + "-bbox-words.png"), dpi=160, bbox_inches="tight")
+    fig, ax = plot_region_patch_tokens(region, top_k=3,
+        layer_labels=[f"Block input {i}" for i in layers])
+    fig.savefig(OUT / (case["id"] + "-patch-words.png"), dpi=160, bbox_inches="tight")
+    for item in region["layer_readouts"]:
+        print(case["id"], item["layer"],
+              [(t["token_repr"], t["token_id"], t["probability"])
+               for t in item["region_top_tokens"]])
+    # Supplement: a chosen answer-token contrast is a different display.
+    for layer in layers:
+        ax = plot_mj_visual_readout(resized, vt, positive_token_id=answer[0],
+            negative_token_id=foil[0], grid_shape=grid, layer=layer, bbox=bbox,
+            token_label=case["answer_surface"], negative_label=case["other_answer_surface"])
+        ax.figure.savefig(OUT / f"{case['id']}-contrast-{layer}.png", dpi=160, bbox_inches="tight")
     top_ids = tt.tensors["logits"].argmax(-1)
-    annotations = [[str(int(i)) + ": " + tokenizer.convert_ids_to_tokens(int(i)) for i in row]
+    annotations = [[str(int(i)) + ": " + repr(tokenizer.decode([int(i)], skip_special_tokens=False)) for i in row]
                    for row in top_ids]
     ax = plot_lens_heatmap(tt, target_token_id=answer[0], annotations=annotations,
                            title=case["id"] + ": text-source last prompt")
     ax.figure.savefig(OUT / (case["id"] + "-text.png"), dpi=160, bbox_inches="tight")
     # MJ block-input layer L is post-block residual L-1 for these Qwen sites.
-    plain = probe.lens.logit(layers=[layer - 1], tokens="last_prompt").run(inputs)
+    plain = probe.lens.logit(layers=[i - 1 for i in layers], tokens="last_prompt").run(inputs)
     final_layer = max(probe.spec.residuals)
     native = probe.lens.logit(layers=[final_layer], tokens="last_prompt").run(inputs)
     ax = plot_mj_text_comparison(tt, plain.tensors["logits"],
@@ -308,7 +328,7 @@ for case in cases:
           "exact displayed token:", repr(tokenizer.convert_ids_to_tokens(answer[0])))
 plt.show()
 
-restored = probe.lens.mj(layers=[layer], source="visual", target="text", binding=binding)
+restored = probe.lens.mj(layers=layers, source="visual", target="text", binding=binding)
 restored.load(OUT / "visual-to-text")
 ```
 
@@ -318,13 +338,36 @@ fitting and retain their raw-byte checksums. The calibration source is official
 **COCO val2014**, partitioned internally for calibration; `split="train"` in
 this manifest does not mean official COCO train2014.
 
-The `V->T` display reads **decoder image-token states**, not the visual encoder
-itself. In this causal image-then-question template, an image position precedes
-the question and cannot attend to it. The question chooses which vocabulary
-contrast is displayed, but the image-token state is not retrospectively
-question-conditioned. The `T->T` readout at the last prompt position can use the
-image and the complete question. The full walkthrough compares this readout
-with both a plain lens at the same source site and the actual final output.
+The main `V->T` display reads **decoder image-token states** attached to the
+annotated bbox. Every patch with positive geometric overlap is retained and
+ranked against the full vocabulary. Region words summarize the full patch
+softmax distributions with weights proportional to bbox/patch intersection
+area; hidden vectors are not averaged. Raw spaces, special tokens, punctuation
+and unrelated words remain visible, together with exact token IDs and scores.
+The exact QA token contributes only a post-hoc rank and probability.
+
+For example, an exact reference ID for `"Yellow"` is distinct from IDs decoding
+to `" yellow"`, `"yellow"` or `"黄色"`. The figure labels this measurement
+**Exact QA token**: it does not pool capitalization, leading-space or translated
+and synonymous variants. A poor rank for that single ID therefore cannot be
+interpreted as absence of the corresponding color concept. The raw Top-k stays
+unfiltered; no hand-selected concept lexicon changes the displayed candidates
+or the stored rank.
+
+The default layerwise view uses block inputs **8, 16, 24 and 35**, not every
+one of this checkpoint's 36 decoder blocks. Change the layer configuration and
+calibrate the corresponding operators for a different selection. MJ uses
+block-input indices; here block input `i` matches ordinary Qwen residual site
+`i-1` for `i > 0`. Keep those site conventions explicit when choosing layers.
+
+These tokens are contextual representations, not isolated patch captions or
+proof of causal localization. In the native image-before-question template,
+visual positions precede the later question. The supplementary answer/foil
+heatmap chooses two vocabulary scores to display; it does not make those
+states retrospectively question-conditioned. The `T->T` last-prompt readout can
+use both image and question and remains a separate supplementary experiment.
+The supplementary plain readout applies the frozen final normalization/head
+directly to the same captured state.
 
 Qwen2.5-VL and Qwen3-VL supply these two text-output operators. They do not
 supply the discrete image-generation alphabet required for `T->V`, `V->V` or
@@ -478,8 +521,47 @@ reconstructions, nonnegative coefficients, atom IDs and visual-atom masks.
 Inactive support entries have ID `-1`. Size-matched atom IDs index its reduced
 union; `size_matched_text_ids` maps text atoms back to the full dictionary.
 
-Both plotting helpers return a Matplotlib `Axes` and accept an existing `ax`.
-Import them from `vlmprobe.visualization`.
+Import the region and supplementary plotting tools from
+`vlmprobe.visualization`. Region extraction returns a JSON-safe dictionary;
+region plots return `(figure, axes)` / `(figure, axis)`. The supplementary
+heatmap and text-contrast helpers return a Matplotlib `Axes`.
+
+```text
+report = region_token_readout(
+    result, tokenizer, *, grid_shape, image_size, bbox, top_k=5,
+    batch_index=0, reference_token_id=None,
+)
+figure, axes = plot_region_tokens(
+    image, report, *, top_k=3, layer_labels=None, title=None, axes=None,
+)
+figure, axis = plot_region_patch_tokens(
+    report, *, top_k=3, layer_labels=None, title=None,
+)
+```
+
+| Region argument | Default | Meaning |
+| --- | --- | --- |
+| `result` | Required | Packed vocabulary logits `[L,N,V]` with native positions and layer IDs. For MJ, use V→T readouts selecting the actual visual positions. |
+| `tokenizer` | Required | The bound checkpoint's native tokenizer; decoding retains special tokens and whitespace. |
+| `grid_shape` | Required | Actual row-major visual grid `(height,width)`, matching the selected batch's token count. Split tiled/multi-image inputs explicitly. |
+| `image_size` / `bbox` | Required | Processed `(width,height)` and bbox `(x,y,width,height)` in the same pixel coordinates. All positive-area intersections are retained. |
+| `top_k` | `5` extraction, `3` plots | Number of full-vocabulary candidates stored or displayed. Plotting cannot request more than the extracted number. |
+| `batch_index` | `0` | Batch item whose native visual-token coordinates form the supplied grid. |
+| `reference_token_id` | `None` | Optional post-hoc rank/probability for one exact QA vocabulary ID; not a concept score or vocabulary/patch filter. Case, leading-space and synonymous IDs are not pooled. |
+| `layer_labels` | `None` | Optional display labels, preserving the report's actual native layer IDs. Explain matched tap indices when comparing estimators. |
+| `title` | `None` | Optional plot title. |
+| `axes` | `None` | Existing one-dimensional array: one image axis followed by one axis per layer. The patch-table helper creates its own axes. |
+
+The report stores native patch indices, sequence positions, bbox intersection
+areas and mixture weights, per-patch logits/probabilities/Top-k token IDs and
+reprs, and the region mixture's Top-k. It preserves all selected patches;
+plotting does not infer concept names or select a more attractive subset.
+The complete notebook exports these data to both JSON and CSV. Its main bbox
+panel displays all five extracted region candidates; the longer per-patch
+tables display three while retaining every extracted candidate in the exports.
+
+The original selected-word display remains available as a supplement:
+
 
 ```text
 ax = plot_mj_visual_readout(
@@ -526,21 +608,30 @@ construct native image/question inputs, calibrate on independent COCO captions,
 and compute the report readouts before plotting. The notebook contains all
 steps; it does not load saved showcase tensors or pre-rendered results.
 
-The supplied execution uses 32 independent calibration images and eight held-out
-questions on Qwen2.5-VL-3B-Instruct. It illustrates both useful readouts and
-failures: intermediate text-state vocabulary predictions are often unrelated
-tokens, despite stable split-half operators. At block input 35, MJ's top token
-matches the reference in 4 of 8 cases, versus 5 of 8 for the plain readout and
-native model. These are case counts, not benchmark accuracy. MJ has greater
-native top-20 overlap at this layer but worse mean KL divergence; the two
-fidelity measurements should be inspected separately.
+The supplied protocol uses 32 independent calibration images and eight held-out
+questions on Qwen2.5-VL-3B-Instruct. The main bbox experiment inspects its visual
+positions. A separate supplementary **last-text-position T→T** evaluation
+illustrates useful readouts and failures: intermediate predictions are often
+unrelated tokens despite stable split-half operators. At block input 35, that
+text readout matches the reference in 4 of 8 cases, versus 5 of 8 for plain and
+native outputs. These are text-position case counts, not bbox-decoding accuracy
+or dataset-level performance. Native top-20 overlap and KL can disagree and
+should be inspected separately.
 
-The first figure aligns vocabulary contrasts with the native Qwen image grid.
-Original photographs and supplied GQA target boxes are shown alongside the
-measured readouts. A vocabulary contrast is not an attention map or proof of
-causal localization; no boxes are invented for MMVP, VSR or VisOnlyQA.
+The main experiment decodes the bbox region across selected layers. The
+original processed photograph, native patch grid and patch IDs identify where
+the readout comes from; the text columns show raw full-vocabulary Top-k and
+probabilities. Complete per-patch records are exported, so the pooled bbox words
+can be checked against individual patches rather than mistaken for patch
+captions. No boxes are invented for MMVP, VSR or VisOnlyQA.
 
-![MJ visual-to-text readouts on report photographs](../assets/tutorials/lens-mj-report-spatial.png)
+![MJ bbox vocabulary readout across decoder layers](../assets/tutorials/lens-mj-report-region-tokens.png)
+
+The original answer-versus-foil heatmaps are an attached experiment. They ask
+about two supplied words, rather than showing which words rank highest in the
+full vocabulary. Orange rectangles are source annotations, not predicted boxes.
+
+![Supplementary MJ answer-token contrasts](../assets/tutorials/lens-mj-report-spatial.png)
 
 The text comparison reads the question-conditioned last prompt state. It
 compares MJ-Lens with the plain final normalization/head applied to the same
@@ -565,6 +656,32 @@ Calibration reports distinguish previously accumulated and newly processed
 prompts/batches. `elapsed_seconds` covers the current `fit_batches` call
 (`elapsed_scope="this_fit_batches_call"`); a completed resume can process zero
 new prompts and must not be interpreted as the cost of a fresh fit.
+
+### Calibration files and runtime configuration
+
+The [raw input manifest](../../demos/assets/mj_report_samples.json) identifies
+the eight report images/questions and available GQA boxes. The six additional
+MMVP, VSR and VisOnlyQA photographs retain their original inputs and
+[source notices](../../demos/assets/images/mj_report/SOURCE_NOTICES.md).
+The [calibration manifest](../../demos/assets/mj_calibration_coco.json) records
+32 independent COCO val2014 image/caption pairs, download URLs and byte hashes.
+Its internal `train` partition is not the official COCO train2014 split.
+Showcase images are excluded by ID and raw-byte hash.
+
+| Environment setting | Purpose |
+| --- | --- |
+| `VLM_PROBING_DATA_CACHE` | Raw calibration-image directory; default `~/.cache/vlmprobe/coco_calibration` |
+| `VLM_PROBING_MJ_CALIBRATION` | Number of independent calibration image/caption pairs, from 2 to 32; default 32 |
+| `VLM_PROBING_MJ_LAYERS` | Comma-separated decoder block-input indices; default `8,16,24,35` |
+| `VLM_PROBING_MJ_DIM_BATCH` | Grouped-VJP dimension batch size; default 64, controlling temporary memory and scheduling |
+| `VLM_PROBING_OUTPUT` | Calibration artifacts and newly computed readouts; default `outputs/mj_bbox_readouts` |
+
+MJ transport calibration computes exact Jacobians and costs more than a
+forward-only readout. A CUDA GPU with at least 24 GB is recommended. A different
+calibration corpus or layer selection requires a distinct artifact/output
+identity. The notebook displays its configuration and records whether calibration
+is fresh or resumed before computing new showcase results. Neither fitted probes
+nor model weights are bundled in the repository.
 
 [Paper](https://openreview.net/forum?id=Xrp8mNku6R) ·
 [Tensor implementation](../../src/vlm_probing/lenses/mj.py) ·

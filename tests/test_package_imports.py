@@ -56,7 +56,7 @@ import importlib.abc
 import sys
 blocked = {'numpy', 'matplotlib', 'PIL', 'transformers', 'torchvision', 'accelerate',
            'sae_lens', 'vit_prisma', 'overcomplete', 'transformer_lens', 'einops',
-           'safetensors', 'huggingface_hub', 'yaml', 'requests', 'tqdm'}
+           'safetensors', 'huggingface_hub', 'yaml', 'requests', 'tqdm', 'sklearn'}
 class MissingOptionalPackages(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname.split('.')[0] in blocked:

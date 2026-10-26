@@ -24,5 +24,10 @@ from .sae import plot_sae_feature_overlay, plot_sae_activity
 __all__ += ["plot_sae_feature_overlay", "plot_sae_activity"]
 from .mj import plot_mj_codebook, plot_mj_modality_index
 __all__ += ["plot_mj_codebook", "plot_mj_modality_index"]
-from .mj_pretrained import plot_mj_visual_readout, plot_mj_text_comparison
-__all__ += ["plot_mj_visual_readout", "plot_mj_text_comparison"]
+from .mj_pretrained import (plot_mj_visual_readout, plot_mj_text_comparison,
+                            region_token_readout, plot_region_tokens,
+                            plot_region_patch_tokens)
+__all__ += ["plot_mj_visual_readout", "plot_mj_text_comparison",
+            "region_token_readout", "plot_region_tokens", "plot_region_patch_tokens"]
+from .sae_evaluation import plot_sae_evaluation, plot_sae_comparison
+__all__ += ["plot_sae_evaluation", "plot_sae_comparison"]

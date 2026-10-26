@@ -1,0 +1,146 @@
+{
+  "scope": "11 setup cells verified; 9 prior workflows and outputs preserved without rerunning; 2 complete new workflows executed fresh locally",
+  "notebooks": [
+    {
+      "notebook": "demos/10_mj_lens.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "execution": {
+        "all_code_sha256": "ef33d8418bfa9dd446893396f072d215181419e9ffcd854c7eac0095527efd0e",
+        "code_cells": 10,
+        "elapsed_seconds": 45.271782875061035,
+        "errors": 0,
+        "executed_cells": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "inline_png": 7,
+        "notebook": "demos/10_mj_lens.ipynb",
+        "scope": "fresh full analysis execution from raw inputs; pretrained weights/calibrated MJ operator may be reused; no replayed showcase tensors",
+        "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+        "status": "complete"
+      }
+    },
+    {
+      "notebook": "demos/11_sae_pretrained.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "execution": {
+        "all_code_sha256": "cf95bf127cd78dccf174ff69affc03ca0137fb3d013dee184c93e9030ba30871",
+        "code_cells": 10,
+        "elapsed_seconds": 28.245261430740356,
+        "errors": 0,
+        "executed_cells": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "inline_png": 2,
+        "notebook": "demos/11_sae_pretrained.ipynb",
+        "scope": "fresh full analysis execution from raw inputs; pretrained weights/calibrated MJ operator may be reused; no replayed showcase tensors",
+        "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+        "status": "complete"
+      }
+    },
+    {
+      "notebook": "demos/activation_patching_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/attention_comparison_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/attention_knockout_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/eap_ig_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/lens_comparison_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/path_patching_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/steering_vsv_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/vlm_attention_comparison_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    },
+    {
+      "notebook": "demos/vlm_lens_demo.ipynb",
+      "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+      "setup_cell_matches": true,
+      "colab_source_repository": "gexinh/vlm-probe",
+      "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1",
+      "prior_workflow_cells_and_outputs_preserved": true,
+      "workflow_rerun_this_iteration": false
+    }
+  ]
+}

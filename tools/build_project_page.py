@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "project-page"
 REPORT = ROOT / "docs" / "assets" / "vlmprobe-technical-report.pdf"
 OVERVIEW = ROOT / "docs" / "assets" / "library-overview-sae.svg"
-MJ_PREVIEW = ROOT / "docs/assets/tutorials/lens-mj-report-spatial.png"
+MJ_PREVIEW = ROOT / "docs/assets/tutorials/lens-mj-report-region-tokens.png"
 REPORT_LINK = "assets/vlmprobe-technical-report.pdf"
 REPOSITORIES = ("gexinh/vlm-probe", "gexinh/vlm-prob", "gexinh/vlm-probing", "ubc-tea/vlm-probe")
 CATALOG_RESOURCE = ROOT / "src/vlm_probing/sae/resources/published_model_cards.json.gz"
@@ -100,7 +100,7 @@ def build(repository: str, output: Path, *, ref: str | None = None) -> Path:
     shutil.copytree(SOURCE / "assets", output / "assets")
     shutil.copy2(REPORT, output / REPORT_LINK)
     shutil.copy2(OVERVIEW, output / "assets" / OVERVIEW.name)
-    shutil.copy2(MJ_PREVIEW, output / "assets/lens-mj-report-spatial.png")
+    shutil.copy2(MJ_PREVIEW, output / "assets/lens-mj-report-region-tokens.png")
     # Generate directly in the build tree: each mirror gets its own navigation,
     # and building a site must not rewrite the checked-in documentation.
     payload = json.loads(gzip.decompress(CATALOG_RESOURCE.read_bytes()))

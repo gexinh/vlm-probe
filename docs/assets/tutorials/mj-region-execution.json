@@ -1,0 +1,23 @@
+{
+  "status": "complete",
+  "notebook": "demos/10_mj_lens.ipynb",
+  "elapsed_seconds": 45.271782875061035,
+  "code_cells": 10,
+  "errors": 0,
+  "inline_png": 7,
+  "executed_cells": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "all_code_sha256": "ef33d8418bfa9dd446893396f072d215181419e9ffcd854c7eac0095527efd0e",
+  "setup_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+  "scope": "fresh full analysis execution from raw inputs; pretrained weights/calibrated MJ operator may be reused; no replayed showcase tensors"
+}

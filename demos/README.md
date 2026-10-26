@@ -1,4 +1,4 @@
-# Live walkthroughs
+# Notebook Tutorials
 
 Each notebook starts with raw text or images, loads a model, prepares native
 inputs and prompts, calls `vlmprobe`, inspects the returned tensors and draws
@@ -8,28 +8,33 @@ probe tensors or pre-rendered figures for live method execution.
 
 ## Start here
 
-Clone the repository to obtain the notebooks and attributed raw input samples:
+Clone the verified tutorial revision to obtain the notebooks and attributed
+raw input samples:
 
 ```bash
-git clone https://github.com/ubc-tea/vlm-probe.git
+git clone https://github.com/gexinh/vlm-probe.git
 cd vlm-probe
-python -m pip install -e ".[transformers,visualization,notebooks]"
+git checkout c50b3ed3d289d298f6ffbf1852ea34cd83ce25f6
+python -m pip install -e ".[sae,evaluation,transformers,visualization,notebooks]"
 jupyter lab demos
 ```
 
-Open a notebook and run its cells in order. The first run downloads its model
-if necessary. Most notebooks select CUDA when available; GPT-2 also runs on CPU.
-Most VLM walkthroughs use SmolVLM-500M and one image. MJ-Lens uses
-pretrained Qwen2.5-VL-3B, independent COCO caption calibration and the report's
-eight fixed GQA/MMVP/VSR/VisOnlyQA examples.
-Integration, exact Jacobians and dense Attention Lens fitting cost more than
-ordinary readouts; the relevant cells state their cost and any explicit opt-in.
+Open a notebook and run its cells in order. Each walkthrough defines its raw
+inputs, model loading, preprocessing, analysis and plots. Model weights and
+missing raw inputs download on the first run. Calibration steps and expensive
+optional sections are identified in the notebook.
+
+The [main tutorial table](../README.md#notebook-tutorials) provides **Open in
+Colab** buttons and compute requirements for every notebook. In Colab, run the
+setup cell first and select a runtime with enough memory for the model and any
+calibration workload. Checkpoint, input and interpretation details are in the
+notebooks and linked method guides.
 
 | Notebook | Default input/model | Visible workflow |
 | --- | --- | --- |
 | [Text lenses](lens_comparison_demo.ipynb) | IOI text; pretrained GPT-2 | Tokenization → Logit → independent Tuned calibration → readouts and plots; complete optional Attention/Jacobian fitting and Patchscope. |
 | [VLM lenses](vlm_lens_demo.ipynb) | GQA image/question; SmolVLM-500M | Image/chat processing → Logit and EmbedLens → independent COCO-image calibration → Tuned and Patchscope → plots. |
-| [MJ-Lens](10_mj_lens.ipynb) | Eight report image/questions; pretrained Qwen2.5-VL-3B | Verify raw inputs → download 32 independent COCO image/captions → native teacher forcing → V→T and T→T calibration → fresh readouts, spatial vocabulary maps and native/plain fidelity controls. |
+| [MJ-Lens](10_mj_lens.ipynb) | Report images/questions; Qwen2.5-VL-3B | Independent calibration → bbox-region vocabulary across layers → auxiliary controls. [Guide](../docs/methods/mj_lens.md). |
 | [ViT attention](attention_comparison_demo.ipynb) | Raw image; pretrained ViT-B/16 | Processed image/grid → fixed class score → attention maps including DTD/LRP → overlays. |
 | [VLM attention](vlm_attention_comparison_demo.ipynb) | GQA image/question; SmolVLM-500M | Chat input → teacher-forced full-answer score → eight attention analyses → aligned image overlays. |
 | [Activation and attribution patching](activation_patching_demo.ipynb) | Published IOI pair; GPT-2 | Explicit base/donor tokenization → fixed answer margin → actual versus estimated replacement effects → curves. |
@@ -37,6 +42,7 @@ ordinary readouts; the relevant cells state their cost and any explicit opt-in.
 | [Path Patching](path_patching_demo.ipynb) | Published IOI pair; GPT-2 | Base/donor inputs → selected sender/receiver heads → controlled replay, identity check and path plots. |
 | [Residual Steering / VSV](steering_vsv_demo.ipynb) | COCO snowboarding photo; SmolVLM-500M | Image/text-only pair → per-image direction → live generation at several strengths → captions and score curves. |
 | [EAP / EAP-IG](eap_ig_demo.ipynb) | Published IOI pair; GPT-2 | Token alignment and margin → explicit transformer-edge attribution → actual retained-circuit evaluation → plots. |
+| [Pretrained visual SAE](11_sae_pretrained.ipynb) | COCO images; DINO-B/16 and Prisma ReLU | Load published dictionary → feature maps → reconstruction and localization evaluation. [Guide](../docs/methods/sae/examples/pretrained.md). |
 
 The short calibration splits teach the training protocol; they do not produce
 research-quality decoders. Keep showcase inputs out of fitting, and use the
@@ -44,36 +50,6 @@ research-quality decoders. Keep showcase inputs out of fitting, and use the
 splits and immutable artifact identities. The default text-lens path skips the
 expensive dense Attention Lens and exact Jacobian sections explicitly; their
 complete training code remains visible and runs when enabled.
-
-## MJ-Lens report walkthrough
-
-[MJ-Lens](10_mj_lens.ipynb) uses the original questions and images recorded in
-[the report input manifest](assets/mj_report_samples.json). GQA target boxes
-are included where the source provides them. The six additional MMVP, VSR and
-VisOnlyQA images are unchanged raw inputs under
-[images/mj_report](assets/images/mj_report/SOURCE_NOTICES.md).
-
-The [calibration manifest](assets/mj_calibration_coco.json) lists 32 independent
-COCO val2014 image/caption records and their download URLs and byte hashes.
-Its internal `train` partition is not official COCO train2014. Raw calibration
-images download to `VLM_PROBING_DATA_CACHE`, or
-`~/.cache/vlmprobe/coco_calibration`; model weights and fitted probe tensors are
-not embedded in the notebook. Showcase images are excluded by hash and COCO ID.
-
-Exact Jacobian calibration is more expensive than a forward-only lens. The
-visible configuration exposes the calibration count, source layers and VJP
-batch size through `VLM_PROBING_MJ_CALIBRATION`, `VLM_PROBING_MJ_LAYERS` and
-`VLM_PROBING_MJ_DIM_BATCH`. A different calibration corpus or set of layers
-requires a distinct output directory/artifact identity; VJP batch size controls
-memory and work scheduling without changing the estimator. The
-notebook shows its run configuration before fitting and computes new showcase
-results after calibration or an explicitly recorded calibration resume.
-
-Its spatial `V→T` maps read image-token states in the decoder. In the native
-image-before-question template those states cannot see the later question;
-only the vocabulary contrast is chosen from the question. The `T→T` last-prompt
-readout is question-conditioned. Qwen has no visual output codebook, so this
-walkthrough does not label its maps as V→V image reconstructions or MI results.
 
 ## Change a checkpoint or input
 
@@ -97,7 +73,10 @@ Use these when you want one method rather than a whole family comparison.
 
 ## Execution records and archived measurements
 
-[validation.json](validation.json) records live walkthrough verification;
+[validation.json](validation.json) records live walkthrough verification.
+[The current execution record](../docs/assets/tutorials/notebook-tutorials-validation.json)
+separates the two freshly executed notebooks from nine preserved older workflows
+and their independently checked setup cells;
 [the tutorial preview directory](../docs/assets/tutorials) contains figures
 produced by the example code and their provenance. Stored notebook outputs are
 for reading on GitHub; running the notebook computes fresh results.
@@ -118,6 +97,7 @@ and target construction directly.
 | [VSR zero-shot](https://huggingface.co/datasets/cambridgeltl/vsr_zeroshot) | Official test rows 0 and 1, their COCO photographs and spatial propositions. No bounding boxes are inferred. |
 | [VisOnlyQA Eval Real](https://huggingface.co/datasets/ryokamoi/VisOnlyQA_Eval_Real) | Row 0 from `geometry__triangle` and `charts__extraction`, retaining official no-reasoning prompts and exact source image hashes. |
 | COCO val2014 MJ calibration | 32 image/caption records from an independent internal calibration partition. The lightweight manifest includes download URLs, caption IDs, hashes and explicit showcase-overlap checks. |
+| COCO2017 pretrained SAE inputs | 32 official train2017 images select features and evaluation references; official val2017 images 14439, 263463 and 532575 are the held-out person/car/dog examples. URLs, raw-image hashes and boxes are recorded in [assets/sae_report_samples.json](assets/sae_report_samples.json). |
 | [Transformer Explainability author samples](https://github.com/hila-chefer/Transformer-Explainability/tree/main/samples) | `catdog.png` and `el2.png`, plus their exact processed 224×224 crops. These are illustrative author samples, not a claimed held-out ImageNet split. |
 | [Author IOI pairs](https://github.com/hannamw/eap-ig-faithfulness/tree/main/data/ioi) | Published GPT-2 CSV rows 826 and 475, preserving the author clean/corrupted prompts and BOS convention in the EAP-IG experiment. |
 | [VRUBench paper examples](https://arxiv.org/abs/2604.15294) | Appendix A two-step and Figure 7(c) four-step examples with attributed prompt text and paired changes. These are not a download of the full official benchmark. Release availability in the provenance file is a historical collection-time check. |

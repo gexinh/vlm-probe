@@ -1,51 +1,63 @@
 [
   {
     "notebook": "activation_patching_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 4,
     "total_code_cells": 4,
     "rendered_image_outputs": 1,
     "error_outputs": 0,
     "code_sha256": "6fc725933c42966bff968d1fffccee2c06ed18ddb322cec6979b7f1c17e65b00",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 5
   },
   {
     "notebook": "attention_comparison_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 3,
     "total_code_cells": 3,
     "rendered_image_outputs": 2,
     "error_outputs": 0,
     "code_sha256": "7cc3d65855971b18c1d2014f30bdae8b719982c1566887de2d4cadcf5e55e0db",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 4
   },
   {
     "notebook": "attention_knockout_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 2,
     "total_code_cells": 2,
     "rendered_image_outputs": 1,
     "error_outputs": 0,
     "code_sha256": "f91b0975e54a87983c5757557083a29ee81d96011b8d15e45d1273bdc424fede",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 3
   },
   {
     "notebook": "eap_ig_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 5,
     "total_code_cells": 5,
     "rendered_image_outputs": 1,
     "error_outputs": 0,
     "code_sha256": "57fdf5ce76d13bf7cd58cc1b45dd99b09145151b5e1d6d030dfbeca52295411a",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 6
   },
   {
     "notebook": "lens_comparison_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 7,
     "total_code_cells": 7,
@@ -55,68 +67,101 @@
     "optional_training_skipped_by_default": [
       "dense Attention Lens",
       "exact Jacobian Lens"
-    ]
+    ],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 8
   },
   {
     "notebook": "path_patching_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 5,
     "total_code_cells": 5,
     "rendered_image_outputs": 1,
     "error_outputs": 0,
     "code_sha256": "cbf4f5b66fc3caca7a5c36082cde7ec21bf9b4b6f2267355f8fd6e9931f61f6a",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 6
   },
   {
     "notebook": "steering_vsv_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 5,
     "total_code_cells": 5,
     "rendered_image_outputs": 2,
     "error_outputs": 0,
     "code_sha256": "f7d8ca94a493a36ae8fbbff9cd4a400993459fe63395f5ee870e9b60e8f3f960",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 6
   },
   {
     "notebook": "vlm_attention_comparison_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 2,
     "total_code_cells": 2,
     "rendered_image_outputs": 1,
     "error_outputs": 0,
     "code_sha256": "f62fd6a1741f518480a9b22a06f6db38af133439a943bef68ee73862c9b493d0",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 3
   },
   {
     "notebook": "vlm_lens_demo.ipynb",
-    "mode": "live model execution",
+    "mode": "prior live workflow execution; original cells and outputs preserved; environment setup validated separately",
     "success": true,
     "executed_code_cells": 6,
     "total_code_cells": 6,
     "rendered_image_outputs": 5,
     "error_outputs": 0,
     "code_sha256": "ff75de6c296c96a76517861517adb6e2023ade78fc8ec892a0b30a0a4ac240fb",
-    "optional_training_skipped_by_default": []
+    "optional_training_skipped_by_default": [],
+    "workflow_rerun_this_iteration": false,
+    "code_sha256_scope": "original workflow code excluding newly added environment setup",
+    "current_total_code_cells": 7
   },
   {
     "notebook": "10_mj_lens.ipynb",
-    "mode": "pretrained model execution; verified 32-image calibration resume; fresh held-out readouts",
+    "mode": "fresh complete local notebook execution from raw inputs; pretrained weights and bound MJ calibration may be reused",
     "success": true,
-    "executed_code_cells": 9,
-    "total_code_cells": 9,
-    "rendered_image_outputs": 4,
+    "executed_code_cells": 10,
+    "total_code_cells": 10,
+    "rendered_image_outputs": 7,
     "error_outputs": 0,
-    "code_sha256": "56da9c878c87933fecec17673b12fdccf769a976f74edd94ee739d19cf2bf71c",
+    "code_sha256": "ef33d8418bfa9dd446893396f072d215181419e9ffcd854c7eac0095527efd0e",
     "optional_training_skipped_by_default": [],
-    "source_script_sha256": "bfdc8e0514e72275f8a601e94fd35ac7527bcf2555064e9c0ed99699fb59e54f",
+    "source_script_sha256": "651f95f79fe38d00d8e74045c785209eb6ba42c0a5054d166c456cea991f359d",
     "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
     "model_revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
     "n_calibration": 32,
     "n_showcase": 8,
     "question_swap_visual_max_abs_diff": 0.0,
-    "save_load_max_abs_diff": 0.0
+    "save_load_max_abs_diff": 0.0,
+    "code_sha256_scope": "all current code cells, including environment setup",
+    "setup_source_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+    "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
+  },
+  {
+    "notebook": "11_sae_pretrained.ipynb",
+    "mode": "fresh complete local notebook execution from raw inputs; pretrained weights and bound MJ calibration may be reused",
+    "success": true,
+    "executed_code_cells": 10,
+    "total_code_cells": 10,
+    "rendered_image_outputs": 2,
+    "error_outputs": 0,
+    "code_sha256": "cf95bf127cd78dccf174ff69affc03ca0137fb3d013dee184c93e9030ba30871",
+    "code_sha256_scope": "all current code cells, including environment setup",
+    "source_script_sha256": "9d7e5014e44e0703d18da3017070c28598879f97b6e1d657134e64c27fda9521",
+    "optional_training_skipped_by_default": [],
+    "setup_source_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+    "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
   }
 ]

@@ -1,6 +1,8 @@
 """External tensor formats become the same native class without source SDKs."""
 import json
 import os
+import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -9,6 +11,125 @@ import torch
 from vlm_probing.sae.importers import import_checkpoint
 from vlm_probing.sae.artifacts import load_artifact
 from vlm_probing.sae.models import SparseAutoencoder
+
+
+def _save_legacy_prisma_envelope(path, config, weights, monkeypatch):
+    """Write the historical class name without installing the source package."""
+    with monkeypatch.context() as patch:
+        for name in ("vit_prisma", "vit_prisma.sae", "vit_prisma.sae.config"):
+            patch.setitem(sys.modules, name, types.ModuleType(name))
+        cls = type("VisionModelSAERunnerConfig", (), {
+            "__module__": "vit_prisma.sae.config",
+        })
+        sys.modules["vit_prisma.sae.config"].VisionModelSAERunnerConfig = cls
+        instance = cls()
+        instance.__dict__.update(config)
+        torch.save({"cfg": instance, "state_dict": weights}, path)
+
+
+def test_prisma_legacy_config_envelope_loads_without_official_import(tmp_path, monkeypatch):
+    import builtins
+    config = {"architecture": "standard", "activation_fn_str": "topk",
+        "activation_fn_kwargs": {"k": 2}, "normalize_activations": "layer_norm",
+        "d_in": 4, "d_sae": 7, "model_name": "source-model", "hook_point_layer": 0,
+        "layer_subtype": "hook_resid_post", "cls_token_only": False, "use_patches_only": True}
+    weights = source_weights()
+    source = tmp_path / "weights.pt"
+    _save_legacy_prisma_envelope(source, config, weights, monkeypatch)
+    (tmp_path / "config.json").write_text(json.dumps(config))
+    original_import = builtins.__import__
+    def blocked_import(name, *args, **kwargs):
+        if name.startswith("vit_prisma"):
+            raise AssertionError("the official package must not be imported")
+        return original_import(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, "__import__", blocked_import)
+    native = import_checkpoint(source_format="prisma", path=source, binding=binding())
+    raw = torch.randn(5, 4, dtype=torch.float64)
+    expected_features, expected_reconstruction = reference(raw, weights, norm="layer_norm", activation="topk")
+    actual_reconstruction, actual_features = native(raw)
+    torch.testing.assert_close(actual_features, expected_features)
+    torch.testing.assert_close(actual_reconstruction, expected_reconstruction)
+
+
+def test_prisma_legacy_config_envelope_rejects_conflicting_sidecar(tmp_path, monkeypatch):
+    config = {"architecture": "standard", "activation_fn_str": "relu",
+        "d_in": 4, "d_sae": 7, "model_name": "source-model", "hook_point_layer": 0,
+        "layer_subtype": "hook_resid_post", "normalize_activations": None}
+    source = tmp_path / "weights.pt"
+    _save_legacy_prisma_envelope(source, config, source_weights(), monkeypatch)
+    (tmp_path / "config.json").write_text(json.dumps({**config, "normalize_activations": "layer_norm"}))
+    with pytest.raises(ValueError, match="embedded configuration.*normalize_activations"):
+        import_checkpoint(source_format="prisma", path=source, binding=binding())
+
+
+@pytest.mark.parametrize("change", ["omit_normalization", "add_bias_flag", "change_dimensions"])
+def test_prisma_legacy_config_rejects_incomplete_or_changed_sidecar(tmp_path, monkeypatch, change):
+    config = {"architecture": "standard", "activation_fn_str": "relu",
+        "d_in": 4, "d_sae": 7, "model_name": "source-model", "hook_point_layer": 0,
+        "layer_subtype": "hook_resid_post", "normalize_activations": "layer_norm"}
+    source = tmp_path / "weights.pt"
+    _save_legacy_prisma_envelope(source, config, source_weights(), monkeypatch)
+    sidecar = dict(config)
+    if change == "omit_normalization":
+        sidecar.pop("normalize_activations")
+    elif change == "add_bias_flag":
+        sidecar["apply_b_dec_to_input"] = False
+    else:
+        sidecar["d_sae"] = 8
+    (tmp_path / "config.json").write_text(json.dumps(sidecar))
+    with pytest.raises(ValueError, match="embedded configuration differs"):
+        import_checkpoint(source_format="prisma", path=source, binding=binding())
+
+
+def test_prisma_legacy_config_does_not_allow_other_pickled_classes(tmp_path):
+    import pickle
+    from pathlib import PosixPath
+    source = tmp_path / "weights.pt"
+    torch.save({"cfg": PosixPath("unapproved-object"), "state_dict": source_weights()}, source)
+    with pytest.raises(pickle.UnpicklingError, match="Unsupported global"):
+        import_checkpoint(source_format="prisma", path=source, binding=binding())
+
+
+def test_prisma_legacy_config_refuses_executable_pickle_reducer(tmp_path):
+    import pickle
+    marker = tmp_path / "must-not-exist"
+
+    class ExecutableReducer:
+        def __reduce__(self):
+            expression = f"__import__('pathlib').Path({str(marker)!r}).write_text('executed')"
+            return eval, (expression,)
+
+    source = tmp_path / "weights.pt"
+    torch.save({"cfg": ExecutableReducer(), "state_dict": source_weights()}, source)
+    with pytest.raises(pickle.UnpicklingError, match="Unsupported global"):
+        import_checkpoint(source_format="prisma", path=source, binding=binding())
+    assert not marker.exists()
+
+
+@pytest.mark.parametrize("version,missing_api", [("2.2.2", True), ("2.5.1", False), ("2.6.0", True)])
+def test_prisma_legacy_config_reports_required_torch_loader_version(tmp_path, monkeypatch, version, missing_api):
+    config = {"architecture": "standard", "activation_fn_str": "relu",
+        "d_in": 4, "d_sae": 7, "model_name": "source-model", "hook_point_layer": 0,
+        "layer_subtype": "hook_resid_post", "normalize_activations": None}
+    source = tmp_path / "weights.pt"
+    _save_legacy_prisma_envelope(source, config, source_weights(), monkeypatch)
+    monkeypatch.setattr(torch, "__version__", version)
+    if missing_api:
+        monkeypatch.delattr(torch.serialization, "safe_globals", raising=False)
+    with pytest.raises(RuntimeError, match=r"requires PyTorch >=2\.6.*vlmprobe\[sae\]"):
+        import_checkpoint(source_format="prisma", path=source, binding=binding())
+
+
+def test_prisma_tensor_only_checkpoint_does_not_require_legacy_loader_api(tmp_path, monkeypatch):
+    weights = source_weights()
+    source = tmp_path / "weights.pt"
+    torch.save(weights, source)
+    monkeypatch.setattr(torch, "__version__", "2.2.2")
+    monkeypatch.delattr(torch.serialization, "safe_globals", raising=False)
+    from vlm_probing.sae.importers import _weights
+    actual = _weights(source, source_format="prisma")
+    for key, value in weights.items():
+        torch.testing.assert_close(actual[key], value, rtol=0, atol=0)
 
 
 def binding(model="source-model", hook="blocks.0.hook_resid_post", layer=0):

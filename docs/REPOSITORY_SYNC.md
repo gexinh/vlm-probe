@@ -4,10 +4,11 @@ The laboratory repository is [ubc-tea/vlm-probe](https://github.com/ubc-tea/vlm-
 The pre-release repository is [gexinh/vlm-probe](https://github.com/gexinh/vlm-probe).
 The lab repository carries reviewed updates; the personal repository can carry
 beta or pre-release development first. After a promotion, their library, version,
-demos, input images and report are identical. Both README bodies use the same
-stable documentation links. Only the lab README ends with a small **Pre-release
-version** button pointing to the personal repository; the personal README omits
-that managed footer. No separate README section is added.
+demos, input images and report are identical. README content is shared; project
+URLs point to the repository being viewed. The personal README ends with a small
+**Stable version** button pointing to the lab repository. The lab README ends
+with a **Pre-release version** button pointing to the personal repository.
+Neither button adds a separate README section.
 
 Issues, pull requests, GitHub Releases and repository settings are separate
 GitHub objects; pushing source does not duplicate them or publish a PyPI release.
@@ -30,12 +31,13 @@ python tools/sync_repositories.py --push
 ```
 
 Use the personal checkout as the shared editing source. The tool fetches both
-branches and checks for unmerged remote changes before publishing. It adds only
-the lab's trailing beta-link block, preserves both histories, and verifies that
-only README.md differs between the published trees. It also verifies that
-removing the managed block gives the exact shared README body. It never
-force-pushes or deletes refs. If someone edited either GitHub copy, merge that remote's changes locally,
-review them, commit, and retry.
+branches and checks for unmerged remote changes before publishing. It renders
+README project URLs and the repository-specific trailing link block, preserves
+both histories, and verifies that only README.md differs between the promoted trees. It also checks
+that stripping the managed footers and normalizing project URLs gives the exact
+shared README body. It never force-pushes or deletes refs. If someone edited
+either GitHub copy, merge that remote's changes locally, review them, commit,
+and retry.
 Publishing requires a clean working tree. Release tags can be pushed to both
 remotes separately after reviewing the release.
 
@@ -52,19 +54,29 @@ package version when appropriate. Once that version has been reviewed, run the
 explicit synchronization command above to promote the reviewed `main` tree.
 There is no automatic mirroring from personal pushes into the lab repository.
 
+Colab buttons open an immutable, verified notebook revision. Its setup cell
+loads the pinned runtime source recorded in the tutorial, so a personal beta
+never silently installs an older lab `main`. `VLM_PROBING_REPOSITORY` and
+`VLM_PROBING_REF` remain explicit overrides. Existing user checkouts are reused
+without resetting their contents. Refresh and verify both pins when tutorial
+code requires a different runtime source.
+
 ### README rendering and migration
 
 The publishing helper exposes `release_readme(text, repository)` in
-`tools/sync_repositories.py`. It produces the shared body with stable lab URLs,
-omits the beta footer for `gexinh/vlm-probe`, and adds it for
-`ubc-tea/vlm-probe`. Rendering repeatedly is a no-op. Only the trailing block
-between `<!-- vlmprobe:prerelease-link:start -->` and
-`<!-- vlmprobe:prerelease-link:end -->` is managed. Text after that block or
-malformed markers cause an error rather than being deleted.
+`tools/sync_repositories.py`. It renders project URLs for the selected repository
+and adds its single trailing counterpart button. `shared_readme_body(text)` removes the managed
+footer and normalizes project URLs for content comparison. Repeated rendering
+is a no-op. The personal block uses `<!-- vlmprobe:stable-link:start -->` /
+`<!-- vlmprobe:stable-link:end -->`; the lab block retains
+`<!-- vlmprobe:prerelease-link:start -->` /
+`<!-- vlmprobe:prerelease-link:end -->`. Mixed, duplicate, malformed, modified
+or nontrailing managed blocks cause an error rather than deleting text.
 
 When migrating an existing checkout, render the personal form once, review the
 README diff, and commit it before publishing. The command accepts the exact
-historical lab URL-only renderings when preserving old lab commits. Other
+historical footerless personal body, lab beta footer and lab URL-only renderings
+when preserving old commits. Other
 remote README edits still require explicit merging and review; they are never
 overwritten just because they affect README.md. The old `render_readme(...)`
 URL renderer remains available for validating those historical commits.

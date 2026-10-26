@@ -36,7 +36,8 @@ and Hugging Face dependencies are loaded only when those features are used.
 | `visualization` | Matplotlib, NumPy, and Pillow for built-in plots. |
 | `transformers` | Supported Transformers 5.3.x, Accelerate, Torchvision, and Pillow. |
 | `notebooks` | Jupyter and the plotting/tokenizer tools used by demos. |
-| `sae` | NumPy, Safetensors and Hugging Face Hub for sparse dictionaries and checkpoint loading. |
+| `sae` | PyTorch ≥2.6, NumPy, Safetensors and Hugging Face Hub for sparse dictionaries and safe historical checkpoint loading. |
+| `evaluation` | NumPy and scikit-learn for optional sparse diagnostic probes; reconstruction, sparsity and localization use PyTorch. |
 
 For tensor methods and custom PyTorch adapters, the base installation is
 `python -m pip install vlmprobe`.

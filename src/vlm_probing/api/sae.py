@@ -137,6 +137,7 @@ class SAEProbe(BoundMethod):
         if self.operation == "features":
             result = ProbeResult(self.name, {
                 "features": features, "activation": values,
+                "native_activation": native,
                 "reconstruction": reconstruction,
                 "reconstruction_error": values - reconstruction,
                 "l0": (features != 0).sum(-1), "positions": positions,
