@@ -136,7 +136,7 @@
     "total_code_cells": 10,
     "rendered_image_outputs": 7,
     "error_outputs": 0,
-    "code_sha256": "3142e1bde10f799aa35623f150733b84cd2915ac193f81369f4ec55906c73510",
+    "code_sha256": "ef33d8418bfa9dd446893396f072d215181419e9ffcd854c7eac0095527efd0e",
     "optional_training_skipped_by_default": [],
     "source_script_sha256": "651f95f79fe38d00d8e74045c785209eb6ba42c0a5054d166c456cea991f359d",
     "model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
@@ -146,7 +146,8 @@
     "question_swap_visual_max_abs_diff": 0.0,
     "save_load_max_abs_diff": 0.0,
     "code_sha256_scope": "all current code cells, including environment setup",
-    "setup_source_sha256": "f2998906f7f9726674646240894d2a13a4517d7b8d4ccd6d021e8b841700223b"
+    "setup_source_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+    "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
   },
   {
     "notebook": "11_sae_pretrained.ipynb",
@@ -156,10 +157,11 @@
     "total_code_cells": 10,
     "rendered_image_outputs": 2,
     "error_outputs": 0,
-    "code_sha256": "51f9fe8f0604ba956a4327b3d40fc4a1f5aba400379bb5a3a77ad2cc12c844e4",
+    "code_sha256": "cf95bf127cd78dccf174ff69affc03ca0137fb3d013dee184c93e9030ba30871",
     "code_sha256_scope": "all current code cells, including environment setup",
     "source_script_sha256": "9d7e5014e44e0703d18da3017070c28598879f97b6e1d657134e64c27fda9521",
     "optional_training_skipped_by_default": [],
-    "setup_source_sha256": "f2998906f7f9726674646240894d2a13a4517d7b8d4ccd6d021e8b841700223b"
+    "setup_source_sha256": "bbddf11051e7450d5cf85b384d72f9511b73c5a9c66b21f8698c3b10cdd93010",
+    "colab_runtime_source_commit": "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
   }
 ]

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="vlmprobe icon">
+  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="vlmprobe icon">
 </p>
 
 <h1 align="center">vlmprobe</h1>
@@ -7,7 +7,7 @@
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
 <p align="center">
-  <a href="https://ubc-tea.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-Visit%20Website-3266e5?style=for-the-badge" alt="Visit the vlmprobe project page"></a>
+  <a href="https://gexinh.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-Visit%20Website-3266e5?style=for-the-badge" alt="Visit the vlmprobe project page"></a>
 </p>
 
 vlmprobe brings lens readouts, attention explanations, causal interventions,
@@ -32,7 +32,7 @@ connection graphs. Capability checks distinguish an unsupported operation from
 a measured zero effect.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
+  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
 
 [Documentation](docs/README.md) · [Notebook Tutorials](#notebook-tutorials) ·
@@ -69,7 +69,7 @@ enough memory for the stated model and calibration workload.
 Python 3.10+ is required. Install the current source version from GitHub:
 
 ```bash
-python -m pip install "vlmprobe[sae,transformers,visualization] @ git+https://github.com/ubc-tea/vlm-probe.git@main"
+python -m pip install "vlmprobe[sae,transformers,visualization] @ git+https://github.com/gexinh/vlm-probe.git@main"
 ```
 
 The published package is also available on [PyPI](https://pypi.org/project/vlmprobe/):
@@ -311,3 +311,7 @@ SAE integration draws on [SAELens](https://github.com/decoderesearch/SAELens),
 [Overcomplete](https://github.com/KempnerInstitute/overcomplete).
 Our native algorithms and checkpoint converters retain source attribution and
 MIT license notices; see [SAE provenance](docs/methods/sae/SOURCES.md).
+
+<!-- vlmprobe:stable-link:start -->
+Stable version: [![Stable](https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&logo=github)](https://github.com/ubc-tea/vlm-probe)
+<!-- vlmprobe:stable-link:end -->

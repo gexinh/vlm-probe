@@ -27,9 +27,13 @@ Run the setup cell first. In Google Colab it obtains a Git checkout and installs
 the notebook dependencies; local execution keeps the existing environment.
 Choose a GPU runtime when required by the walkthrough.
 
-Optional environment settings: VLM_PROBING_REPOSITORY (default
-ubc-tea/vlm-probe), VLM_PROBING_REF (default main), and
-VLM_PROBING_COLAB_DIR (default /content/vlm-probe). The repository and ref
+New Colab checkouts use the reviewed source **gexinh/vlm-probe** at commit
+`e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1`. This pins the runtime source for
+reproducible execution.
+
+Optional environment settings: VLM_PROBING_REPOSITORY and VLM_PROBING_REF
+override that pinned repository and commit; VLM_PROBING_COLAB_DIR changes
+the checkout directory (default /content/vlm-probe). The repository and ref
 select a new checkout. An existing vlmprobe checkout is reused at its current
 commit without discarding local changes. The cell prints that commit.
 
@@ -56,9 +60,11 @@ if _nb_setup_in_colab:
     import subprocess as _nb_setup_subprocess
 
     _nb_setup_repo = _nb_setup_os.environ.get(
-        "VLM_PROBING_REPOSITORY", "ubc-tea/vlm-probe"
+        "VLM_PROBING_REPOSITORY", "gexinh/vlm-probe"
     )
-    _nb_setup_ref = _nb_setup_os.environ.get("VLM_PROBING_REF", "main")
+    _nb_setup_ref = _nb_setup_os.environ.get(
+        "VLM_PROBING_REF", "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
+    )
     if not _nb_setup_re.fullmatch(
         r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9][A-Za-z0-9_.-]*",
         _nb_setup_repo,

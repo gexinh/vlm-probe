@@ -13,7 +13,7 @@ import unittest
 from unittest.mock import patch
 
 from tools.prepare_notebook_setup import (
-    GUIDE_CELL_ID, SETUP_CELL_ID, SETUP_SOURCE, prepare_notebook, prepare_paths,
+    GUIDE_CELL_ID, GUIDE_SOURCE, SETUP_CELL_ID, SETUP_SOURCE, prepare_notebook, prepare_paths,
 )
 
 
@@ -182,14 +182,26 @@ class ColabSetupExecutionTests(unittest.TestCase):
         self.assertEqual((Path.cwd(), sys.path), before)
         self.assertIn("Local runtime", output)
 
+    def test_fresh_colab_defaults_to_reviewed_personal_repository_commit(self):
+        self.execute()
+        self.assertEqual(self.calls[0], [
+            "git", "clone", "--depth=1", "--no-checkout",
+            "https://github.com/gexinh/vlm-probe.git", str(self.checkout),
+        ])
+        reviewed_commit = "e2613bf7ef55f1889aa9f95d2004d1ab6770c1b1"
+        self.assertEqual(self.calls[1][-4:], ["fetch", "--depth=1", "origin", reviewed_commit])
+        self.assertEqual(self.calls[2][-3:], ["checkout", "--detach", "FETCH_HEAD"])
+        self.assertIn("gexinh/vlm-probe", GUIDE_SOURCE)
+        self.assertIn(reviewed_commit, GUIDE_SOURCE)
+
     def test_fresh_colab_clone_uses_argv_ref_and_local_extras(self):
         _, output = self.execute(env={
-            "VLM_PROBING_REPOSITORY": "gexinh/vlm-probe",
+            "VLM_PROBING_REPOSITORY": "ubc-tea/vlm-probe",
             "VLM_PROBING_REF": "a" * 40,
         })
         self.assertEqual(self.calls[0], [
             "git", "clone", "--depth=1", "--no-checkout",
-            "https://github.com/gexinh/vlm-probe.git", str(self.checkout),
+            "https://github.com/ubc-tea/vlm-probe.git", str(self.checkout),
         ])
         self.assertEqual(self.calls[1][-4:], ["fetch", "--depth=1", "origin", "a" * 40])
         self.assertEqual(self.calls[2][-3:], ["checkout", "--detach", "FETCH_HEAD"])

@@ -7,7 +7,8 @@ from pathlib import Path
 
 from tools.sync_repositories import (
     LAB_REPOSITORY, PERSONAL_REPOSITORY, PRERELEASE_END, PRERELEASE_LINE, PRERELEASE_START,
-    changed_paths, is_ancestor, readme_at, release_readme, render_readme, synchronize,
+    STABLE_END, STABLE_LINE, STABLE_START, changed_paths, is_ancestor, readme_at,
+    release_readme, render_readme, shared_readme_body, synchronize,
 )
 
 
@@ -70,7 +71,10 @@ class RepositorySyncTests(unittest.TestCase):
         self.assertEqual(expected.count(PRERELEASE_START), 1)
         self.assertEqual(expected.count(PRERELEASE_LINE), 1)
         self.assertNotIn(PRERELEASE_START, personal_readme)
-        self.assertEqual(expected.split(PRERELEASE_START)[0].rstrip(), personal_readme.rstrip())
+        self.assertEqual(personal_readme.count(STABLE_START), 1)
+        self.assertEqual(personal_readme.count(STABLE_LINE), 1)
+        self.assertNotIn(STABLE_START, expected)
+        self.assertEqual(shared_readme_body(expected), shared_readme_body(personal_readme))
 
     def test_rendering_retargets_only_own_urls_and_preserves_readme_structure(self):
         expected = (LEGACY_README.replace("https://gexinh.github.io/vlm-probe/",
@@ -130,38 +134,93 @@ class RepositorySyncTests(unittest.TestCase):
                         expected = original.replace(f"gexinh/{source}.git@", f"{target}.git@")
                         self.assertEqual(render_readme(original, target), expected)
 
-    def test_release_readme_has_identical_stable_body_and_idempotent_lab_footer(self):
+    def test_release_readme_has_identical_body_and_idempotent_repository_footers(self):
         for newline in ("\n", "\r\n"):
             original = LEGACY_README.replace("\n", newline)
             personal = release_readme(original, PERSONAL_REPOSITORY)
             lab = release_readme(original, LAB_REPOSITORY)
-            self.assertEqual(personal, render_readme(original, LAB_REPOSITORY))
+            body = render_readme(original, LAB_REPOSITORY)
+            self.assertEqual(shared_readme_body(personal), body)
+            self.assertEqual(shared_readme_body(lab), body)
             self.assertNotIn(PRERELEASE_START, personal)
-            self.assertEqual(lab, personal + newline + newline.join(
+            self.assertNotIn(STABLE_START, lab)
+            self.assertEqual(personal, render_readme(original, PERSONAL_REPOSITORY) + newline + newline.join(
+                (STABLE_START, STABLE_LINE, STABLE_END, "")))
+            self.assertEqual(lab, body + newline + newline.join(
                 (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, "")))
             self.assertEqual(release_readme(lab, PERSONAL_REPOSITORY), personal)
             self.assertEqual(release_readme(lab, LAB_REPOSITORY), lab)
             self.assertEqual(release_readme(personal, PERSONAL_REPOSITORY), personal)
+            self.assertEqual(release_readme(personal, LAB_REPOSITORY), lab)
+            self.assertIn("(https://github.com/ubc-tea/vlm-probe)", personal)
             self.assertIn("(https://github.com/gexinh/vlm-probe)", lab)
-            self.assertNotIn("\n##", lab[len(personal):])
+            self.assertNotIn("\n##", lab[len(body):])
+            self.assertNotIn("\n##", personal[len(body):])
 
     def test_release_readme_refuses_malformed_or_nontrailing_managed_blocks(self):
-        for text in (PERSONAL_README + PRERELEASE_START,
-                     PERSONAL_README + PRERELEASE_END,
-                     PERSONAL_README + PRERELEASE_END + PRERELEASE_START,
-                     release_readme(PERSONAL_README, LAB_REPOSITORY) + PRERELEASE_START,
-                     release_readme(PERSONAL_README, LAB_REPOSITORY) + "Collaborator text\n"):
-            with self.subTest(text=text), self.assertRaisesRegex(ValueError, "pre-release footer"):
-                release_readme(text, PERSONAL_REPOSITORY)
+        body = shared_readme_body(PERSONAL_README)
+        for start, line, end in ((STABLE_START, STABLE_LINE, STABLE_END),
+                                 (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END)):
+            block = "\n".join((start, line, end, ""))
+            for text in (body + start, body + end, body + end + start,
+                         body + block + block, body + block + "Collaborator text\n",
+                         body.rstrip() + block,
+                         body + block.replace(line, line + "\nCollaborator text"),
+                         body + block.replace(line, "Unknown link"),
+                         body + block.replace("link:start -->", "link:start --")):
+                for renderer in (lambda value: release_readme(value, PERSONAL_REPOSITORY),
+                                 shared_readme_body):
+                    with self.subTest(text=text, renderer=renderer), self.assertRaisesRegex(ValueError, "release footer"):
+                        renderer(text)
+        with self.assertRaisesRegex(ValueError, "exactly one complete"):
+            release_readme(PERSONAL_README + "\n" + "\n".join(
+                (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, "")), LAB_REPOSITORY)
+
+    def test_footerless_readmes_and_old_lab_footers_migrate_without_body_edits(self):
+        body = shared_readme_body(LEGACY_README)
+        old_lab = body + "\n" + "\n".join(
+            (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, ""))
+        personal = release_readme(body, PERSONAL_REPOSITORY)
+        self.assertEqual(release_readme(old_lab, PERSONAL_REPOSITORY), personal)
+        self.assertEqual(release_readme(body, LAB_REPOSITORY), old_lab)
+        self.assertEqual(release_readme(old_lab, LAB_REPOSITORY), old_lab)
+        self.assertEqual(shared_readme_body(old_lab), body)
 
     def test_legacy_local_readme_requires_explicit_reviewed_migration(self):
         previous_personal, previous_lab = self.head("personal"), self.head("lab")
         (self.repo / "README.md").write_text(LEGACY_README)
         self.commit("legacy local URLs")
-        with self.assertRaisesRegex(ValueError, "shared stable repository URLs.*Nothing was pushed"):
+        with self.assertRaisesRegex(ValueError, "personal repository URLs.*Nothing was pushed"):
             synchronize(self.repo, ("personal", "lab"), "main", True)
         self.assertEqual(self.head("personal"), previous_personal)
         self.assertEqual(self.head("lab"), previous_lab)
+
+    def test_footerless_local_readme_requires_explicit_reviewed_migration(self):
+        previous_personal, previous_lab = self.head("personal"), self.head("lab")
+        (self.repo / "README.md").write_text(shared_readme_body(PERSONAL_README))
+        self.commit("old shared body without personal footer")
+        with self.assertRaisesRegex(ValueError, "managed personal stable footer.*Nothing was pushed"):
+            synchronize(self.repo, ("personal", "lab"), "main", True)
+        self.assertEqual(self.head("personal"), previous_personal)
+        self.assertEqual(self.head("lab"), previous_lab)
+
+    def test_sync_migrates_footerless_personal_and_old_lab_beta_footer(self):
+        body = shared_readme_body(LEGACY_README)
+        (self.repo / "README.md").write_text(body)
+        old_base = self.commit("historical personal without footer")
+        self.run_git(self.repo, "push", "personal", "main")
+        self.run_git(self.repo, "push", "lab", "main")
+        (self.repo / "README.md").write_text(release_readme(body, LAB_REPOSITORY))
+        self.run_git(self.repo, "add", "README.md")
+        self.run_git(self.repo, "commit", "-m", "historical lab beta footer")
+        old_lab = self.run_git(self.repo, "rev-parse", "HEAD")
+        self.run_git(self.repo, "push", "lab", "main")
+        self.run_git(self.repo, "reset", "--hard", old_base)
+        (self.repo / "README.md").write_text(release_readme(body, PERSONAL_REPOSITORY))
+        target = self.commit("reviewed personal stable footer")
+        synchronize(self.repo, ("personal", "lab"), "main", True)
+        self.assert_matching_trees(target, self.head("lab"))
+        self.assertTrue(is_ancestor(self.repo, old_lab, self.head("lab")))
 
     def test_sync_after_repo_rename_accepts_historical_lab_readme(self):
         self.assert_historical_rename_sync("gexinh/vlm-probing")
@@ -169,7 +228,7 @@ class RepositorySyncTests(unittest.TestCase):
     def test_sync_after_short_alias_rename_accepts_historical_lab_readme(self):
         self.assert_historical_rename_sync("gexinh/vlm-prob", pinned_install=True)
 
-    def test_sync_migrates_existing_per_repository_urls_to_footer_only_difference(self):
+    def test_sync_migrates_existing_repository_urls_to_managed_footers(self):
         self.assert_historical_rename_sync(PERSONAL_REPOSITORY)
 
     def assert_historical_rename_sync(self, alias, *, pinned_install=False):
@@ -232,7 +291,8 @@ class RepositorySyncTests(unittest.TestCase):
         self.commit("first")
         synchronize(self.repo, ("personal", "lab"), "main", True)
         old_lab = self.head("lab")
-        updated_readme = PERSONAL_README + "\nUpdated usage documentation\n"
+        updated_readme = release_readme(shared_readme_body(PERSONAL_README) +
+                                       "\nUpdated usage documentation\n", PERSONAL_REPOSITORY)
         (self.repo / "README.md").write_text(updated_readme)
         target = self.commit("second")
         synchronize(self.repo, ("personal", "lab"), "main", True)
@@ -268,7 +328,7 @@ class RepositorySyncTests(unittest.TestCase):
         personal, lab = self.head("personal"), self.head("lab")
         self.run_git(self.repo, "reset", "--hard", lab)
         self.commit("edit-from-lab-checkout")
-        with self.assertRaisesRegex(ValueError, "must use the shared stable repository URLs and omit"):
+        with self.assertRaisesRegex(ValueError, "must use the personal repository URLs and the"):
             synchronize(self.repo, ("personal", "lab"), "main", True)
         self.assertEqual(self.head("personal"), personal)
         self.assertEqual(self.head("lab"), lab)
