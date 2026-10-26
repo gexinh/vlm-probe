@@ -657,6 +657,32 @@ prompts/batches. `elapsed_seconds` covers the current `fit_batches` call
 (`elapsed_scope="this_fit_batches_call"`); a completed resume can process zero
 new prompts and must not be interpreted as the cost of a fresh fit.
 
+### Calibration files and runtime configuration
+
+The [raw input manifest](../../demos/assets/mj_report_samples.json) identifies
+the eight report images/questions and available GQA boxes. The six additional
+MMVP, VSR and VisOnlyQA photographs retain their original inputs and
+[source notices](../../demos/assets/images/mj_report/SOURCE_NOTICES.md).
+The [calibration manifest](../../demos/assets/mj_calibration_coco.json) records
+32 independent COCO val2014 image/caption pairs, download URLs and byte hashes.
+Its internal `train` partition is not the official COCO train2014 split.
+Showcase images are excluded by ID and raw-byte hash.
+
+| Environment setting | Purpose |
+| --- | --- |
+| `VLM_PROBING_DATA_CACHE` | Raw calibration-image directory; default `~/.cache/vlmprobe/coco_calibration` |
+| `VLM_PROBING_MJ_CALIBRATION` | Number of independent calibration image/caption pairs, from 2 to 32; default 32 |
+| `VLM_PROBING_MJ_LAYERS` | Comma-separated decoder block-input indices; default `8,16,24,35` |
+| `VLM_PROBING_MJ_DIM_BATCH` | Grouped-VJP dimension batch size; default 64, controlling temporary memory and scheduling |
+| `VLM_PROBING_OUTPUT` | Calibration artifacts and newly computed readouts; default `outputs/mj_bbox_readouts` |
+
+MJ transport calibration computes exact Jacobians and costs more than a
+forward-only readout. A CUDA GPU with at least 24 GB is recommended. A different
+calibration corpus or layer selection requires a distinct artifact/output
+identity. The notebook displays its configuration and records whether calibration
+is fresh or resumed before computing new showcase results. Neither fitted probes
+nor model weights are bundled in the repository.
+
 [Paper](https://openreview.net/forum?id=Xrp8mNku6R) ·
 [Tensor implementation](../../src/vlm_probing/lenses/mj.py) ·
 [Visual readout and controls](../../src/vlm_probing/lenses/mj_readout.py) ·
