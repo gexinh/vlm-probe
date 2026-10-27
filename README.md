@@ -7,11 +7,25 @@
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
+</p>
+
+<p align="center">
   <a href="https://gexinh.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-live-3266e5?style=flat-square" alt="VLMProbe project page"></a>
   <a href="https://arxiv.org/abs/2610.33072"><img src="https://img.shields.io/badge/arXiv-2610.33072-b31b1b?style=flat-square&amp;logo=arxiv" alt="arXiv paper 2610.33072"></a>
   <a href="https://pypi.org/project/vlmprobe/"><img src="https://img.shields.io/pypi/v/vlmprobe?style=flat-square&amp;logo=pypi&amp;logoColor=white" alt="Published PyPI version"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10, 3.11 and 3.12"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-22863a?style=flat-square" alt="PolyForm Noncommercial License 1.0.0"></a>
+</p>
+
+<p align="center">
+  <a href="docs/README.md">Documentation</a> ·
+  <a href="#notebook-tutorials">Notebook Tutorials</a> ·
+  <a href="docs/VISUALIZATION.md">Visualization</a> ·
+  <a href="https://arxiv.org/abs/2610.33072">Paper</a> ·
+  <a href="docs/assets/vlmprobe-technical-report.pdf">Technical report</a> ·
+  <a href="#citation">Citation</a> ·
+  <a href="docs/REFERENCES.md">Papers and datasets</a>
 </p>
 
 VLMProbe brings lens readouts, attention explanations, causal interventions,
@@ -36,18 +50,9 @@ connection graphs. Capability checks distinguish an unsupported operation from
 a measured zero effect.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
+  <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/vlmprobe-demo.gif" width="960" alt="VLMProbe video demo — animated preview; click to watch the full video with narration"></a>
 </p>
-
-<p align="center">
-  <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://img.shields.io/badge/Video%20Demo-Watch%20the%20walkthrough-3266e5?style=for-the-badge&amp;logo=googledrive&amp;logoColor=white" alt="Watch the VLMProbe video demo"></a>
-</p>
-
-[Documentation](docs/README.md) · [Notebook Tutorials](#notebook-tutorials) ·
-[Visualization](docs/VISUALIZATION.md) ·
-[Paper](https://arxiv.org/abs/2610.33072) ·
-[Technical report](docs/assets/vlmprobe-technical-report.pdf) · [Citation](#citation) ·
-[Papers and datasets](docs/REFERENCES.md)
+<p align="center"><a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing">Watch the full video with narration ↗</a></p>
 
 ## Installation
 
