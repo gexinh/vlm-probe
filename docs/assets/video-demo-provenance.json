@@ -1,0 +1,34 @@
+{
+  "source": {
+    "url": "https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing",
+    "file_name": "vlmprobe_60s_narration_only.mp4",
+    "sha256": "25e914a9a4031b73c8369cdcece6cc86251e824f956dbb06eeb525b5b6bcd253",
+    "size_bytes": 6627051,
+    "duration_seconds": 60.0,
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "has_narration": true
+  },
+  "preview": {
+    "path": "docs/assets/vlmprobe-demo.gif",
+    "sha256": "808f0cdf3de8fb581b0f62da13ec1eef9ea66de6fec21e67583ff0413950f40a",
+    "size_bytes": 3930522,
+    "dimensions": [
+      960,
+      540
+    ],
+    "frames": 354,
+    "duration_seconds": 58.99,
+    "source_start_seconds": 1,
+    "source_end_seconds": 60,
+    "audio": false,
+    "loop": true
+  },
+  "conversion": {
+    "tool": "ffmpeg",
+    "filter": "fps=6,scale=960:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff:max_colors=192[p];[b][p]paletteuse=dither=none",
+    "trim_reason": "Skip the initial blank fade-in; complete narrated video remains available at the source URL."
+  }
+}
