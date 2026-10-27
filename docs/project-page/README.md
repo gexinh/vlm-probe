@@ -1,67 +1,43 @@
-# vlmprobe project page
+# VLMProbe project page
 
-A responsive English research project page with three method families, a framework diagram, model support, nine demonstration links, and an interactive replay of a real Attention Knockout experiment.
+A responsive research project page for four method families, explicit model
+adapters and 11 notebook tutorials. It includes the framework diagram, links to
+the arXiv paper and video demo, and a replay of a recorded Attention Knockout
+experiment. The browser replay does not run new model inference.
 
-## Preview
+## Build and preview
 
-Serve docs/project-page with any static HTTP server:
+From the repository root:
 
 ```bash
-python3 -m http.server 8765 --directory docs/project-page
+python tools/build_project_page.py --repository ubc-tea/vlm-probe --output /tmp/vlmprobe-site
+python -m http.server 8765 --directory /tmp/vlmprobe-site
 ```
 
-Open http://127.0.0.1:8765/. Use HTTP rather than opening index.html directly because the experiment loads local JSON.
+Open http://localhost:8765/. The build copies the current report, framework and
+measured MJ-Lens preview, and generates the searchable SAE catalog. Use HTTP
+because the experiment and catalog fetch local JSON.
 
 ## Edit
 
-- Page text and resource URLs: docs/project-page/index.html.
-- Colors, spacing, and responsive layout: docs/project-page/styles.css.
-- Confirmed author names in order and affiliation: docs/project-page/assets/site-config.json. Empty fields display nothing.
-- Experiment data: docs/project-page/assets/experiment.json; rendering: docs/project-page/app.js.
-- The library repository, documentation, and notebooks are public. The separate report source repository is currently private.
-- No paper title, venue, author identity, affiliation, benchmark, or citation has been invented.
+- Page text and resource links: `docs/project-page/index.html`.
+- Styling and responsive layout: `docs/project-page/styles.css`.
+- Browser interaction: `docs/project-page/app.js`.
+- Archived experiment and its provenance: `docs/project-page/assets/experiment.json`.
+- README badges, citation and video entry: the root `README.md`.
+
+Keep Python imports, package names and repository paths as `vlmprobe` or
+`vlm-probe`; visible project headings use **VLMProbe**.
 
 ## GitHub Pages
 
-Project URL: https://gexinh.github.io/vlm-probing/
+- Laboratory: https://ubc-tea.github.io/vlm-probe/
+- Personal: https://gexinh.github.io/vlm-probe/
 
-The repository README includes a Project Page badge and text link to this URL.
-The workflow at .github/workflows/deploy-project-page.yml publishes this folder
-at the site root, so styles, JavaScript, SVGs, and JSON use the same relative paths.
+The shared workflow renders navigation for the repository being deployed.
+Enable **Settings → Pages → Build and deployment → Source: GitHub Actions**,
+then run **Actions → Deploy project page → Run workflow** on `main` if needed.
+Subsequent changes to the watched page sources deploy automatically.
 
-### One-time setup (repository administrator)
-
-1. Open repository Settings → Pages.
-2. Under Build and deployment, choose **GitHub Actions** as the Source.
-3. Open Actions → Deploy project page → Run workflow on **main**.
-4. Wait for both build and deploy to succeed, then use **Visit site** in Pages settings.
-5. In the repository About panel, set Website to https://gexinh.github.io/vlm-probing/.
-
-Subsequent changes to this folder on main publish automatically.
-The workflow uploads only index.html, styles.css, app.js, and assets;
-Python source, notebooks, model weights, and the rest of the repository
-are not part of the website artifact.
-
-A published page exposes its HTML, JavaScript, diagrams, and displayed experiment
-numbers. The report source repository has separate access settings from the
-public library repository and project page.
-
-### Verification
-
-Visit the Project Page badge from the repository README. Confirm that the
-framework image loads, route selection and layer changes update the archived
-experiment, and Copy code works. If deployment succeeds but the site returns 404,
-allow up to ten minutes for publication and check the Pages URL and workflow
-deployment environment.
-
-## Provenance and scope
-
-Initial source: gexinh/vlm-probing main at a60f17a890dd1763575fc28ad51e13c80a67ad00, read on 2026-10-08. Content comes from README.md, docs/README.md, docs/models/README.md, demos/README.md, and pyproject.toml.
-
-The logo and protocol diagram are existing project assets. The experiment was extracted without changing any numerical values from demos/snapshots/attention_knockout/07302654.json. Only presentation-relevant fields are included; machine-local paths and unnecessary metadata are omitted.
-
-The plotted metric is P(first answer token “Y”, ID 612), not probability of the full answer “Yellow”. Intervention windows contain up to nine consecutive layers, clipped at the boundaries, with all heads blocked. The browser replays recorded numbers and does not run a model or new interventions.
-
-Eight VLM adapter families does not mean equal method support or pretrained validation for all eight. The technical report exercises five pretrained VLMs; some families have architecture-level checks. These demos do not establish dataset-level performance.
-
-No generated images, third-party sample photographs, analytics, authentication code, model weights, or external runtime services are included in the page.
+See [repository synchronization](../REPOSITORY_SYNC.md) for promotion and the
+repository-specific Stable / Pre-release README buttons.

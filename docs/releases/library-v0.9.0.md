@@ -1,4 +1,4 @@
-# vlmprobe 0.9.0: install and import as vlmprobe
+# VLMProbe 0.9.0: install and import as `vlmprobe`
 
 ## Goal
 

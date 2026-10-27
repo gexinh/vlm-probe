@@ -1,16 +1,20 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="vlmprobe icon">
+  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="VLMProbe icon">
 </p>
 
-<h1 align="center">vlmprobe</h1>
+<h1 align="center">VLMProbe</h1>
 
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
 <p align="center">
-  <a href="https://ubc-tea.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-Visit%20Website-3266e5?style=for-the-badge" alt="Visit the vlmprobe project page"></a>
+  <a href="https://ubc-tea.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-live-3266e5?style=flat-square" alt="VLMProbe project page"></a>
+  <a href="https://arxiv.org/abs/2610.33072"><img src="https://img.shields.io/badge/arXiv-2610.33072-b31b1b?style=flat-square&amp;logo=arxiv" alt="arXiv paper 2610.33072"></a>
+  <a href="https://pypi.org/project/vlmprobe/"><img src="https://img.shields.io/pypi/v/vlmprobe?style=flat-square&amp;logo=pypi&amp;logoColor=white" alt="Published PyPI version"></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10, 3.11 and 3.12"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-22863a?style=flat-square" alt="PolyForm Noncommercial License 1.0.0"></a>
 </p>
 
-vlmprobe brings lens readouts, attention explanations, causal interventions,
+VLMProbe brings lens readouts, attention explanations, causal interventions,
 and sparse autoencoders into one model-bound interface. It supports vision-language
 models, language models, and a ViT image-classification control. Bind a loaded
 model once, select layers and token groups, and inspect how its internal
@@ -35,9 +39,14 @@ a measured zero effect.
   <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
 
+<p align="center">
+  <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://img.shields.io/badge/Video%20Demo-Watch%20the%20walkthrough-3266e5?style=for-the-badge&amp;logo=googledrive&amp;logoColor=white" alt="Watch the VLMProbe video demo"></a>
+</p>
+
 [Documentation](docs/README.md) · [Notebook Tutorials](#notebook-tutorials) ·
 [Visualization](docs/VISUALIZATION.md) ·
-[Technical report](docs/assets/vlmprobe-technical-report.pdf) ·
+[Paper](https://arxiv.org/abs/2610.33072) ·
+[Technical report](docs/assets/vlmprobe-technical-report.pdf) · [Citation](#citation) ·
 [Papers and datasets](docs/REFERENCES.md)
 
 ## Installation
@@ -312,6 +321,28 @@ SAE integration draws on [SAELens](https://github.com/decoderesearch/SAELens),
 [Overcomplete](https://github.com/KempnerInstitute/overcomplete).
 Our native algorithms and checkpoint converters retain source attribution and
 MIT license notices; see [SAE provenance](docs/methods/sae/SOURCES.md).
+
+## License
+
+Original VLMProbe code is licensed under the [PolyForm Noncommercial License
+1.0.0](LICENSE). Third-party components retain their original terms; see
+[licensing notices](NOTICE.md).
+
+## Citation
+
+If you use VLMProbe in your research, please cite the [paper](https://arxiv.org/abs/2610.33072):
+
+```bibtex
+@misc{huang2026vlmprobeopensourcelibraryvlm,
+  title={VLMProbe: An Open-source Library for VLM Probing and Interpretation},
+  author={Gexin Huang and Haisheng Fu and Yanting Yang and Chen Zhao and Ruinan Jin and Jiaqi Liu and Xiaoxiao Li},
+  year={2026},
+  eprint={2610.33072},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV},
+  url={https://arxiv.org/abs/2610.33072},
+}
+```
 
 <!-- vlmprobe:prerelease-link:start -->
 Pre-release version: [![Beta](https://img.shields.io/badge/Beta-gexinh%2Fvlm--probe-6f42c1?style=flat-square&logo=github)](https://github.com/gexinh/vlm-probe)

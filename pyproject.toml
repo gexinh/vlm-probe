@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,13 @@ name = "vlmprobe"
 dynamic = ["version"]
 description = "Lens, attention, causal and sparse feature probes for language, vision and multimodal models"
 readme = "README.md"
+license = "PolyForm-Noncommercial-1.0.0 AND MIT"
+license-files = [
+  "LICENSE",
+  "NOTICE.md",
+  "src/vlm_probing/_vendor/chefer2021/LICENSE",
+  "src/vlm_probing/sae/licenses/*.txt",
+]
 requires-python = ">=3.10"
 dependencies = ["torch>=2.2"]
 authors = [
@@ -35,6 +42,8 @@ Issues = "https://github.com/ubc-tea/vlm-probe/issues"
 Report = "https://github.com/ubc-tea/vlm-probe/blob/main/docs/assets/vlmprobe-technical-report.pdf"
 "Pre-release source" = "https://github.com/gexinh/vlm-probe"
 "Report sources" = "https://github.com/gexinh/vlm-probing-report"
+Paper = "https://arxiv.org/abs/2610.33072"
+"Video demo" = "https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"
 
 [project.optional-dependencies]
 sae = ["torch>=2.6", "numpy>=1.26,<3", "safetensors>=0.4,<1", "huggingface_hub>=0.30,<2"]

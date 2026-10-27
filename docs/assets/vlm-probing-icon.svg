@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
-  <title id="title">vlmprobe icon</title>
+  <title id="title">VLMProbe icon</title>
   <desc id="desc">Visual tokens pass through a lens into a highlighted probing point.</desc>
   <defs>
     <linearGradient id="bg" x1="52" y1="36" x2="460" y2="476" gradientUnits="userSpaceOnUse">

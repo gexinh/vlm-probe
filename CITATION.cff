@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use VLMProbe in your research, please cite the paper below."
+type: software
+title: VLMProbe
+repository-code: "https://github.com/ubc-tea/vlm-probe"
+url: "https://ubc-tea.github.io/vlm-probe/"
+authors:
+  - family-names: Huang
+    given-names: Gexin
+  - family-names: Fu
+    given-names: Haisheng
+  - family-names: Jin
+    given-names: Ruinan
+  - family-names: Li
+    given-names: Xiaoxiao
+preferred-citation:
+  type: article
+  title: "VLMProbe: An Open-source Library for VLM Probing and Interpretation"
+  authors:
+    - family-names: Huang
+      given-names: Gexin
+    - family-names: Fu
+      given-names: Haisheng
+    - family-names: Yang
+      given-names: Yanting
+    - family-names: Zhao
+      given-names: Chen
+    - family-names: Jin
+      given-names: Ruinan
+    - family-names: Liu
+      given-names: Jiaqi
+    - family-names: Li
+      given-names: Xiaoxiao
+  journal: arXiv
+  year: 2026
+  date-published: "2026-10-21"
+  doi: "10.48550/arXiv.2610.33072"
+  url: "https://arxiv.org/abs/2610.33072"
