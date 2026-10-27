@@ -1,5 +1,5 @@
 # Keep source distributions as small and portable as the installed library.
-include README.md pyproject.toml MANIFEST.in
+include README.md pyproject.toml MANIFEST.in LICENSE NOTICE.md CITATION.cff
 recursive-include src *.py
 recursive-include src/vlm_probing/sae/resources *.json *.json.gz
 recursive-include src/vlm_probing/sae/licenses *.txt

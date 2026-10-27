@@ -16,3 +16,5 @@
 @media(max-width:760px){.mj-walkthrough{grid-template-columns:1fr;gap:24px}.mj-preview figcaption{font-size:11px}.method-tags a{font-size:12px}}
 
 .demo-family.sae{color:#946a16}
+
+.framework-actions{display:flex;justify-content:center;margin-top:20px}.framework-actions svg{flex:none}

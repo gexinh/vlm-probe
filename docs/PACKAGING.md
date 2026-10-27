@@ -128,3 +128,12 @@ To test a release first, configure a trusted publisher on **TestPyPI**
 with environment `testpypi`, then select `testpypi` in the workflow. TestPyPI
 accounts and projects are separate from PyPI. An index refuses overwriting an
 already published version; increment the version for later releases.
+
+## License metadata
+
+Original VLMProbe code uses the [PolyForm Noncommercial License 1.0.0](../LICENSE).
+Bundled third-party components retain their original MIT terms; see
+[licensing notices](../NOTICE.md). The distribution records the combined SPDX
+expression `PolyForm-Noncommercial-1.0.0 AND MIT`, with all license files included
+in source archives and wheels. This metadata does not relicense model weights
+or datasets.
