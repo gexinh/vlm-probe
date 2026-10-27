@@ -12,6 +12,7 @@
 
 <p align="center">
   <a href="https://ubc-tea.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-live-3266e5?style=flat-square" alt="VLMProbe project page"></a>
+  <a href="https://huggingface.co/spaces/gexinh/vlm-probe"><img src="https://img.shields.io/badge/Hugging%20Face-Space-ffd21e?style=flat-square&amp;logo=huggingface&amp;logoColor=white" alt="VLMProbe on Hugging Face"></a>
   <a href="https://arxiv.org/abs/2610.33072"><img src="https://img.shields.io/badge/arXiv-2610.33072-b31b1b?style=flat-square&amp;logo=arxiv" alt="arXiv paper 2610.33072"></a>
   <a href="https://pypi.org/project/vlmprobe/"><img src="https://img.shields.io/pypi/v/vlmprobe?style=flat-square&amp;logo=pypi&amp;logoColor=white" alt="Published PyPI version"></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776ab?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10, 3.11 and 3.12"></a>
