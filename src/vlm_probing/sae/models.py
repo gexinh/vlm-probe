@@ -16,6 +16,7 @@ from typing import Any
 import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
+from ..core.precision import analysis_dtype
 from .algorithms import JumpReLU, Step, batch_topk, matching_pursuit, orthogonal_matching_pursuit, topk
 
 ARCHITECTURES = ("relu", "topk", "gated", "jumprelu", "abstopk", "batchtopk",
@@ -379,14 +380,20 @@ class SparseAutoencoder(BaseSAE):
         normalized, _ = self._normalize(raw)
         features, gate = self._encode_normalized(normalized)
         decoded = self._decode_normalized(features)
-        reconstruction = (decoded - normalized).square().sum(-1).mean()
+        # Neural projections keep the dictionary's native dtype. Loss
+        # differences, products and reductions are analysis arithmetic and
+        # must be widened before squaring or summing, not after overflow.
+        dtype = analysis_dtype(normalized, decoded, features, gate)
+        target = normalized.to(dtype)
+        feature_values = features.to(dtype)
+        reconstruction = (decoded.to(dtype) - target).square().sum(-1).mean()
         zero = reconstruction.new_zeros(())
         sparsity, auxiliary = zero, zero
         activation = self.config.activation
         if activation == "relu":
-            sparsity = self.config.l1_coefficient * features.abs().sum(-1).mean()
+            sparsity = self.config.l1_coefficient * feature_values.abs().sum(-1).mean()
         elif activation == "gated":
-            sparsity = self.config.l1_coefficient * gate.relu().sum(-1).mean()
+            sparsity = self.config.l1_coefficient * gate.to(dtype).relu().sum(-1).mean()
             # The discrete main gate has no useful threshold gradient. The
             # rectified auxiliary gate learns reconstruction through a fixed
             # decoder, preventing that auxiliary task from moving its columns.
@@ -395,20 +402,20 @@ class SparseAutoencoder(BaseSAE):
                                       self.encoder.weight, self.encoder.bias).relu()
             auxiliary_reconstruction = F.linear(auxiliary_gate,
                 self._decoder_weight().detach(), self.decoder.bias.detach() if self.config.use_decoder_bias else None)
-            auxiliary = (auxiliary_reconstruction - normalized).square().sum(-1).mean()
+            auxiliary = (auxiliary_reconstruction.to(dtype) - target).square().sum(-1).mean()
         elif activation == "jumprelu":
             if self.config.jumprelu_sparsity == "l0":
                 count = Step.apply(gate, self.threshold.clamp_min(0),
                     self.config.jumprelu_bandwidth, self.config.jumprelu_ste_to_input)
-                sparsity = self.config.l0_coefficient * count.sum(-1).mean()
+                sparsity = self.config.l0_coefficient * count.to(dtype).sum(-1).mean()
             else:
-                sparsity = self.config.l1_coefficient * features.abs().sum(-1).mean()
+                sparsity = self.config.l1_coefficient * feature_values.abs().sum(-1).mean()
         elif activation == "matryoshka_batchtopk":
             reconstruction = reconstruction * self.config.matryoshka_weights[-1]
             for width, weight in zip(self.config.matryoshka_widths[:-1], self.config.matryoshka_weights[:-1]):
                 inner = F.linear(features[..., :width], self._decoder_weight()[:, :width],
                                  self.decoder.bias if self.config.use_decoder_bias else None)
-                reconstruction = reconstruction + weight * (inner - normalized).square().sum(-1).mean()
+                reconstruction = reconstruction + weight * (inner.to(dtype) - target).square().sum(-1).mean()
         if self.config.auxk_coefficient and activation in {"topk", "abstopk", "batchtopk", "matryoshka_batchtopk"}:
             current_firing = (features.detach().reshape(-1, self.config.d_sae) != 0).any(0)
             dead = (self.inactive_steps >= self.config.dead_feature_steps) & ~current_firing
@@ -416,9 +423,9 @@ class SparseAutoencoder(BaseSAE):
             if dead_count:
                 count = min(self.config.auxk_k or max(1, self.config.d_in // 2), dead_count)
                 selected = topk(gate[..., dead], count, signed=activation == "abstopk")
-                residual = (normalized - decoded).detach()
+                residual = (target - decoded.to(dtype)).detach()
                 auxiliary = auxiliary + self.config.auxk_coefficient * (
-                    F.linear(selected, self._decoder_weight()[:, dead]) - residual).square().sum(-1).mean()
+                    F.linear(selected, self._decoder_weight()[:, dead]).to(dtype) - residual).square().sum(-1).mean()
         if self.training:
             with torch.no_grad():
                 self.training_steps.add_(1)

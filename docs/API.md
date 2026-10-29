@@ -158,11 +158,17 @@ metric and record the target they evaluate.
 
 Grad-CAM pools gradients only over selected keys permitted by the model's
 actual query-specific attention mask, including causal and local-window
-restrictions. Integration methods accumulate FP16/BF16 gradients in at least
-FP32 and preserve FP64, then average in that accumulator precision; the
-activation-space EAP-IG and attribution patching kernels follow the same rule. These
+restrictions. Attention propagation, gradient products, integration, causal
+differences, metric differences and SAE analysis statistics use at least FP32
+for FP16/BF16 inputs and preserve FP64. Model forward/backward tensors and
+replayed interventions retain their native dtype; returned analysis scores
+may therefore have a wider dtype than model activations. Input and activation
+integration select their declared endpoints directly, avoiding cancellation
+when a small source value is reconstructed from a large difference. These
 numerical and masking conventions are described in the
 [attention-map guide](methods/attention_maps.md#what-each-method-computes).
+See [numerical precision](NUMERICAL_PRECISION.md) for return dtypes, endpoint
+handling, SAE editing and the limits of wider analysis.
 
 ## Aligned interventions
 

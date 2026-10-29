@@ -6,6 +6,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_difference, analysis_dtype
 from .base import BaseCausal, Runner, scalar_metric, selection_mask, validate_pair
 
 
@@ -49,18 +50,24 @@ class EAPIG(BaseCausal):
         if not isinstance(steps, int) or isinstance(steps, bool) or steps < 1:
             raise ValueError("steps must be a positive integer")
         selected = selection_mask(receiver, mask)
-        # Path arithmetic, accumulation and scores use at least FP32 (FP64 is
-        # preserved). Messages replayed through the metric keep their native
-        # dtype; forming points from wide values keeps alpha=1 at the source
-        # rather than at receiver plus a rounded native-dtype difference.
-        dtype = torch.promote_types(torch.float32, receiver.dtype)
+        # Keep path arithmetic and accumulation wide, but replay native messages.
+        # Select endpoints directly: even a wide subtraction can lose a small
+        # source next to a much larger receiver through cancellation.
+        dtype = analysis_dtype(receiver, source)
         baseline = receiver.detach().to(dtype)
         delta = torch.where(selected, source.detach().to(dtype) - baseline, torch.zeros_like(baseline))
+        endpoint = torch.where(selected, source.detach(), receiver.detach())
         gradient_sum = torch.zeros_like(baseline)
         endpoint_scores = []
         with torch.enable_grad():
             for index in range(steps + 1):
-                point = (baseline + (index / steps) * delta).to(receiver.dtype).detach().requires_grad_(True)
+                if index == 0:
+                    value = receiver.detach()
+                elif index == steps:
+                    value = endpoint
+                else:
+                    value = (baseline + (index / steps) * delta).to(receiver.dtype)
+                point = value.detach().requires_grad_(True)
                 score = scalar_metric(metric, point)
                 gradient = torch.autograd.grad(score, point)[0]
                 if not torch.isfinite(gradient).all():
@@ -72,7 +79,7 @@ class EAPIG(BaseCausal):
         average_gradient = gradient_sum / steps
         attribution = delta * average_gradient
         edge_scores = attribution.reshape(receiver.shape[0], -1).sum(dim=-1)
-        effect = endpoint_scores[1] - endpoint_scores[0]
+        effect = analysis_difference(endpoint_scores[1], endpoint_scores[0])
         return ProbeResult(
             method=self.name,
             tensors={"attribution": attribution, "edge_scores": edge_scores,

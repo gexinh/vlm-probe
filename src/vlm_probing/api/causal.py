@@ -4,6 +4,7 @@ import torch
 from .. import causal as kernels
 from ..adapters import CapabilityError, ProbeInputs, TokenLayout
 from ..core import ProbeResult
+from ..core.precision import analysis_difference, analysis_dtype
 from .common import (BoundMethod, check_alignment, configuration, evaluate, layers_for,
                      metric_metadata, pack, unpack)
 
@@ -24,7 +25,8 @@ class CausalProbe(BoundMethod):
             score = evaluate(metric, output.logits, layout)
             return self._finish(ProbeResult(
                 "steering" if name == "steer" else "attention_knockout",
-                {"baseline_score": baseline, "intervention_score": score, "effect": score - baseline},
+                {"baseline_score": baseline, "intervention_score": score,
+                 "effect": analysis_difference(score, baseline)},
                 {"joint": True, "effect_measured": True, "actual_forward_passes": 2,
                  "configuration": configuration({"tokens": self.tokens, **o}),
                  "metric": metric_metadata(metric), "effect_sign": "intervention minus baseline"}))
@@ -55,7 +57,8 @@ class CausalProbe(BoundMethod):
             if name == "attribute":
                 def metric_hidden(value):
                     output = p._run(inputs, interventions={site: lambda _: value}, grad=True)
-                    return evaluate(metric, output.logits, layout).sum()
+                    scores = evaluate(metric, output.logits, layout)
+                    return scores.to(analysis_dtype(scores)).sum()
                 result = kernels.AttributionPatching().run(original, src, mask=mask, metric=metric_hidden)
                 # Retain useful scores, not full cached activations/gradients.
                 results.append(ProbeResult(result.method, {
@@ -83,7 +86,8 @@ class CausalProbe(BoundMethod):
             method_name = {"patch": "activation_patching",
                            "steer": "steering", "knockout": "attention_knockout"}[name]
             results.append(ProbeResult(method_name, {"baseline_score": baseline, "intervention_score": score,
-                                              "effect": score - baseline}, {"effect_measured": True}))
+                                              "effect": analysis_difference(score, baseline)},
+                                       {"effect_measured": True}))
         return pack(p, results[0].method, self.layers, results,
                     sweep="independent per-layer runs", alignment=alignment if paired else None,
                     configuration=configuration({"tokens": self.tokens, **o}),
@@ -211,7 +215,8 @@ class EdgeProbe(BoundMethod):
         def replay(messages):
             edits = {site: (lambda _, i=i: messages[i]) for i, site in enumerate(sites)}
             output = p._run(inputs, interventions=edits, grad=True)
-            return evaluate(metric, output.logits, layout).sum()
+            scores = evaluate(metric, output.logits, layout)
+            return scores.to(analysis_dtype(scores)).sum()
 
         result = kernels.EAPIG().run(original, clean, edge_names=self.edges, metric=replay, steps=self.steps)
         # Avoid returning full message caches through the convenient interface.

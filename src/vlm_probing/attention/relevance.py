@@ -4,6 +4,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_dtype
 from .base import BaseAttention
 
 
@@ -28,6 +29,8 @@ class AttentionRelevance(BaseAttention):
             raise ValueError("gradients must match the attention shape, device, and dtype")
         if not torch.isfinite(gradients).all():
             raise ValueError("attention gradients must be finite")
+        dtype = analysis_dtype(attention, gradients)
+        attention, gradients = attention.to(dtype), gradients.to(dtype)
         weighted = (attention * gradients).clamp_min(0).mean(2)
         pair_mask = mask[:, :, None] & mask[:, None, :]
         weighted = weighted.masked_fill(~pair_mask[None], 0)
@@ -44,4 +47,5 @@ class AttentionRelevance(BaseAttention):
                                     "layer_relevance": torch.stack(layers),
                                     "weighted_attention": weighted},
                            metadata={"variant": "positive_gradient_self_attention_residual",
+                                     "analysis_dtype": str(dtype),
                                      "row_normalized": False, "identity_included": True})

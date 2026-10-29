@@ -10,6 +10,7 @@ import torch
 
 from ..adapters.spec import CapabilityError, ModelSpec
 from ..core.types import ProbeResult
+from ..core.precision import analysis_difference
 from .base import BaseCausal, validate_activation, validate_pair
 
 
@@ -168,7 +169,8 @@ class PathPatching(BaseCausal):
             raise ValueError("path metric must return the same shape in base, donor, and intervention runs")
         return ProbeResult(self.name, {
             "baseline_score": baseline_score, "donor_score": donor_score,
-            "intervention_score": intervention_score, "effect": intervention_score - baseline_score,
+            "intervention_score": intervention_score,
+            "effect": analysis_difference(intervention_score, baseline_score),
         }, {
             "algorithm": "Wang et al. IOI-style path patching (Appendix B)",
             "stages": 4, "effect_measured": True,

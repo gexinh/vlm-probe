@@ -7,6 +7,8 @@ on:
       - "src/**"
       - "tests/test_attention*.py"
       - "tests/test_causal*.py"
+      - "tests/test_metric_analysis_precision.py"
+      - "tests/test_sae_analysis_precision.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
       - "tests/test_qwen_text_adapters.py"
@@ -30,6 +32,8 @@ on:
       - "src/**"
       - "tests/test_attention*.py"
       - "tests/test_causal*.py"
+      - "tests/test_metric_analysis_precision.py"
+      - "tests/test_sae_analysis_precision.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
       - "tests/test_qwen_text_adapters.py"
@@ -78,6 +82,7 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_attention*.py' -v
           python -m unittest discover -s tests -p 'test_causal*.py' -v
+          python -m unittest discover -s tests -p test_metric_analysis_precision.py -v
           python -m unittest discover -s tests -p test_gradcam_support.py -v
           python -m unittest discover -s tests -p test_consumed_attention.py -v
           python -m unittest discover -s tests -p test_qwen_text_adapters.py -v
@@ -87,4 +92,4 @@ jobs:
           python -m unittest discover -s tests -p 'test_visualization*.py' -v
       - name: Run tutorial setup and pretrained SAE contracts
         run: |
-          python -m pytest tests/test_notebook_setup.py tests/test_sae_evaluation.py tests/test_dino_sae_adapter.py tests/test_sae_importers.py tests/test_sae_pretrained.py tests/test_sae_documentation.py -v
+          python -m pytest tests/test_notebook_setup.py tests/test_sae_evaluation.py tests/test_dino_sae_adapter.py tests/test_sae_importers.py tests/test_sae_pretrained.py tests/test_sae_documentation.py tests/test_sae_analysis_precision.py -v
