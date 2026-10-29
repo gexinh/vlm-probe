@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="VLMProbe icon">
+  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/vlm-probing-icon.svg" width="112" alt="VLMProbe icon">
 </p>
 
 <h1 align="center">VLMProbe</h1>
@@ -7,11 +7,11 @@
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
+  <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
 
 <p align="center">
-  <a href="https://ubc-tea.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-live-3266e5?style=flat-square" alt="VLMProbe project page"></a>
+  <a href="https://gexinh.github.io/vlm-probe/"><img src="https://img.shields.io/badge/Project%20Page-live-3266e5?style=flat-square" alt="VLMProbe project page"></a>
   <a href="https://huggingface.co/spaces/gexinh/vlm-probe"><img src="https://img.shields.io/badge/Hugging%20Face-Space-ffd21e?style=flat-square&amp;logo=huggingface&amp;logoColor=white" alt="VLMProbe on Hugging Face"></a>
   <a href="https://arxiv.org/abs/2610.33072"><img src="https://img.shields.io/badge/arXiv-2610.33072-b31b1b?style=flat-square&amp;logo=arxiv" alt="arXiv paper 2610.33072"></a>
   <a href="https://pypi.org/project/vlmprobe/"><img src="https://img.shields.io/pypi/v/vlmprobe?style=flat-square&amp;logo=pypi&amp;logoColor=white" alt="Published PyPI version"></a>
@@ -51,7 +51,7 @@ connection graphs. Capability checks distinguish an unsupported operation from
 a measured zero effect.
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://raw.githubusercontent.com/ubc-tea/vlm-probe/main/docs/assets/vlmprobe-demo.gif" width="960" alt="VLMProbe video demo — animated preview; click to watch the full video with narration"></a>
+  <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/vlmprobe-demo.gif" width="960" alt="VLMProbe video demo — animated preview; click to watch the full video with narration"></a>
 </p>
 <p align="center"><a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing">Watch the full video with narration ↗</a></p>
 
@@ -60,7 +60,7 @@ a measured zero effect.
 Python 3.10+ is required. Install the current source version from GitHub:
 
 ```bash
-python -m pip install "vlmprobe[sae,transformers,visualization] @ git+https://github.com/ubc-tea/vlm-probe.git@main"
+python -m pip install "vlmprobe[sae,transformers,visualization] @ git+https://github.com/gexinh/vlm-probe.git@main"
 ```
 
 The published package is also available on [PyPI](https://pypi.org/project/vlmprobe/):
@@ -350,6 +350,6 @@ If you use VLMProbe in your research, please cite the [paper](https://arxiv.org/
 }
 ```
 
-<!-- vlmprobe:prerelease-link:start -->
-Pre-release version: [![Beta](https://img.shields.io/badge/Beta-gexinh%2Fvlm--probe-6f42c1?style=flat-square&logo=github)](https://github.com/gexinh/vlm-probe)
-<!-- vlmprobe:prerelease-link:end -->
+<!-- vlmprobe:stable-link:start -->
+Stable version: [![Stable](https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&logo=github)](https://github.com/ubc-tea/vlm-probe)
+<!-- vlmprobe:stable-link:end -->
