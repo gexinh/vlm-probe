@@ -36,12 +36,16 @@ class AttributionPatching(BaseCausal):
                 gradient = torch.autograd.grad(scalar_metric(metric, point), point)[0]
         validate_pair(receiver, gradient)
         selected = selection_mask(receiver, mask)
-        delta = torch.where(selected, source - receiver, torch.zeros_like(receiver))
-        attribution = delta * gradient
+        # Difference, products and their sum use at least FP32 (FP64 is
+        # preserved); reduced-precision rounding would bias the estimate.
+        dtype = torch.promote_types(torch.float32, receiver.dtype)
+        receiver_wide = receiver.to(dtype)
+        delta = torch.where(selected, source.to(dtype) - receiver_wide, torch.zeros_like(receiver_wide))
+        attribution = delta * gradient.to(dtype)
         return ProbeResult(
             method=self.name,
             tensors={"attribution": attribution, "estimated_effect": attribution.sum(),
                      "gradient": gradient, "delta": delta, "mask": selected},
             metadata={"approximation": "first_order", "gradient_at": "receiver",
-                      "sign": "source_metric - receiver_metric"},
+                      "sign": "source_metric - receiver_metric", "analysis_dtype": str(dtype)},
         )

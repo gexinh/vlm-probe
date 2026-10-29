@@ -6,6 +6,7 @@ on:
     paths:
       - "src/**"
       - "tests/test_attention*.py"
+      - "tests/test_causal*.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
       - "tests/test_qwen_text_adapters.py"
@@ -28,6 +29,7 @@ on:
     paths:
       - "src/**"
       - "tests/test_attention*.py"
+      - "tests/test_causal*.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
       - "tests/test_qwen_text_adapters.py"
@@ -75,6 +77,7 @@ jobs:
       - name: Run native model and numerical regressions
         run: |
           python -m unittest discover -s tests -p 'test_attention*.py' -v
+          python -m unittest discover -s tests -p 'test_causal*.py' -v
           python -m unittest discover -s tests -p test_gradcam_support.py -v
           python -m unittest discover -s tests -p test_consumed_attention.py -v
           python -m unittest discover -s tests -p test_qwen_text_adapters.py -v

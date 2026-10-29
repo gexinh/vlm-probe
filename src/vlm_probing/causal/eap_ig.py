@@ -49,19 +49,24 @@ class EAPIG(BaseCausal):
         if not isinstance(steps, int) or isinstance(steps, bool) or steps < 1:
             raise ValueError("steps must be a positive integer")
         selected = selection_mask(receiver, mask)
-        baseline = receiver.detach()
-        delta = torch.where(selected, source.detach() - baseline, torch.zeros_like(baseline))
+        # Path arithmetic, accumulation and scores use at least FP32 (FP64 is
+        # preserved). Messages replayed through the metric keep their native
+        # dtype; forming points from wide values keeps alpha=1 at the source
+        # rather than at receiver plus a rounded native-dtype difference.
+        dtype = torch.promote_types(torch.float32, receiver.dtype)
+        baseline = receiver.detach().to(dtype)
+        delta = torch.where(selected, source.detach().to(dtype) - baseline, torch.zeros_like(baseline))
         gradient_sum = torch.zeros_like(baseline)
         endpoint_scores = []
         with torch.enable_grad():
             for index in range(steps + 1):
-                point = (baseline + (index / steps) * delta).detach().requires_grad_(True)
+                point = (baseline + (index / steps) * delta).to(receiver.dtype).detach().requires_grad_(True)
                 score = scalar_metric(metric, point)
                 gradient = torch.autograd.grad(score, point)[0]
                 if not torch.isfinite(gradient).all():
                     raise ValueError("metric produced nonfinite gradients on the path")
                 weight = 0.5 if index in (0, steps) else 1.0
-                gradient_sum = gradient_sum + weight * gradient.detach()
+                gradient_sum = gradient_sum + weight * gradient.detach().to(dtype)
                 if index in (0, steps):
                     endpoint_scores.append(score.detach())
         average_gradient = gradient_sum / steps
@@ -77,5 +82,6 @@ class EAPIG(BaseCausal):
             metadata={"edge_names": list(names), "steps": steps,
                       "path": "simultaneous_linear_edge_activations",
                       "quadrature": "trapezoid", "sign": "source_metric - receiver_metric",
+                      "analysis_dtype": str(dtype),
                       "graph_provider": "caller", "masked_source_endpoint": mask is not None},
         )

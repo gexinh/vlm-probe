@@ -28,7 +28,7 @@ A metric is a `TokenMargin`, `SequenceLogProb`, or a callable `metric(logits)` r
 
 ### Computation and returned tensors
 
-For selected residual `h` and source `h_source`, differentiate the batch-summed metric with respect to the receiver residual and compute `(h_source - h) * gradient`. Sum hidden dimensions for `token_scores[L,B,T]`, then selected batch/token positions for `estimated_effect[L]`. Masked positions have zero score. The estimate is **batch-summed**; compare against `exact.effect.sum(-1)` for a batched exact experiment, rather than one arbitrary batch row.
+For selected residual `h` and source `h_source`, differentiate the batch-summed metric with respect to the receiver residual and compute `(h_source - h) * gradient`. Sum hidden dimensions for `token_scores[L,B,T]`, then selected batch/token positions for `estimated_effect[L]`. Masked positions have zero score. The difference, products and sums use at least FP32 for FP16/BF16 residuals and preserve FP64; the gradient itself is taken in the model's native dtype. The estimate is **batch-summed**; compare against `exact.effect.sum(-1)` for a batched exact experiment, rather than one arbitrary batch row.
 
 The source forward provides the activation difference; the receiver replay requires gradients. Do not wrap this call in `torch.no_grad()` or inference mode. Frozen model weights are allowed: the method differentiates retained activations without training model parameters. Large changes and nonlinear interactions can make the estimate differ in magnitude or sign from actual replacements.
 

@@ -159,7 +159,8 @@ metric and record the target they evaluate.
 Grad-CAM pools gradients only over selected keys permitted by the model's
 actual query-specific attention mask, including causal and local-window
 restrictions. Integration methods accumulate FP16/BF16 gradients in at least
-FP32 and preserve FP64, then average in that accumulator precision. These
+FP32 and preserve FP64, then average in that accumulator precision; the
+activation-space EAP-IG and attribution patching kernels follow the same rule. These
 numerical and masking conventions are described in the
 [attention-map guide](methods/attention_maps.md#what-each-method-computes).
 
