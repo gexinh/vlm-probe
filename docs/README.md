@@ -9,6 +9,7 @@ demo workflows.
 - [Model guides and capability matrix](models/README.md): loading, native inputs, supported sites, and validation scope.
 - [Method guides](methods/README.md): API and parameter defaults, complete input-to-output examples, visualizations, and paper mappings.
 - [Common API](API.md): token selectors, complete-answer metrics, alignment, fitting, and persistence.
+- [Numerical precision](NUMERICAL_PRECISION.md): analysis dtypes, native model replay, interpolation endpoints and SAE editing.
 - [Repository synchronization](REPOSITORY_SYNC.md): laboratory and personal mirrors, project pages, report updates, and one PyPI publisher.
 - [Installation and package releases](PACKAGING.md): pip installation, compatible imports, wheels, and PyPI publishing.
 - [Visualization](VISUALIZATION.md): reusable lens heatmaps, image overlays, causal grids, curves, and graphs.

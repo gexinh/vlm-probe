@@ -94,12 +94,15 @@ each sample. Shorten inputs or reduce image resolution to reduce dense
 per-sample allocation. Analyzing fewer layers can reduce retained results,
 but does not make the underlying attention computation sparse.
 
-ATTATTR and input-path methods accumulate and average integration gradients,
-and compute propagated analysis maps, in at least FP32 for FP16/BF16 models,
-while preserving FP64 inputs. Probability tensors injected into the model keep
-their native dtype. This avoids adding many small updates in reduced precision;
-it does not replace convergence checks or make the backbone forward itself
-higher precision.
+Attention profiles, Rollout, gradient products and relevance propagation use
+at least FP32 for FP16/BF16 inputs, while preserving FP64. ATTATTR and
+input-path methods also accumulate and average gradients in that analysis
+precision. Input paths are constructed in the wider dtype with explicit
+baseline/input endpoints; tensors injected into the model keep their native
+dtype. Analysis maps and statistics may therefore be wider than native
+attention tensors. Wider buffers require more memory. This avoids additional
+rounding in the analysis; it does not replace convergence checks, recover
+gradients already lost inside the model, or change the backbone's precision.
 
 ## Complete example: raw image to five fresh maps
 

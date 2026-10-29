@@ -2,6 +2,8 @@
 import torch
 from torch import Tensor
 
+from .core.precision import analysis_difference, analysis_dtype
+
 
 class ClassScore:
     """Per-example image-classification target; never invent tokenwise logits."""
@@ -16,7 +18,12 @@ class ClassScore:
     def score(self, logits, layout=None):
         if logits.ndim != 2 or self.target >= logits.shape[-1]:
             raise ValueError("ClassScore requires [batch,classes] logits and a valid target")
-        return (logits.float().softmax(-1) if self.kind == "probability" else logits)[:, self.target]
+        if self.kind == "logit":
+            value = logits[:, self.target]
+            if not value.is_floating_point() and not value.is_complex():
+                return value
+            return value.to(analysis_dtype(value))
+        return logits.to(analysis_dtype(logits)).softmax(-1)[:, self.target]
 
 
 class TokenMargin:
@@ -58,7 +65,8 @@ def token_logit_margin(logits: Tensor, positive: int, negative: int) -> Tensor:
     """Input [..., vocab]; choose the prediction position before calling."""
     if not 0 <= positive < logits.shape[-1] or not 0 <= negative < logits.shape[-1]:
         raise ValueError("Candidate token ID is outside the vocabulary")
-    return logits[..., positive] - logits[..., negative]
+    # Select candidates first to avoid allocating a widened full vocabulary.
+    return analysis_difference(logits[..., positive], logits[..., negative])
 
 
 def sequence_logprob(logits: Tensor, input_ids: Tensor, answer_mask: Tensor, *,
@@ -82,7 +90,7 @@ def sequence_logprob(logits: Tensor, input_ids: Tensor, answer_mask: Tensor, *,
     if ((input_ids < 0) | (input_ids >= logits.shape[-1])).any():
         raise ValueError("input_ids outside vocabulary; pass actual expanded language token IDs")
     mask = answer_mask[:, 1:]
-    safe_logits = logits[:, :-1].float().masked_fill(~mask[..., None], 0)
+    safe_logits = logits[:, :-1].to(analysis_dtype(logits)).masked_fill(~mask[..., None], 0)
     if (torch.isnan(safe_logits).any() or torch.isposinf(safe_logits).any()
             or (~torch.isfinite(safe_logits).any(-1)).any()):
         raise ValueError("Selected prediction rows need finite logits and may not contain NaN or +inf")

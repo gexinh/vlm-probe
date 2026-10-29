@@ -9,6 +9,7 @@ import torch
 
 from .common import BoundMethod, configuration, evaluate, layers_for, model_eval
 from ..core import ProbeResult
+from ..core.precision import analysis_difference, analysis_dtype
 from ..sae.binding import check_runtime_binding
 
 
@@ -125,21 +126,23 @@ class SAEProbe(BoundMethod):
                     "interpretation": "Dictionary features require empirical interpretation; feature IDs are not named concepts."}
         if self.operation == "profile":
             indices = features.abs().topk(min(self.top_k, len(features)), dim=0).indices
+            statistics = features.to(analysis_dtype(features))
             return self._finish(ProbeResult(self.name, {
-                "mean_activation": features.mean(0),
-                "activation_variance": features.var(0, unbiased=False),
+                "mean_activation": statistics.mean(0),
+                "activation_variance": statistics.var(0, unbiased=False),
                 "firing_frequency": (features != 0).float().mean(0),
                 "max_activation": features.max(0).values, "min_activation": features.min(0).values,
                 "top_activation_values": features.gather(0, indices),
                 "top_positions": positions.to(indices.device)[indices],
                 "positions": positions,
-            }, {**metadata, "ranking": "absolute activation per feature; signed values retained"}))
+            }, {**metadata, "analysis_dtype": str(statistics.dtype),
+                "ranking": "absolute activation per feature; signed values retained"}))
         if self.operation == "features":
             result = ProbeResult(self.name, {
                 "features": features, "activation": values,
                 "native_activation": native,
                 "reconstruction": reconstruction,
-                "reconstruction_error": values - reconstruction,
+                "reconstruction_error": analysis_difference(values, reconstruction),
                 "l0": (features != 0).sum(-1), "positions": positions,
             }, metadata)
             return self._finish(result)
@@ -151,11 +154,16 @@ class SAEProbe(BoundMethod):
             if self.operation != "reconstruct":
                 changed[:, self.feature_ids] *= self.scale
             decoded = self._decode(changed, context, contextual)
-            # Form the decoded difference first, then add it to the original
-            # native tensor. Casting the baseline through the SAE dtype can
-            # corrupt precision even when the selected feature was inactive.
-            replacement = (native + (decoded - reconstruction).to(native)
-                           if self.mode == "error_preserving" else decoded.to(native))
+            if self.mode == "error_preserving":
+                # Retain the original residual (including FP64 bits) while
+                # doing both subtraction and addition before the native cast.
+                # Casting the delta first can erase a small retained feature.
+                wide = analysis_dtype(native, decoded, reconstruction)
+                difference = (decoded.to(device=native.device, dtype=wide)
+                              - reconstruction.to(device=native.device, dtype=wide))
+                replacement = (native.to(wide) + difference).to(native)
+            else:
+                replacement = decoded.to(native)
 
             def edit(current):
                 if current.shape != hidden.shape:
@@ -176,7 +184,8 @@ class SAEProbe(BoundMethod):
                     raise ValueError("representation outputs require a vector metric, not a language/classification logit score")
             baseline = evaluate(metric, baseline_output, layout)
             edited = evaluate(metric, edited_output, layout)
-            tensors.update(baseline_score=baseline, edited_score=edited, score_change=edited - baseline)
+            tensors.update(baseline_score=baseline, edited_score=edited,
+                           score_change=analysis_difference(edited, baseline))
         return self._finish(ProbeResult(self.name, tensors, {
             **metadata, "feature_ids": self.feature_ids, "scale": self.scale, "mode": self.mode,
             "intervention": ("native residual plus decoded feature difference; reconstruction error retained"

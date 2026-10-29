@@ -4,6 +4,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_dtype
 from .base import BaseAttention
 
 
@@ -26,6 +27,8 @@ class AttentionRollout(BaseAttention):
     def run(self, attention: Tensor, *, valid_tokens: Tensor | None = None) -> ProbeResult:
         """Input is [layer,batch,head,token,token], earliest layer first."""
         mask = self._stack(attention, valid_tokens)
+        dtype = analysis_dtype(attention)
+        attention = attention.to(dtype)
         identity = torch.eye(attention.shape[-1], device=attention.device, dtype=attention.dtype)
         identity = identity[None] * mask[:, :, None]
         pair_mask = mask[:, :, None] & mask[:, None, :]
@@ -51,4 +54,5 @@ class AttentionRollout(BaseAttention):
                            tensors={"rollout": rollout, "layer_rollouts": torch.stack(layers)},
                            metadata={"head_reduction": self.head_reduction,
                                      "residual": self.residual, "row_normalized": True,
+                                     "analysis_dtype": str(dtype),
                                      "layer_order": "earliest_first"})

@@ -8,6 +8,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_dtype
 from .base import BaseAttention
 
 
@@ -34,6 +35,8 @@ class CheferTransformerAttribution(BaseAttention):
             raise ValueError("start_layer must select an existing layer")
         if not (torch.isfinite(attention_relevance).all() and torch.isfinite(gradients).all()):
             raise ValueError("CAMs and gradients must be finite")
+        dtype = analysis_dtype(attention_relevance, gradients)
+        attention_relevance, gradients = attention_relevance.to(dtype), gradients.to(dtype)
         weighted = (attention_relevance * gradients).clamp_min(0).mean(2)
         identity = torch.eye(weighted.shape[-1], device=weighted.device, dtype=weighted.dtype)
         relevance = identity.expand(weighted.shape[1], -1, -1)
@@ -48,6 +51,7 @@ class CheferTransformerAttribution(BaseAttention):
                             "layer_relevance": torch.stack(layers),
                             "weighted_attention_relevance": weighted},
                            {"paper": "https://arxiv.org/abs/2012.09838",
+                            "analysis_dtype": str(dtype),
                             "input_semantics": "propagated_LRP_attention_CAMs",
                             "row_normalized": False, "start_layer": self.start_layer,
                             "scope": "aggregation only; caller supplies genuine LRP CAMs"})

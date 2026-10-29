@@ -4,6 +4,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_dtype
 from ._attribution_utils import finite_result, matching_gradient
 from .base import BaseAttention
 
@@ -38,6 +39,8 @@ class AttentionGradCAM(BaseAttention):
         if not kmask.any(-1).all():
             raise ValueError("each example needs at least one selected key")
         matching_gradient(attention, gradients, "gradients")
+        dtype = analysis_dtype(attention, gradients)
+        attention, gradients = attention.to(dtype), gradients.to(dtype)
         selected = qmask[:, None, :, None] & kmask[:, None, None, :]
         if support_mask is not None:
             if (not isinstance(support_mask, Tensor) or support_mask.dtype != torch.bool
@@ -64,6 +67,7 @@ class AttentionGradCAM(BaseAttention):
         finite_result(cam)
         return ProbeResult(self.name, {"cam": cam, "head_weights": head_weights},
                            {"variant": "attention_heads_as_channels",
+                            "analysis_dtype": str(dtype),
                             "gradient_pooling": "accessible_selected_keys_per_query",
                             "structural_support_supplied": support_mask is not None,
                             "head_reduction": "mean", "relu_after_head_reduction": True,

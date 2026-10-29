@@ -7,6 +7,7 @@ from torch import Tensor
 
 from ..core.base import BaseMethod
 from ..core.types import ProbeResult
+from ..core.precision import analysis_difference
 
 Runner = Callable[[Tensor], Tensor]
 
@@ -88,7 +89,8 @@ class BaseCausal(BaseMethod):
             tensors.update(
                 baseline_score=baseline,
                 intervention_score=intervention,
-                effect=intervention - baseline,
+                effect=analysis_difference(intervention, baseline),
             )
             details["effect_sign"] = "intervention_score - baseline_score"
+            details["analysis_dtype"] = str(tensors["effect"].dtype)
         return ProbeResult(method=self.name, tensors=tensors, metadata=details)

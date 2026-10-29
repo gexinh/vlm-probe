@@ -6,6 +6,7 @@ import torch
 from torch import Tensor
 
 from ..core.types import ProbeResult
+from ..core.precision import analysis_dtype
 from .base import BaseAttention
 
 
@@ -23,6 +24,8 @@ class AttentionProfile(BaseAttention):
         returned ``valid_queries``. Entropy is measured in natural-log units.
         """
         qmask, kmask = self._probabilities(attention, query_mask, key_mask)
+        dtype = analysis_dtype(attention)
+        attention = attention.to(dtype)
         valid = qmask[:, None, :]
         log_prob = attention.clamp_min(torch.finfo(attention.dtype).tiny).log()
         tensors = {
@@ -48,4 +51,5 @@ class AttentionProfile(BaseAttention):
             tensors["group_mass"] = tensors["group_mass"].masked_fill(~valid[..., None], 0)
         return ProbeResult(method="attention_profile", tensors=tensors,
                            metadata={"groups": names, "entropy_units": "nats",
+                                     "analysis_dtype": str(dtype),
                                      "statistic_axes": ["batch", "head", "query"]})

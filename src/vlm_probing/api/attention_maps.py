@@ -3,17 +3,14 @@ import torch
 
 from .. import attention as kernels
 from ..adapters import CapabilityError, ProbeInputs
+from ..core.precision import analysis_dtype
 from .common import BoundMethod, configuration, evaluate, metric_metadata, pack, unpack
 from .attention_applicability import propagation_applicability
 
 
 def _integration_dtype(*values):
     """Use at least FP32 for analysis arithmetic without narrowing FP64."""
-    dtype = torch.float32
-    for value in values:
-        if value is not None:
-            dtype = torch.promote_types(dtype, value.dtype)
-    return dtype
+    return analysis_dtype(*(value for value in values if value is not None))
 
 
 def _integration_norm(value):
@@ -162,9 +159,21 @@ class AttentionMapProbe(BoundMethod):
             raise ValueError("input baseline must match processed input shape, device, and dtype")
         if not torch.isfinite(x).all() or not torch.isfinite(zero).all():
             raise ValueError("integration endpoints must be finite")
+        dtype = _integration_dtype(x, zero)
+        zero_wide, x_wide = zero.to(dtype), x.to(dtype)
+        difference = x_wide - zero_wide
         total = None
         for alpha in self._alphas():
-            sample_values = {**values, o["input_key"]: (zero + alpha*(x-zero)).detach().requires_grad_(True)}
+            # Select true endpoints directly: even a wide subtraction can lose
+            # a much smaller endpoint through cancellation. Only the final
+            # model-facing point is cast back to the processed input dtype.
+            if alpha == 0:
+                point = zero
+            elif alpha == 1:
+                point = x
+            else:
+                point = (zero_wide + alpha * difference).to(x.dtype)
+            sample_values = {**values, o["input_key"]: point.detach().requires_grad_(True)}
             sampled = self._trace(ProbeInputs(sample_values, explicit), [site])
             layout = p._layout(ProbeInputs(sample_values, explicit), sampled.logits)
             g, = self._gradients(evaluate(metric, sampled.logits, layout), [sampled.activations[site]])

@@ -135,7 +135,10 @@ class SAEAPITests(unittest.TestCase):
         features = sae.encode(raw)
         changed = features.clone()
         changed[..., 0] = 0
-        decoded_delta = sae.decode(changed) - sae.decode(features)
+        # The dictionary projections remain FP32, but subtract their represented
+        # values in FP64 before adding to the original FP64 residual. Rounding
+        # the delta first would defeat the wider native precision contract.
+        decoded_delta = sae.decode(changed).to(raw) - sae.decode(features).to(raw)
         replacement = raw + decoded_delta.to(raw)
 
         def manual(hidden):

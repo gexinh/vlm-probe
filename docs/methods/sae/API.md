@@ -175,7 +175,7 @@ precedence. These are not different source-specific trainers.
 | Call | Parameters | Tensors |
 | --- | --- | --- |
 | `method.run(inputs)` | Native input batch | `features[N,F]`, `activation[N,D]`, `reconstruction[N,D]`, `reconstruction_error[N,D]`, `l0[N]`, `positions[N,2]` |
-| `method.profile(top_k=10).run(inputs)` | Positive top count per feature; ranks absolute values and retains signs | Feature mean/variance/firing frequency/min/max; `top_activation_values[K,F]`, `top_positions[K,F,2]` |
+| `method.profile(top_k=10).run(inputs)` | Positive top count per feature; ranks absolute values and retains signs | Feature mean/variance/firing frequency/min/max; `top_activation_values[K,F]`, `top_positions[K,F,2]`. Mean and variance use at least FP32 and preserve FP64. |
 | `method.reconstruct().run(inputs, metric=None)` | Optional task metric | Baseline/edited logits or representation outputs; optional baseline/edited score and score change |
 | `method.edit(feature_ids=[...], scale=0., mode="error_preserving").run(inputs, metric=None)` | Unique valid IDs; finite scaling; error_preserving or reconstruction | Same output/score comparison as above, with explicit intervention metadata |
 
@@ -189,6 +189,11 @@ per-input normalization context reused for both decodes. `scale=1` returns an
 exact no-op, including native bf16 precision. Reconstruction is deliberately a
 separate control. Generic low-level operations remain available as
 `probe.sae.features/profile/reconstruct/edit(layer=..., sae=..., binding=...)`.
+
+The decoded difference and its addition to the original residual use at least
+FP32 and preserve FP64; only the final replacement is cast to the backbone's
+dtype. Profile mean/variance and loss statistics also use wider analysis
+precision. See [numerical precision](../../NUMERICAL_PRECISION.md).
 
 ## Lower-level training, artifacts and discovery
 

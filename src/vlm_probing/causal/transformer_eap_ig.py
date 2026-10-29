@@ -12,6 +12,7 @@ from torch.nn import functional as F
 from ..adapters import CapabilityError
 from ..api.common import BoundMethod, check_alignment, evaluate, metric_metadata
 from ..core import ProbeResult
+from ..core.precision import analysis_difference, analysis_dtype
 
 
 class GPT2ResidualGraph:
@@ -113,11 +114,15 @@ class GPT2ResidualGraph:
             if donor_sources is None:
                 return value
             live = torch.stack(context["sources"][:previous], dim=2)
-            difference = donor_sources[:, :, :previous].to(live) - live
+            source = donor_sources[:, :, :previous].to(device=live.device)
+            dtype = analysis_dtype(value, live, source)
+            difference = source.to(dtype) - live.to(dtype)
             coefficients = excluded[:previous, destinations].to(difference)
             if coefficients.ndim == 1:
-                return value + torch.einsum("btsd,s->btd", difference, coefficients)
-            return value + torch.einsum("btsd,sv->btvd", difference, coefficients).reshape_as(value)
+                change = torch.einsum("btsd,s->btd", difference, coefficients)
+            else:
+                change = torch.einsum("btsd,sv->btvd", difference, coefficients).reshape_as(value)
+            return (value.to(dtype) + change).to(value.dtype)
 
         def first_block(module, args, kwargs):
             value = self._first(args, kwargs)
@@ -190,16 +195,20 @@ class GPT2ResidualGraph:
     def gradient_scores(self, inputs, point, difference, metric, layout):
         point = point.detach().requires_grad_(True)
         trace, _, blocks = self.run(inputs, input_point=point, grad=True)
-        loss = -evaluate(metric, trace.logits, layout).mean()
+        metric_scores = evaluate(metric, trace.logits, layout)
+        loss = -metric_scores.to(analysis_dtype(metric_scores)).mean()
         tensors = [value for _, value in blocks]
         gradients = torch.autograd.grad(loss, tensors)
-        matrix = torch.zeros((len(self.source_names), len(self.destination_names)), device=point.device)
+        dtype = analysis_dtype(difference, *gradients)
+        matrix = torch.zeros((len(self.source_names), len(self.destination_names)),
+                             device=point.device, dtype=dtype)
         for (start, value), gradient in zip(blocks, gradients):
             count = self.before_attention[start // (3 * self.heads + 1)] if value.ndim == 5 else (
                 len(self.source_names) if start == self.final_destination else
                 self.before_mlp[self.mlp_destinations.index(start)])
             flattened = gradient.reshape(*gradient.shape[:2], -1, self.width)
-            score = torch.einsum("btsd,btvd->sv", difference[:, :, :count].float(), flattened.float())
+            score = torch.einsum("btsd,btvd->sv", difference[:, :, :count].to(dtype),
+                                 flattened.to(dtype))
             matrix[:count, start:start + flattened.shape[2]] = score.detach()
         indices = self.edge_indices.to(point.device)
         return matrix[indices[:, 0], indices[:, 1]], loss.detach()
@@ -292,15 +301,21 @@ class TransformerEAPIG(BoundMethod):
 
     def run(self, inputs, *, donor, metric, alignment="position", progress=None):
         clean, corrupt, layout, baseline, donor_score = self._pair(inputs, donor, metric, alignment)
-        difference = corrupt - clean
+        difference = analysis_difference(corrupt, clean)
         point_clean, point_corrupt = clean[:, :, 0], corrupt[:, :, 0]
+        path_delta = analysis_difference(point_clean, point_corrupt)
         eap, _ = self.graph.gradient_scores(inputs, point_clean, difference, metric, layout)
         scores = torch.zeros_like(eap)
         offset = 0 if self.quadrature == "left" else 1
         alphas = [(index + offset) / self.steps for index in range(self.steps)]
         losses = []
         for index, alpha in enumerate(alphas, 1):
-            point = point_corrupt + alpha * (point_clean - point_corrupt)
+            if alpha == 0:
+                point = point_corrupt
+            elif alpha == 1:
+                point = point_clean
+            else:
+                point = (point_corrupt.to(path_delta.dtype) + alpha * path_delta).to(point_corrupt.dtype)
             score, loss = self.graph.gradient_scores(inputs, point, difference, metric, layout)
             scores += score / self.steps
             losses.append(loss)
@@ -317,6 +332,7 @@ class TransformerEAPIG(BoundMethod):
             "alignment": alignment, "actual_forward_passes": 3 + self.steps,
             "actual_backward_passes": 1 + self.steps,
             "source_difference": "fixed corrupted minus clean source outputs at endpoints",
+            "analysis_dtype": str(scores.dtype),
             "completeness_axiom": "not applicable: scores over graph edges are not input-feature IG"}))
 
     def evaluate(self, inputs, *, donor, metric, attribution, budgets, alignment="position",
@@ -358,9 +374,10 @@ class TransformerEAPIG(BoundMethod):
             kept_counts.append(counts)
             masks.append(torch.stack(selected))
         metrics = torch.stack(metrics)
-        normalizer = clean_score - corrupt_score
+        normalizer = analysis_difference(clean_score, corrupt_score)
         eligible = normalizer.abs() > epsilon
-        normalized = (metrics - corrupt_score) / torch.where(eligible, normalizer, torch.ones_like(normalizer))
+        normalized = analysis_difference(metrics, corrupt_score) / torch.where(
+            eligible, normalizer, torch.ones_like(normalizer))
         normalized = torch.where(eligible, normalized, torch.zeros_like(normalized))
         return self._finish(ProbeResult("eap_ig_faithfulness", {
             "circuit_score": metrics, "faithfulness": normalized, "eligible": eligible,
@@ -368,7 +385,8 @@ class TransformerEAPIG(BoundMethod):
             "requested_edges": torch.tensor(budgets), "retained_edges": torch.tensor(kept_counts),
             "retained_masks": torch.stack(masks),
             "all_retained_score": full_score, "none_retained_score": none_score,
-            "all_retained_error": full_score - clean_score, "none_retained_error": none_score - corrupt_score,
+            "all_retained_error": analysis_difference(full_score, clean_score),
+            "none_retained_error": analysis_difference(none_score, corrupt_score),
         }, {"graph": self.graph.describe(), "rankings": list(rankings), "selection": strategy,
             "pruning": "retain only input-to-readout connected paths",
             "faithfulness_scope": "full graph complement: every excluded real edge corrupted",
@@ -392,6 +410,7 @@ class TransformerEAPIG(BoundMethod):
         scores = torch.stack(values)
         return self._finish(ProbeResult("edge_patching", {"edge_ids": torch.tensor(edges),
             "baseline_score": clean_score, "donor_score": corrupt_score, "intervention_score": scores,
-            "loss_increase": clean_score - scores}, {"edge_names": [self.graph.edge_names[e] for e in edges],
+            "loss_increase": analysis_difference(clean_score, scores)},
+            {"edge_names": [self.graph.edge_names[e] for e in edges],
             "intervention": "one source residual message corrupted at one pre-LN destination",
             "actual_forward_passes": 2 + len(edges)}))
