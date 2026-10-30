@@ -194,6 +194,15 @@ tests before registering another architecture.
 
 ## Integration checks
 
+Gemma 4 uses a separate native contract in
+[`adapters/gemma4.py`](../src/vlm_probing/adapters/gemma4.py), pinned to
+Transformers 5.5.4. It captures complete post-block residuals, including PLE
+and layer scaling; its readout includes native final logit soft-capping.
+Its head projections precede post-attention RMSNorm, so the adapter does not
+declare additive residual head attribution or IOI path controls. Audio/video
+inputs are rejected. See the [Gemma 4 guide](models/gemma4.md) for supported
+methods, runtime setup and validation scope.
+
 Before declaring a model supported, verify final-layer readout equals model logits,
 self-patching leaves outputs unchanged, nontrivial edits change downstream scores,
 layout masks respect padding/visual expansion, and head projections sum to the

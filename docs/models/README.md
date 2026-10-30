@@ -2,8 +2,10 @@
 
 [Home](../../README.md) / [Documentation](../README.md)
 
-Automatic adapters target **Transformers 5.3.x**, tested with **5.3.0**. The nine
-VLM families below use native Transformers classes. Each guide provides a full
+Automatic adapters target **Transformers 5.3.x**, tested with **5.3.0**, except
+[Gemma 4](gemma4.md), which uses a separate **Transformers 5.5.4** environment
+installed with the `gemma4` extra. The ten VLM families below use native
+Transformers classes. Each guide provides a full
 loading and image-input example. [Llama](llama.md), [GPT-2](gpt2.md), and [Qwen2/Qwen3 text](qwen_text.md) provide text controls;
 [ViT](vit.md) provides a pure-vision classification control.
 
@@ -53,6 +55,7 @@ Do not copy a different model's tokenizer, hard-coded layer IDs or fitted artifa
 
 | Family | Example size | Validation in this release |
 | --- | --- | --- |
+| [Gemma 4](gemma4.md) | E2B (example checkpoint) | Native tiny image/text and text-only tests in FP32/BF16 with PLE and shared K/V; pretrained weights not validated |
 | [Qwen3.5](qwen3_5.md) | 4B | Tiny architecture + eight pretrained report cases |
 | [Qwen3-VL](qwen3_vl.md) | 2B | Tiny architecture + eight pretrained report cases |
 | [Qwen2.5-VL](qwen2_5_vl.md) | 3B | Tiny architecture + local pretrained checkpoint |
@@ -76,6 +79,11 @@ All eight official processors were also exercised on image+chat inputs.
 [Architecture checks](../../examples/hf_model_matrix.py) use small native models.
 
 ## Capability matrix
+
+Gemma 4 has its own [capability table](gemma4.md#capabilities-and-boundaries).
+The comparison below covers the existing 5.3.x adapters. Gemma 4 does not
+declare IOI path patching, fixed-scale head logit attribution, MJ-Lens or
+token-weighted Beyond Intuition.
 
 [MJ-Lens](../methods/mj_lens.md) has its own declared block-input sites and final
 RMSNorm target, visible under `lens.mj` in `describe()`. Native Qwen, Llama,
@@ -134,4 +142,5 @@ using explicit architecture token IDs. No fixed-length visual-token guess is
 used. For custom layouts and architectures, see [adapters](../ADAPTERS.md).
 
 Legacy Transformers 4.57.x remains supported for Llama, Qwen2.5-VL, and GPT-2.
-The expanded model set, including Qwen2/Qwen3 text-only classes, uses the 5.3.x extra.
+The expanded model set, including Qwen2/Qwen3 text-only classes, uses the 5.3.x
+extra, except Gemma 4, which requires the separate 5.5.4 `gemma4` runtime.

@@ -57,6 +57,7 @@ require another copy of every algorithm.
 | `adapters/torch.py` | Scoped hooks, readout, state restoration, capture validation. |
 | `adapters/auto.py` | Exact-class registration and model-provided adapter protocol. |
 | `adapters/huggingface.py` | Explicit contracts for eight VLM families, Llama, and GPT-2. |
+| `adapters/gemma4.py` | Separate Transformers 5.5.4 image/text and text-only Gemma 4 contracts, including PLE, shared K/V and native output soft-capping. |
 | `adapters/vit.py` | Pure-vision classifier outputs, patch layouts and editable attention. |
 | `_vendor/chefer2021/` | Minimal pinned author DTD rules, with license and provenance. |
 | `lenses/`, `attention/`, `causal/` | Family base classes, tensor algorithms, and controlled forward algorithms. |
