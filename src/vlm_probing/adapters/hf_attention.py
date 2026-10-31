@@ -1,4 +1,4 @@
-"""Audited, weight-free consumed-attention taps for Transformers 5.3 decoders.
+"""Audited consumed-attention taps for Transformers 5.3 and Gemma 4 in 5.5.4.
 
 The numerical operations and their order match ``eager_attention_forward``.
 The backend override lasts only for an attention call: decoder mask construction
@@ -25,6 +25,7 @@ _AUDITED_CLASSES = {
         ("qwen2_5_vl", "Qwen2_5_VLAttention"),
         ("qwen3_vl", "Qwen3VLTextAttention"),
         ("qwen3_5", "Qwen3_5Attention"),
+        ("gemma4", "Gemma4TextAttention"),
     )
 }
 _SUPPORT_ONLY_CLASSES = {

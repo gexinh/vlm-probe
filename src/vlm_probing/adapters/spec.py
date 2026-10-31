@@ -208,10 +208,21 @@ class ModelSpec:
     # Append fields to preserve existing positional ModelSpec construction.
     causal_attention: bool | None = None
     mj: MJSpec | None = None
+    # Last layer whose attention reads K/V from the residual stream; later layers
+    # reuse stored K/V. None means every layer reads its own stream.
+    last_stream_kv_layer: int | None = None
+    # Later blocks consume state that bypasses the residual stream, such as
+    # per-layer inputs or stored K/V, so replacing one residual is not a restoration.
+    residual_bypass: bool = False
 
     def validate(self, sites):
         if self.causal_attention is not None and type(self.causal_attention) is not bool:
             raise TypeError("spec.causal_attention must be bool or None")
+        if type(self.residual_bypass) is not bool:
+            raise TypeError("spec.residual_bypass must be bool")
+        if self.last_stream_kv_layer is not None and (
+                type(self.last_stream_kv_layer) is not int or self.last_stream_kv_layer not in self.residuals):
+            raise ValueError("spec.last_stream_kv_layer must be a residual layer index or None")
         if not self.residuals or any(type(k) is not int or k < 0 for k in self.residuals):
             raise ValueError("spec.residuals requires nonnegative layer indices")
         if self.output_kind not in {"language", "classification", "representation"}:

@@ -82,7 +82,8 @@ class Prober:
         methods = {}
         propagation = []
         for i in range(max(s.residuals) + 1):
-            if i not in s.attentions:
+            if i not in s.attentions or (s.last_stream_kv_layer is not None
+                                         and i > s.last_stream_kv_layer):
                 break
             propagation.append(i)
         rules = {

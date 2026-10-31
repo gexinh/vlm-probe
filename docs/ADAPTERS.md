@@ -90,6 +90,8 @@ does not claim attention or head access. The full demonstration contract is in
 | `attentions` | `{layer: site}`, actual probabilities `[B,H,Q,K]`; observational unless declared editable |
 | `attention_scores` | `{layer: site}`, editable masked logits before softmax |
 | `causal_attention` | Explicit `True` for causally masked attention, `False` for bidirectional attention, or `None` when unspecified. Propagation warnings use this declaration, not output shape. |
+| `last_stream_kv_layer` | Last layer whose attention reads K/V from the residual stream, or `None` when every layer does. Propagation stops there, and residual edits from that layer warn that they cannot reach other positions. |
+| `residual_bypass` | `True` when later blocks consume state outside the residual stream, so replacing one residual does not restore a paired run. Patching and attribution then warn. |
 | `attention_supports` | Optional `{layer: site}` for layers in `attentions`; each site captures a boolean `[B or 1,H or 1,Q,K]` tensor on the attention device, with `True` for structurally permitted pairs |
 | `editable_attention` | Layer indices whose probability site is consumed by `A @ V` after the hook |
 | `heads` | `{layer: site}`, projected heads `[B,T,H,D_residual]`, or raw inputs for `project_heads` |
@@ -194,8 +196,20 @@ tests before registering another architecture.
 
 ## Integration checks
 
+Gemma 4 uses a separate native contract in
+[`adapters/gemma4.py`](../src/vlm_probing/adapters/gemma4.py), pinned to
+Transformers 5.5.4. It captures complete post-block residuals, including PLE
+and layer scaling; its readout includes native final logit soft-capping.
+Its head projections precede post-attention RMSNorm, so the adapter does not
+declare additive residual head attribution or IOI path controls. PLE and shared
+K/V bypass the residual stream, which it declares through `residual_bypass` and
+`last_stream_kv_layer`. Audio/video inputs are rejected. See the [Gemma 4 guide](models/gemma4.md) for supported
+methods, runtime setup and validation scope.
+
 Before declaring a model supported, verify final-layer readout equals model logits,
 self-patching leaves outputs unchanged, nontrivial edits change downstream scores,
+restoring a complete residual from a source run reproduces that source unless
+`residual_bypass` is declared,
 layout masks respect padding/visual expansion, and head projections sum to the
 bias-free attention output. Check hook cleanup and model-state restoration after
 exceptions. Gradient probes need graph-preserving sites even when model parameters

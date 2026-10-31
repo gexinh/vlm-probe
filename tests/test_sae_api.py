@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+import warnings
 
 import torch
 
@@ -14,6 +15,7 @@ from vlmprobe import visualization as viz
 from vlmprobe.sae import SAEConfig, SparseAutoencoder
 from vlmprobe.sae.binding import build_sae_binding
 from vlmprobe.sae.training import train_sae
+from vlm_probing.api.residual_applicability import ResidualInterventionWarning
 
 
 class SAEAPITests(unittest.TestCase):
@@ -37,6 +39,18 @@ class SAEAPITests(unittest.TestCase):
                   [torch.randn(16, 6)], self.train_dir, epochs=2, patience=2,
                   lr=.001, seed=87, progress_every=20)
         self.metric = TokenMargin(4, 5)
+
+    def test_declared_kv_boundary_warns_for_edits_but_not_observation(self):
+        self.probe.spec.last_stream_kv_layer = 0
+        with self.assertWarnsRegex(ResidualInterventionWarning, "edited positions"):
+            result = self.probe.sae.edit(layer=0, sae=self.sae, binding=self.binding,
+                                         feature_ids=[0]).run(self.inputs)
+        self.assertEqual(result.metadata["applicability"]["position_local_layers"], [0])
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            features = self.probe.sae.features(layer=0, sae=self.sae, binding=self.binding).run(self.inputs)
+        self.assertFalse([item for item in caught if issubclass(item.category, ResidualInterventionWarning)])
+        self.assertNotIn("applicability", features.metadata)
 
     def test_feature_values_shapes_and_padding_coordinates(self):
         valid = torch.tensor([[False, True, True, True, False], [True, True, True, True, True]])

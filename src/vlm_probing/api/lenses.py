@@ -9,6 +9,7 @@ from ..lenses.jacobian import (
     _JacobianReplacementWarning, _calibration_selection, _selector_description, _warn_replacement,
 )
 from .common import BoundMethod, coordinates, layers_for, model_eval, pack, require, selected
+from .residual_applicability import residual_applicability
 
 
 class LensProbe(BoundMethod):
@@ -201,6 +202,7 @@ class PatchscopeProbe(BoundMethod):
             raise ValueError("cross-model Patchscope requires an explicit mapping")
         layers_for(target, target_layer)
         self.mapping = mapping
+        self.applicability = residual_applicability(target.spec, "patchscope", [target_layer])
 
     def run(self, inputs, *, target_inputs):
         p, target = self.probe, self.target
@@ -232,7 +234,7 @@ class PatchscopeProbe(BoundMethod):
                               target_inputs=target_kwargs, layer=layer)
                    for layer, site in zip(self.layers, sites)]
         return pack(p, "patchscope", self.layers, results,
-                    readout="teacher_forced_target_prompt")
+                    readout="teacher_forced_target_prompt", applicability=self.applicability)
 
 
 class LensMethods:
