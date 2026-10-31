@@ -5,12 +5,14 @@ from pathlib import Path
 import sys
 import unittest
 from unittest.mock import patch
+import warnings
 
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "examples"))
 from gemma4_smoke import make_gemma4
 from vlmprobe import CapabilityError, Prober, SequenceLogProb, TokenMargin
+from vlm_probing.api.residual_applicability import ResidualInterventionWarning
 
 HAS_GEMMA4 = (importlib.util.find_spec("transformers") is not None
               and version("transformers") == "5.5.4")
@@ -92,15 +94,16 @@ class Gemma4AdapterTests(unittest.TestCase):
             with self.subTest(cap=cap):
                 model, inputs = make_gemma4(softcap=cap)
                 probe = Prober(model)
-                site = probe.spec.residuals[3]
-                trace = probe._run(inputs, capture=[site])
+                sites = [probe.spec.residuals[i] for i in sorted(probe.spec.residuals)]
+                trace = probe._run(inputs, capture=sites)
                 decoder = model.model.language_model
-                raw = model.lm_head(decoder.norm(trace.activations[site]))
-                expected = raw if cap is None else torch.tanh(raw / cap) * cap
-                torch.testing.assert_close(probe.adapter.readout(trace.activations[site]), expected)
+                for site in sites:  # Intermediate lens layers use the same capped readout.
+                    raw = model.lm_head(decoder.norm(trace.activations[site]))
+                    expected = raw if cap is None else torch.tanh(raw / cap) * cap
+                    torch.testing.assert_close(probe.adapter.readout(trace.activations[site]), expected)
+                    if cap is not None:
+                        self.assertGreater((raw - expected).abs().max().item(), 1e-3)
                 torch.testing.assert_close(trace.logits, expected)
-                if cap is not None:
-                    self.assertGreater((raw - expected).abs().max().item(), 1e-3)
 
     def test_head_widths_and_capability_boundaries(self):
         model, inputs = make_gemma4(alternative_attention=True)
@@ -190,6 +193,99 @@ class Gemma4AdapterTests(unittest.TestCase):
         probe.attention.beyond_intuition(layers=[0, 1], queries="last_prompt", keys="visual", steps=2).run(inputs, metric=metric)
         self.assertEqual(before, hooks(model))
         self.assertTrue(all(p.grad is None for p in model.parameters()))
+
+    def test_residual_restoration_matches_declared_bypass(self):
+        for options, bypass in (({}, True), ({"shared_layers": 0}, True), ({"per_layer_width": 0}, True),
+                                ({"shared_layers": 0, "per_layer_width": 0}, False)):
+            with self.subTest(options=options):
+                model, inputs = make_gemma4(softcap=None, **options)
+                probe = Prober(model)
+                self.assertEqual(probe.spec.residual_bypass, bypass)
+                corrupt = {**inputs, "pixel_values": 1 - inputs["pixel_values"]}
+                source = probe._run(inputs, capture=list(probe.spec.residuals.values()))
+                self.assertGreater((probe._run(corrupt).logits - source.logits).abs().max().item(), 0)
+                for layer, site in probe.spec.residuals.items():
+                    value = source.activations[site]
+                    patched = probe._run(corrupt, interventions={site: lambda _, value=value: value})
+                    gap = (patched.logits - source.logits).abs().max().item()
+                    if bypass and layer < 3:
+                        self.assertGreater(gap, 0)
+                    else:
+                        self.assertEqual(gap, 0)
+
+    def test_shared_kv_residual_edits_cannot_reach_other_positions(self):
+        model, inputs = make_gemma4()
+        probe = Prober(model)
+        self.assertEqual(probe.spec.last_stream_kv_layer, 1)
+        corrupt = {**inputs, "pixel_values": 1 - inputs["pixel_values"]}
+        with self.assertWarnsRegex(ResidualInterventionWarning, "does not restore"):
+            patch = probe.causal.patch(layers=[0, 1, 2, 3])
+        result = patch.run(corrupt, source=inputs, metric=TokenMargin(4, 5))
+        self.assertGreater(result.tensors["effect"][0].abs().max().item(), 0)
+        self.assertEqual(result.tensors["effect"][1:].abs().max().item(), 0)
+        self.assertEqual(result.metadata["applicability"]["position_local_layers"], [1, 2, 3])
+        self.assertEqual(result.metadata["applicability"]["restoration_incomplete_layers"], [0, 1, 2])
+        # A later attention edit still reaches them: the zero is about the residual route.
+        knockout = probe.causal.knockout(layers=[3], queries="last_prompt", keys="visual").run(
+            inputs, metric=TokenMargin(4, 5))
+        self.assertGreater(knockout.tensors["effect"].abs().max().item(), 0)
+        for factory in (lambda: probe.causal.steer(layers=[2]),
+                        lambda: probe.causal.attribute(layers=[2]),
+                        lambda: probe.lens.patchscope(layers=[0], source_position=3,
+                                                      target_layer=2, target_position=3)):
+            with self.assertWarnsRegex(ResidualInterventionWarning, "edited positions"):
+                factory()
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            probe.causal.steer(layers=[0])
+        self.assertFalse([item for item in caught if issubclass(item.category, ResidualInterventionWarning)])
+
+    def test_propagation_stops_at_last_stream_kv_layer(self):
+        model, inputs = make_gemma4()
+        probe = Prober(model)
+        self.assertEqual(probe.describe()["methods"]["attention.rollout"]["sites"], [0, 1])
+        result = probe.attention.rollout().run(inputs)
+        self.assertEqual(result.metadata["layers"], [0, 1])
+        self.assertEqual(result.metadata["applicability"]["propagation_limit"], 1)
+        for factory in (lambda: probe.attention.rollout(layers=[0, 1, 2]),
+                        lambda: probe.attention.relevance(layers=[0, 1, 2]),
+                        lambda: probe.attention.tam(layers=[0, 1, 2]),
+                        lambda: probe.attention.beyond_intuition(layers=[0, 1, 2])):
+            with self.assertRaisesRegex(CapabilityError, "stops at layer 1"):
+                factory()
+        # Single-layer maps and interventions remain available on shared layers.
+        probe.attention.profile(layers=[3], queries="last_prompt").run(inputs)
+        model, inputs = make_gemma4(shared_layers=0)
+        probe = Prober(model)
+        self.assertIsNone(probe.spec.last_stream_kv_layer)
+        self.assertEqual(probe.attention.rollout().run(inputs).metadata["layers"], [0, 1, 2, 3])
+
+    def test_declared_mask_contract_and_moe_scope(self):
+        with self.assertRaisesRegex(CapabilityError, "not audited"):
+            Prober(make_gemma4(bidirectional="all")[0])
+        model, inputs = make_gemma4(bidirectional="vision")
+        probe = Prober(model)
+        self.assertTrue(probe.spec.causal_attention)
+        without = {key: value for key, value in inputs.items() if key != "mm_token_type_ids"}
+        with self.assertRaisesRegex(CapabilityError, "require mm_token_type_ids"):
+            probe._run(without)
+        model, inputs = make_gemma4(moe=True, shared_layers=0, per_layer_width=0, bidirectional="vision",
+                                    alternative_attention=True)
+        native = model(**inputs, use_cache=False).logits
+        probe = Prober(model)
+        torch.testing.assert_close(probe._run(inputs).logits, native, atol=0, rtol=0)
+        self.assertTrue(any("MoE" in note for note in probe.spec.notes))
+
+    def test_text_only_prompt_on_multimodal_class(self):
+        for bidirectional in (None, "vision"):
+            with self.subTest(bidirectional=bidirectional):
+                model, _ = make_gemma4(bidirectional=bidirectional)
+                ids = torch.tensor([[2, 4, 5, 3]])
+                inputs = dict(input_ids=ids, attention_mask=torch.ones_like(ids))
+                native = model(**inputs, use_cache=False).logits
+                probe = Prober(model)
+                torch.testing.assert_close(probe._run(inputs).logits, native, atol=0, rtol=0)
+                self.assertFalse(probe.spec.layout(inputs).visual.any())
 
     def test_calibrated_lenses_and_patchscope(self):
         model, inputs = make_gemma4()

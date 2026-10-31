@@ -83,7 +83,9 @@ All eight official processors were also exercised on image+chat inputs.
 Gemma 4 has its own [capability table](gemma4.md#capabilities-and-boundaries).
 The comparison below covers the existing 5.3.x adapters. Gemma 4 does not
 declare IOI path patching, fixed-scale head logit attribution, MJ-Lens or
-token-weighted Beyond Intuition.
+token-weighted Beyond Intuition. On checkpoints with shared K/V such as E2B,
+propagation methods stop before the shared layers and residual edits have
+[declared limits](gemma4.md#residual-interventions-and-propagation).
 
 [MJ-Lens](../methods/mj_lens.md) has its own declared block-input sites and final
 RMSNorm target, visible under `lens.mj` in `describe()`. Native Qwen, Llama,

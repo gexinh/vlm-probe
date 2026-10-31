@@ -9,7 +9,7 @@ from vlmprobe import Prober, TokenMargin
 
 
 def make_gemma4(*, multimodal=True, backend="eager", shared_layers=2,
-                bidirectional=None, softcap=2.0, alternative_attention=False, per_layer_width=4):
+                bidirectional=None, softcap=2.0, alternative_attention=False, per_layer_width=4, moe=False):
     from transformers import Gemma4Config, Gemma4ForCausalLM, Gemma4ForConditionalGeneration, Gemma4TextConfig
 
     text = dict(
@@ -27,6 +27,8 @@ def make_gemma4(*, multimodal=True, backend="eager", shared_layers=2,
                                "rope_theta": 10000.0},
         },
     )
+    if moe:
+        text.update(enable_moe_block=True, num_experts=4, top_k_experts=2, moe_intermediate_size=8)
     if multimodal:
         vision = dict(hidden_size=16, intermediate_size=24, num_hidden_layers=2,
                       num_attention_heads=2, num_key_value_heads=1, head_dim=8,

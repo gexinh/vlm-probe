@@ -37,6 +37,10 @@ class Gemma4Adapter(TorchModelAdapter):
         types = inputs.get("mm_token_type_ids")
         if types is not None and ((types != 0) & (types != 1)).any():
             raise CapabilityError("Gemma 4 adapter supports image/text mm_token_type_ids only (0 or 1)")
+        # Without types, native eval silently drops the bidirectional vision mask.
+        if (types is None and inputs.get("pixel_values") is not None
+                and config.get_text_config().use_bidirectional_attention == "vision"):
+            raise CapabilityError("Gemma 4 vision-bidirectional checkpoints require mm_token_type_ids with images")
         return super().run(inputs, **kwargs)
 
 
@@ -51,6 +55,9 @@ def make_adapter(model):
         )
     prefix = MODEL_CONTRACTS[(type(model).__module__, type(model).__name__)]
     decoder = model.get_submodule(prefix)
+    # In 5.5.4 this flag leaves native masks causal, so the contract would be false.
+    if decoder.config.use_bidirectional_attention == "all":
+        raise CapabilityError("Gemma 4 use_bidirectional_attention='all' is not audited: native masks stay causal")
     multimodal = type(model).__name__ == "Gemma4ForConditionalGeneration"
     sites, residuals, heads = {}, {}, {}
     attentions, scores, supports = {}, {}, {}
@@ -95,18 +102,26 @@ def make_adapter(model):
             return torch.tanh(logits / cap) * cap
         return logits
 
+    shared = [i for i, layer in enumerate(layers) if layer.self_attn.is_kv_shared_layer]
+    last_stream_kv_layer = shared[0] - 1 if shared else None
+    per_layer_inputs = bool(decoder.config.hidden_size_per_layer_input)
     notes = (
         f"Gemma 4 image/text or text-only forwards; Transformers {installed}; uncached full sequence.",
         "Residual i follows the entire decoder block, including per-layer inputs and layer_scalar.",
         "Readout applies the native final RMSNorm, LM head and configured logit soft-capping.",
+        "Lens logits at every layer pass through the same soft cap: large raw logits saturate, compressing margins, and low-precision values can tie.",
         "Embedding capture follows scaled text embeddings and image merge; cosine EmbedLens uses the native vocabulary directions.",
         "Eager attention taps expose actual masked scores, structural support and consumed probabilities, including shared-K/V layers.",
         "Projected heads sum to the bias-free o_proj output BEFORE post_attention_layernorm; they are not additive residual writes.",
         "IOI path patching and fixed-scale head logit attribution are not declared: post-attention normalization couples heads, and K/V may be shared.",
         "MJ-Lens, token-weighted Beyond Intuition and edge-level EAP-IG require additional explicit contracts.",
         "Attention propagation describes the native local/global masks; vision blocks may attend bidirectionally. It does not establish spatial faithfulness.",
-        "Audio, video, automatic image grids, quantization, sharding and compiled execution are not validated.",
+        "Audio, video, MoE checkpoints, automatic image grids, quantization, sharding and compiled execution are not validated.",
     )
+    if per_layer_inputs:
+        notes += ("Per-layer inputs derive from merged input embeddings and enter every block outside the residual stream, so paired residual patching does not restore the source run.",)
+    if shared:
+        notes += (f"Layers from {shared[0]} reuse stored K/V: residual edits from layer {last_stream_kv_layer} cannot reach other positions, and propagation methods stop at layer {last_stream_kv_layer}.",)
     spec = ModelSpec(
         residuals=residuals, heads=heads, embeddings="embeddings",
         input_embeddings=decoder.embed_tokens.weight, layout=layout, project_heads=project_heads,
@@ -114,7 +129,8 @@ def make_adapter(model):
         editable_attention=set(attentions),
         alignment_keys=("image_position_ids", "position_ids", "mm_token_type_ids"),
         forward_defaults={"use_cache": False, "return_dict": True}, notes=notes,
-        causal_attention=decoder.config.use_bidirectional_attention != "all",
+        causal_attention=True, last_stream_kv_layer=last_stream_kv_layer,
+        residual_bypass=per_layer_inputs or bool(shared),
     )
     model_id = getattr(model.config, "_name_or_path", "") or type(model).__name__
     return Gemma4Adapter(
