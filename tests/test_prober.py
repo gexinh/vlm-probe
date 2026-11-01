@@ -35,6 +35,45 @@ class ProberTests(unittest.TestCase):
         with self.assertRaises(CapabilityError):
             Prober(torch.nn.Linear(2, 2))
 
+    def test_describe_reports_missing_readout_without_running_model(self):
+        self.probe.adapter.readout = None
+        handle = self.model.register_forward_pre_hook(
+            lambda *_: self.fail("describe must not run the model"))
+        try:
+            methods = self.probe.describe()["methods"]
+        finally:
+            handle.remove()
+        for name in ("lens.logit", "lens.tuned", "lens.jacobian"):
+            self.assertEqual(methods[name], {
+                "available": False, "sites": [],
+                "requires": "residual sites and model readout",
+                "missing": "residual sites and model readout",
+            })
+        self.assertTrue(methods["causal.patch"]["available"])
+
+    def test_describe_representation_keeps_only_sae_available(self):
+        self.probe.spec.output_kind = "representation"
+        methods = self.probe.describe()["methods"]
+        for name, method in methods.items():
+            with self.subTest(method=name):
+                self.assertEqual(method["available"], name.startswith("sae."))
+                if not name.startswith("sae."):
+                    self.assertEqual(method["sites"], [])
+                    self.assertEqual(method["missing"],
+                        "representation encoder currently exposes SAE methods; "
+                        "no language/classification logits")
+
+    def test_describe_limits_propagation_without_hiding_observable_layers(self):
+        self.probe.spec.last_stream_kv_layer = 0
+        methods = self.probe.describe()["methods"]
+        for name in ("rollout", "relevance", "tam", "beyond_intuition"):
+            self.assertEqual(methods["attention." + name]["sites"], [0])
+        self.assertEqual(methods["attention.profile"]["sites"], [0, 1])
+        self.probe.spec.attentions.pop(0)
+        methods = self.probe.describe()["methods"]
+        self.assertFalse(methods["attention.rollout"]["available"])
+        self.assertEqual(methods["attention.profile"]["sites"], [1])
+
     def test_registration_and_explicit_adapter(self):
         class Custom(TinyModel):
             pass
