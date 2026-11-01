@@ -7,8 +7,9 @@ import warnings
 import torch
 
 from examples.tiny_model import TinyModel
-from vlmprobe import ModelSpec, Prober, TokenMargin
+from vlmprobe import CapabilityError, ModelSpec, Prober, TokenMargin
 from vlm_probing.api.attention_applicability import CausalAttentionWarning
+from vlm_probing.api.residual_applicability import ResidualInterventionWarning
 
 HAS_V5 = (importlib.util.find_spec("transformers") is not None
           and version("transformers").split(".")[:2] == ["5", "3"])
@@ -37,6 +38,37 @@ class AttentionApplicabilityTests(unittest.TestCase):
             with self.subTest(value=invalid):
                 with self.assertRaisesRegex(TypeError, "causal_attention"):
                     ModelSpec({0: "residual"}, causal_attention=invalid).validate({"residual": None})
+
+    def test_declared_residual_limits_warn_and_undeclared_stacks_stay_silent(self):
+        for name, value in (("residual_bypass", 1), ("last_stream_kv_layer", 99)):
+            with self.subTest(field=name), self.assertRaises((TypeError, ValueError)):
+                ModelSpec({0: "residual"}, **{name: value}).validate({"residual": None})
+        final = max(self.probe.spec.residuals)
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.assertIsNone(self.probe.causal.patch(layers=[0]).applicability)
+        self.assertFalse(caught)
+        self.probe.spec.residual_bypass = True
+        with self.assertWarnsRegex(ResidualInterventionWarning, "does not restore"):
+            self.probe.causal.patch(layers=[0])
+        # Nothing runs after the final residual, and steering restores no source.
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.probe.causal.patch(layers=[final])
+            self.probe.causal.steer(layers=[0])
+            self.probe.causal.knockout(layers=[0])
+        self.assertFalse(caught)
+
+    def test_declared_kv_boundary_limits_propagation(self):
+        self.assertEqual(self.probe.attention.rollout().layers, sorted(self.probe.spec.attentions))
+        self.probe.spec.last_stream_kv_layer = 0
+        self.assertEqual(self.probe.describe()["methods"]["attention.rollout"]["sites"], [0])
+        probe = self.probe.attention.rollout()
+        self.assertEqual(probe.layers, [0])
+        self.assertEqual(probe.applicability["propagation_limit"], 0)
+        self.assertIn("stored K/V", probe.applicability["caveat"])
+        with self.assertRaisesRegex(CapabilityError, "stops at layer 0"):
+            self.probe.attention.relevance(layers=[0, 1])
 
     def test_only_declared_causal_propagation_warns_at_construction(self):
         for causal in (True, False, None):

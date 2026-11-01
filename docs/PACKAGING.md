@@ -35,6 +35,7 @@ and Hugging Face dependencies are loaded only when those features are used.
 | --- | --- |
 | `visualization` | Matplotlib, NumPy, and Pillow for built-in plots. |
 | `transformers` | Supported Transformers 5.3.x, Accelerate, Torchvision, and Pillow. |
+| `gemma4` | Gemma 4 runtime: Transformers 5.5.4, Accelerate, Torchvision, and Pillow; use in a separate environment instead of `transformers`. |
 | `notebooks` | Jupyter and the plotting/tokenizer tools used by demos. |
 | `sae` | PyTorch ≥2.6, NumPy, Safetensors and Hugging Face Hub for sparse dictionaries and safe historical checkpoint loading. |
 | `evaluation` | NumPy and scikit-learn for optional sparse diagnostic probes; reconstruction, sparsity and localization use PyTorch. |

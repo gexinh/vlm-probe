@@ -142,4 +142,7 @@ class BoundMethod:
     def _finish(self, result):
         result.tensors = {k: v.detach().to(self.probe.result_device) for k, v in result.tensors.items()}
         result.metadata.update(model_id=self.probe.adapter.model_id, layers=self.layers)
+        applicability = getattr(self, "applicability", None)
+        if applicability is not None:
+            result.metadata["applicability"] = applicability
         return result

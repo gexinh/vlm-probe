@@ -7,12 +7,14 @@ from ..core import ProbeResult
 from ..core.precision import analysis_difference, analysis_dtype
 from .common import (BoundMethod, check_alignment, configuration, evaluate, layers_for,
                      metric_metadata, pack, unpack)
+from .residual_applicability import residual_applicability
 
 
 class CausalProbe(BoundMethod):
     def __init__(self, probe, name, layers, tokens="all", **options):
         super().__init__(probe, name, layers)
         self.tokens, self.options = tokens, options
+        self.applicability = residual_applicability(probe.spec, name, layers)
 
     def run(self, inputs, *, metric, source=None, direction=None,
             alignment="strict"):
@@ -92,7 +94,8 @@ class CausalProbe(BoundMethod):
                     sweep="independent per-layer runs", alignment=alignment if paired else None,
                     configuration=configuration({"tokens": self.tokens, **o}),
                     metric=metric_metadata(metric),
-                    effect_sign="source/intervention minus receiver")
+                    effect_sign="source/intervention minus receiver",
+                    applicability=self.applicability)
 
     def forward(self, inputs, *, direction=None, capture=()):
         """One live joint forward, optionally retaining requested hook tensors.

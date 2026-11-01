@@ -26,10 +26,14 @@ def auto_adapter(model):
             "transformers.models.vit.modeling_vit", "ViTForImageClassification"):
         from .vit import make_adapter
         return make_adapter(model)
+    from .gemma4 import MODEL_CONTRACTS as GEMMA4_CONTRACTS, make_adapter as make_gemma4_adapter
+    if (type(model).__module__, type(model).__name__) in GEMMA4_CONTRACTS:
+        return make_gemma4_adapter(model)
     from .huggingface import MODEL_CONTRACTS, make_adapter
     if (type(model).__module__, type(model).__name__) in MODEL_CONTRACTS:
         return make_adapter(model)
-    supported = sorted({name for _, name in MODEL_CONTRACTS} | {"ViTForImageClassification"})
+    supported = sorted({name for _, name in MODEL_CONTRACTS.keys() | GEMMA4_CONTRACTS.keys()}
+                       | {"ViTForImageClassification"})
     raise CapabilityError(
         f"No automatic adapter for {type(model).__name__}. Supported native classes: "
         f"{', '.join(supported)}. Pass adapter=TorchModelAdapter(..., "

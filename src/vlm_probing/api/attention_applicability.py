@@ -36,7 +36,12 @@ def propagation_applicability(spec, method):
         caveat = ("The adapter has not declared causal_attention; attention-mask "
                   "applicability is unknown. Inspect the model's actual masks "
                   "before interpreting propagation maps.")
-    return {"causal_attention": causal,
-            "attention_pattern": "unspecified" if causal is None else "causal" if causal else "bidirectional",
-            "propagation_formula_modified": False,
-            "caveat": caveat}
+    result = {"causal_attention": causal,
+              "attention_pattern": "unspecified" if causal is None else "causal" if causal else "bidirectional",
+              "propagation_formula_modified": False,
+              "caveat": caveat}
+    if spec.last_stream_kv_layer is not None:
+        result["propagation_limit"] = spec.last_stream_kv_layer
+        result["caveat"] = (f"{caveat} Propagation stops at layer {spec.last_stream_kv_layer} "
+                            "because later layers reuse stored K/V.")
+    return result

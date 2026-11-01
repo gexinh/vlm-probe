@@ -90,6 +90,12 @@ Transformers 5.3.x and includes Accelerate, Torchvision, and Pillow;
 `visualization` provides the plotting dependencies. Add `notebooks` when using
 Jupyter. Model weights and complete datasets are downloaded separately.
 
+Gemma 4 uses a separate runtime: install this checkout with
+`python -m pip install -e ".[gemma4,visualization]"` in its own environment.
+The `gemma4` extra pins Transformers 5.5.4; choose it instead of the
+5.3.x `transformers` extra. See the [Gemma 4 guide](docs/models/gemma4.md)
+for supported methods and validation scope.
+
 To run all notebook tutorials from a checkout, use
 `python -m pip install -e ".[sae,evaluation,transformers,visualization,notebooks]"`.
 The [package guide](docs/PACKAGING.md) covers wheels and release publication.
@@ -176,12 +182,13 @@ exercises the API without downloading pretrained weights.
 
 ## Model Support
 
-Nine VLM families have explicit adapters. Text-only GPT-2/Llama/Qwen and a ViT
+Ten VLM families have explicit adapters. Text-only GPT-2/Llama/Qwen/Gemma 4 and a ViT
 classifier provide complementary controls. Availability is method-specific;
 see the [capability matrix](docs/models/README.md).
 
 | Family | Example checkpoint | Guide |
 | --- | --- | --- |
+| Gemma 4 | Gemma 4 E2B; separate Transformers 5.5.4 runtime | [Usage](docs/models/gemma4.md) |
 | <a href="docs/models/qwen3_vl.md"><img src="docs/assets/model-buttons/qwen3-vl.svg" alt="Qwen3-VL" width="172" height="32"></a> | Qwen3-VL-2B-Instruct | [Usage](docs/models/qwen3_vl.md) |
 | <a href="docs/models/qwen2_5_vl.md"><img src="docs/assets/model-buttons/qwen2-5-vl.svg" alt="Qwen2.5-VL" width="172" height="32"></a> | Qwen2.5-VL-3B-Instruct | [Usage](docs/models/qwen2_5_vl.md) |
 | <a href="docs/models/qwen2_vl.md"><img src="docs/assets/model-buttons/qwen2-vl.svg" alt="Qwen2-VL" width="172" height="32"></a> | Qwen2-VL-2B-Instruct | [Usage](docs/models/qwen2_vl.md) |

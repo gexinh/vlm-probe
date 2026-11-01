@@ -8,6 +8,7 @@ from functools import wraps
 import torch
 
 from .common import BoundMethod, configuration, evaluate, layers_for, model_eval
+from .residual_applicability import residual_applicability
 from ..core import ProbeResult
 from ..core.precision import analysis_difference, analysis_dtype
 from ..sae.binding import check_runtime_binding
@@ -63,6 +64,7 @@ class SAEProbe(BoundMethod):
         self.sae, self.layer, self.tokens = sae, layer, tokens
         self.feature_ids, self.scale, self.mode = feature_ids, scale, mode
         self.operation, self.top_k = operation, top_k
+        self.applicability = residual_applicability(probe.spec, self.name, [layer])
 
     def _encode(self, values):
         contextual = callable(getattr(self.sae, "encode_with_context", None))

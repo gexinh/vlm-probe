@@ -198,6 +198,10 @@ class AttentionMethods:
         if not chosen or chosen != list(range(chosen[-1] + 1)):
             raise CapabilityError("propagation requires consecutive attention layers from 0; "
                                   "hybrid linear-attention gaps cannot be skipped")
+        boundary = self.probe.spec.last_stream_kv_layer
+        if boundary is not None and chosen[-1] > boundary:
+            raise CapabilityError(f"propagation stops at layer {boundary}: later layers reuse stored K/V, "
+                                  "so composing them would read positions from the wrong stream")
         return chosen
 
     def head_logits(self, *, layers=None):

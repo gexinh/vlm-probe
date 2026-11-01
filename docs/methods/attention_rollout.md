@@ -51,6 +51,10 @@ image patch should therefore not be taken as an object-localization result
 without controls for sequence position. Target conditioning or a different
 propagation rule is not a guarantee that this bias disappears.
 
+Adapters declaring `ModelSpec.last_stream_kv_layer` stop propagation at that
+layer, because later layers reuse stored K/V rather than reading the current
+stream. See [Gemma 4](../models/gemma4.md#residual-interventions-and-propagation).
+
 ## Inspect positional concentration
 
 After the complete example below, inspect the same selected query and visual
