@@ -24,6 +24,8 @@ separate validation before this gate is expanded.
 
 ## Load and probe
 
+[Run this example as a notebook](../../demos/gemma4_quickstart.ipynb).
+
 This example requires access to the checkpoint on Hugging Face and enough
 GPU memory to load it. Accept the model's access terms and authenticate in
 your environment before downloading its weights. Replace `example.jpg`
