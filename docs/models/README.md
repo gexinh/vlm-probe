@@ -53,9 +53,9 @@ model, keep the loading/preparation block from this guide and then apply the
 method's configuration, target/reference construction and plotting steps.
 Do not copy a different model's tokenizer, hard-coded layer IDs or fitted artifacts.
 
-| Family | Example size | Validation in this release |
+| Family | Example size | Validation scope |
 | --- | --- | --- |
-| [Gemma 4](gemma4.md) | E2B (example checkpoint) | Native tiny image/text and text-only tests in FP32/BF16 with PLE and shared K/V; pretrained weights not validated |
+| [Gemma 4](gemma4.md) | E2B (example checkpoint) | Native tiny image/text and text-only architecture tests, including PLE, shared K/V, soft-capping and mixed attention masks; no pretrained task evaluation |
 | [Qwen3.5](qwen3_5.md) | 4B | Tiny architecture + eight pretrained report cases |
 | [Qwen3-VL](qwen3_vl.md) | 2B | Tiny architecture + eight pretrained report cases |
 | [Qwen2.5-VL](qwen2_5_vl.md) | 3B | Tiny architecture + local pretrained checkpoint |
@@ -86,6 +86,8 @@ declare IOI path patching, fixed-scale head logit attribution, MJ-Lens or
 token-weighted Beyond Intuition. On checkpoints with shared K/V such as E2B,
 propagation methods stop before the shared layers and residual edits have
 [declared limits](gemma4.md#residual-interventions-and-propagation).
+Configurations with bidirectional visual attention declare a mixed mask pattern;
+ordinary causal Jacobian Lens is unavailable for those configurations.
 
 [MJ-Lens](../methods/mj_lens.md) has its own declared block-input sites and final
 RMSNorm target, visible under `lens.mj` in `describe()`. Native Qwen, Llama,

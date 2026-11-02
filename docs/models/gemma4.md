@@ -96,7 +96,8 @@ whose weights match it, and check `output_loading_info=True`.
 
 | Operation | Gemma 4 contract |
 | --- | --- |
-| Logit, Tuned, Jacobian, Embed and Patchscope lenses | All residual/embedding sites; calibrated lenses need fitting |
+| Logit, Tuned, Embed and Patchscope lenses | All residual/embedding sites; calibrated lenses need fitting |
+| Jacobian Lens | Causal-attention configurations only; unavailable with bidirectional visual attention |
 | Attention Lens | Calibrated projected-head readout before post-attention RMSNorm |
 | Attention profile, Grad-CAM, ATTATTR | All decoder layers with eager attention and, where needed, an explicit target |
 | Rollout, relevance, TAM, head-weighted Beyond Intuition | Eager attention up to the [last layer that reads its own K/V](#residual-interventions-and-propagation); TAM/Beyond Intuition integrate processed image inputs |
@@ -113,12 +114,15 @@ head widths or shared K/V projections. Residuals are captured after all
 block branches, at the next block's input or the final norm's input. The
 readout applies native RMSNorm, the LM head and configured output soft-capping.
 
-Lens logits at every layer pass through the same native soft cap. On E2B
-(cap 30) raw maxima at the sampled layers between 0 and 33 were 58-98, and about
-9 at the final layer, so intermediate logits saturate near the cap, margins
-compress and BF16 values can tie at the top. Rank ties are a readout property, not evidence
-that those tokens are equivalent. For uncapped diagnostics, apply
+Lens logits at every layer pass through the same configured native soft cap.
+Large intermediate logits can saturate, compressing margins and creating
+low-precision rank ties. These ties do not establish token equivalence.
+For uncapped diagnostics, apply
 `decoder.norm` and `lm_head` to a captured residual directly.
+
+The native forward keyword `softcap` instead caps attention scores before mask
+addition and softmax. Eager attention probes preserve that operation separately
+from the final output-logit cap.
 
 Head projections sum to the bias-free `o_proj` output **before** the block's
 post-attention RMSNorm. They are useful inputs to a calibrated Attention
@@ -136,6 +140,14 @@ Checkpoints using `use_bidirectional_attention="vision"` require
 `mm_token_type_ids` with images: without them native evaluation silently uses
 causal masks, so the adapter rejects those inputs. The value `"all"` is rejected
 because native 5.5.4 masks stay causal under it.
+
+With `"vision"`, sliding attention is bidirectional within visual blocks while
+global attention and text remain causal. The adapter declares
+`attention_pattern="mixed"` and leaves `causal_attention=None`; propagation
+results retain this distinction in their applicability metadata. Ordinary
+Jacobian Lens requires a causal continuation and is unavailable for this
+configuration, including text-only prompts on the same binding. Other supported
+methods continue to use the native masks.
 
 Local windows and optional bidirectional vision masks change which pairs
 are allowed. Grad-CAM uses structural support captured from the native
@@ -163,26 +175,12 @@ computation. `describe()["notes"]`, `ResidualInterventionWarning` and
 | E4B | Yes | 18 of 42 | 23 |
 | 26B-A4B, 31B | No | None | Every layer |
 
-Measured once on E2B with BF16 weights on CPU, patching a blue-square run with a
-red-circle source (margin -32.4 and +30.0), scored at the last position. BF16
-values vary slightly by device (61.44 instead of 61.31 on a GPU); the exact zeros
-do not.
-
-| Layer | Restore all positions | + per-layer inputs | + stored K/V | Default `tokens="visual"` effect |
-| --- | --- | --- | --- | --- |
-| 0 | Margin -31.6 | Logits match source | Margin -31.6 | 1.25 |
-| 9 | Margin -25.3 | Logits match source | Margin -25.3 | 6.31 |
-| 13 | Not measured | Not measured | Not measured | 61.31 |
-| 14 | Margin -32.1 | Margin -32.1 | Logits match source | 0 (exact) |
-| 24 | Margin -25.7 | Margin -25.7 | Logits match source | 0 (exact) |
-
-The two extra columns are hook experiments, not public options. Read a layer
-sweep accordingly: the jump at 13 and the zeros from 14 follow from which
-stream later K/V are computed from. They do not show that late layers ignore the
-image, because attention there still reads visual K/V stored at layers 13 and 14.
-To measure that, use attention interventions such as knockout, which act on
-every layer. Steering, SAE edits and Patchscope at these layers are limited by
-the same K/V route.
+Read residual-edit sweeps with these routes in mind. In a shared-K/V stack,
+editing only visual residual positions after the K/V boundary cannot change a
+different answer position through later attention. A zero effect there does not
+show that late layers ignore the image: they still read previously stored visual
+K/V. Attention interventions such as knockout act directly on those reads.
+Steering, SAE edits and Patchscope share the residual-route limitation.
 
 Rollout, relevance, TAM and Beyond Intuition compose each layer's attention onto
 the current stream. Shared layers read a different stream, so these methods stop
@@ -196,7 +194,7 @@ Run the offline checks without downloading model weights:
 
 ```bash
 python examples/gemma4_smoke.py
-python -m unittest discover -s tests -p test_gemma4_adapter.py -v
+python -m unittest discover -s tests -p 'test_gemma4*.py' -v
 ```
 
 Tests instantiate real tiny vision towers, spatial pooling, projectors and
@@ -209,11 +207,12 @@ restoration after exceptions. They also check that residual restoration fails
 exactly when a bypass is declared and that edits past the K/V boundary have an
 exact zero effect at other positions. Separate CI jobs retain Transformers 5.3.
 
-This is **architecture validation**, plus the E2B measurements above and
-native logit parity on those E2B weights with BF16 on one device. Pretrained
-accuracy, other checkpoints, MoE configurations (accepted, with tiny-model logit
-parity only), audio/video, quantization, multi-device/offloaded models and
-compiled execution have not been validated by this contribution.
+These reproducible checks provide **architecture validation with random tiny
+models**, rather than pretrained task evaluation. They also verify native
+attention soft-capping and the mixed-mask capability boundary. The E2B checkpoint
+above is a loading example. MoE configurations have tiny-model logit parity only;
+pretrained accuracy, audio/video, quantization, multi-device/offloaded models and
+compiled execution are outside this validation scope.
 
 Upstream references: [Gemma 4 documentation](https://huggingface.co/docs/transformers/model_doc/gemma4)
 and the pinned [Transformers 5.5.4 implementation](https://github.com/huggingface/transformers/blob/v5.5.4/src/transformers/models/gemma4/modeling_gemma4.py).

@@ -11,7 +11,8 @@ on:
       - "tests/test_sae_analysis_precision.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
-      - "tests/test_gemma4_adapter.py"
+      - "tests/test_gemma4*.py"
+      - "tests/test_mixed_attention_contract.py"
       - "tests/test_qwen_text_adapters.py"
       - "tests/test_jacobian_contract.py"
       - "tests/test_input_geometry.py"
@@ -38,7 +39,8 @@ on:
       - "tests/test_sae_analysis_precision.py"
       - "tests/test_gradcam_support.py"
       - "tests/test_consumed_attention.py"
-      - "tests/test_gemma4_adapter.py"
+      - "tests/test_gemma4*.py"
+      - "tests/test_mixed_attention_contract.py"
       - "tests/test_qwen_text_adapters.py"
       - "tests/test_jacobian_contract.py"
       - "tests/test_input_geometry.py"
@@ -84,7 +86,8 @@ jobs:
           python -m pip install '.[gemma4]'
       - name: Check native Gemma 4 contracts and public API
         run: |
-          python -m unittest discover -s tests -p test_gemma4_adapter.py -v
+          python -m unittest discover -s tests -p 'test_gemma4*.py' -v
+          python -m unittest discover -s tests -p test_mixed_attention_contract.py -v
           python -m unittest discover -s tests -p test_package_imports.py -v
           python -m unittest discover -s tests -p test_prober.py -v
           python examples/gemma4_smoke.py
@@ -117,6 +120,7 @@ jobs:
           python -m unittest discover -s tests -p test_consumed_attention.py -v
           python -m unittest discover -s tests -p test_qwen_text_adapters.py -v
           python -m unittest discover -s tests -p test_jacobian_contract.py -v
+          python -m unittest discover -s tests -p test_mixed_attention_contract.py -v
           python -m unittest discover -s tests -p test_input_geometry.py -v
           python -m unittest discover -s tests -p 'test_mj*.py' -v
           python -m unittest discover -s tests -p 'test_visualization*.py' -v

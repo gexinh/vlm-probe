@@ -5,11 +5,22 @@ import warnings
 import torch
 
 from .. import lenses as kernels
+from ..adapters import CapabilityError
 from ..lenses.jacobian import (
     _JacobianReplacementWarning, _calibration_selection, _selector_description, _warn_replacement,
 )
 from .common import BoundMethod, coordinates, layers_for, model_eval, pack, require, selected
 from .residual_applicability import residual_applicability
+
+
+def _require_jacobian_attention(probe):
+    if probe.spec.attention_pattern == "mixed":
+        raise CapabilityError(
+            "Ordinary Jacobian Lens requires a causal continuation; the adapter declares "
+            "mixed causal/bidirectional attention. This configuration needs a separately "
+            "validated estimator. Use a supported Logit or Tuned Lens instead; inspect "
+            "probe.describe() and the model guide."
+        )
 
 
 class LensProbe(BoundMethod):
@@ -25,6 +36,8 @@ class LensProbe(BoundMethod):
         return [mapping[i] for i in self.layers]
 
     def _capture(self, inputs, *, allow_empty_selection=False):
+        if self.name == "jacobian":
+            _require_jacobian_attention(self.probe)
         sites = self._sites()
         trace = self.probe._run(inputs, capture=sites)
         layout = self.probe._layout(inputs, trace.logits)
@@ -60,6 +73,8 @@ class LensProbe(BoundMethod):
 
 class FittedLensProbe(LensProbe):
     def __init__(self, probe, name, layers, tokens, *, binding=None):
+        if name == "jacobian":
+            _require_jacobian_attention(probe)
         super().__init__(probe, name, layers, tokens)
         self.binding = dict(binding or {})
         self.kernels, self.losses = {}, {}
@@ -91,6 +106,8 @@ class FittedLensProbe(LensProbe):
         return self.kernels[layer]
 
     def run(self, inputs, **kwargs):
+        if self.name == "jacobian":
+            _require_jacobian_attention(self.probe)
         if any(layer not in self.kernels for layer in self.layers):
             raise RuntimeError(f"{self.name}: call fit(inputs) or load(directory) before run")
         return super().run(inputs, **kwargs)
@@ -104,6 +121,8 @@ class FittedLensProbe(LensProbe):
         initialize new head decoders before optimization and cannot reset an
         already fitted/loaded kernel. The head decoder applies no final norm.
         """
+        if self.name == "jacobian":
+            _require_jacobian_attention(self.probe)
         initialize = initial_unembedding is not None or initial_bias is not None
         if initialize:
             if self.name != "attention":
@@ -165,6 +184,8 @@ class FittedLensProbe(LensProbe):
 
     def save(self, directory):
         # All validation precedes filesystem writes.
+        if self.name == "jacobian":
+            _require_jacobian_attention(self.probe)
         for layer in self.layers:
             if layer not in self.kernels:
                 raise RuntimeError("fit or load every selected layer before saving")
@@ -174,6 +195,8 @@ class FittedLensProbe(LensProbe):
             self.kernels[layer].save(Path(directory) / f"{self.name}_{layer}.pt")
 
     def load(self, directory):
+        if self.name == "jacobian":
+            _require_jacobian_attention(self.probe)
         loaded = {}
         embedding = require(self.probe.spec.input_embeddings,
                             "loading fitted lenses requires spec.input_embeddings for device/dimensions")

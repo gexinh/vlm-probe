@@ -89,7 +89,8 @@ does not claim attention or head access. The full demonstration contract is in
 | `residuals` | `{layer: site}`, residuals after a block and any visual injection, before the next block/final norm |
 | `attentions` | `{layer: site}`, actual probabilities `[B,H,Q,K]`; observational unless declared editable |
 | `attention_scores` | `{layer: site}`, editable masked logits before softmax |
-| `causal_attention` | Explicit `True` for causally masked attention, `False` for bidirectional attention, or `None` when unspecified. Propagation warnings use this declaration, not output shape. |
+| `causal_attention` | Explicit `True` for causally masked attention, `False` for bidirectional attention, or `None` for a mixed or unspecified pattern. Propagation warnings use this declaration with `attention_pattern`, not output shape. |
+| `attention_pattern` | Optional `"causal"`, `"bidirectional"`, or `"mixed"` mask declaration. If omitted, propagation metadata derives it from `causal_attention`. A mixed declaration uses `causal_attention=None`; ordinary causal Jacobian Lens is unavailable on that binding. |
 | `last_stream_kv_layer` | Last layer whose attention reads K/V from the residual stream, or `None` when every layer does. Propagation stops there, and residual edits from that layer warn that they cannot reach other positions. |
 | `residual_bypass` | `True` when later blocks consume state outside the residual stream, so replacing one residual does not restore a paired run. Patching and attribution then warn. |
 | `attention_supports` | Optional `{layer: site}` for layers in `attentions`; each site captures a boolean `[B or 1,H or 1,Q,K]` tensor on the attention device, with `True` for structurally permitted pairs |
@@ -155,11 +156,16 @@ attention, and preserve that hook-stage convention in experimental metadata.
 
 ## Causal attention propagation
 
-Native language adapters declare `causal_attention=True`; ViT declares `False`.
-Custom adapters default to `None`, which means unknown rather than bidirectional.
-Set this field only after checking the actual attention masks. Rollout, relevance,
-TAM and Beyond Intuition warn when constructed for a declared causal stack and
-retain the declaration and caveat in `result.metadata["applicability"]`.
+Native causal-language adapters declare `causal_attention=True`; ViT declares
+`False`. Gemma 4 with bidirectional visual attention declares
+`attention_pattern="mixed"` and `causal_attention=None`: its sliding visual
+blocks are bidirectional while global attention and text remain causal.
+Custom adapters default to `None`, leaving the pattern unspecified unless an
+explicit `attention_pattern` is supplied. Set these fields only after checking
+the actual masks. Rollout, relevance, TAM and Beyond Intuition warn for declared
+causal stacks. For causal and mixed stacks they retain the declaration and caveat
+in `result.metadata["applicability"]`. Declared mixed stacks cannot use the original
+causal Jacobian Lens estimator.
 
 A causal mask allows later positions to read earlier ones, which can favor early
 sequence positions when transitions are composed. Attention weights and target

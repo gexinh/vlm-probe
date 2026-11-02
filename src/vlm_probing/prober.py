@@ -93,7 +93,10 @@ class Prober:
             "sae.reconstruct": (residual, "a fitted same-space dictionary and an editable residual hook"),
             "lens.logit": (residual if readout else [], "residual sites and model readout"),
             "lens.tuned": (residual if readout else [], "residual sites and model readout"),
-            "lens.jacobian": (residual if readout else [], "residual sites and model readout"),
+            "lens.jacobian": (residual if readout and s.attention_pattern != "mixed" else [],
+                              "a causal continuation; declared mixed attention requires a separately "
+                              "validated estimator" if s.attention_pattern == "mixed" else
+                              "residual sites and model readout"),
             "lens.mj": (sorted(s.mj.sources) if s.mj is not None and s.causal_attention is True else [],
                         "causal block-input sites, actual final RMSNorm target and explicit modality layout"),
             "lens.embed": (["embeddings"] if s.embeddings and s.input_embeddings is not None else [], "embedding-space site and input embeddings"),

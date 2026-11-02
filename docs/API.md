@@ -223,6 +223,13 @@ GQA. See the [method guide](methods/path_patching.md) for scope and model suppor
 Tuned, Attention, Jacobian and MJ-Lens need calibration or `load` before `run`.
 The model's parameters and accumulated gradients are preserved.
 
+Ordinary Jacobian Lens retains its causal-continuation estimator. Bindings that
+declare `attention_pattern="mixed"`, such as Gemma 4 with bidirectional visual
+attention, report that method as unavailable in `describe()` and reject its
+factory, calibration, loading and execution. See the
+[Gemma 4 guide](models/gemma4.md#capabilities-and-boundaries) for the other
+supported lens methods.
+
 ```python
 binding = {
     "model_id": "checkpoint-and-revision",

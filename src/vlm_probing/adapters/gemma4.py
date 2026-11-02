@@ -105,6 +105,7 @@ def make_adapter(model):
     shared = [i for i, layer in enumerate(layers) if layer.self_attn.is_kv_shared_layer]
     last_stream_kv_layer = shared[0] - 1 if shared else None
     per_layer_inputs = bool(decoder.config.hidden_size_per_layer_input)
+    mixed_attention = decoder.config.use_bidirectional_attention == "vision"
     notes = (
         f"Gemma 4 image/text or text-only forwards; Transformers {installed}; uncached full sequence.",
         "Residual i follows the entire decoder block, including per-layer inputs and layer_scalar.",
@@ -120,6 +121,8 @@ def make_adapter(model):
     )
     if per_layer_inputs:
         notes += ("Per-layer inputs derive from merged input embeddings and enter every block outside the residual stream, so paired residual patching does not restore the source run.",)
+    if mixed_attention:
+        notes += ("Mixed attention: sliding layers allow bidirectional visual blocks while text and global attention remain causal. Ordinary Jacobian Lens is not declared because its causal-continuation estimator does not cover this mask.",)
     if shared:
         notes += (f"Layers from {shared[0]} reuse stored K/V: residual edits from layer {last_stream_kv_layer} cannot reach other positions, and propagation methods stop at layer {last_stream_kv_layer}.",)
     spec = ModelSpec(
@@ -129,7 +132,9 @@ def make_adapter(model):
         editable_attention=set(attentions),
         alignment_keys=("image_position_ids", "position_ids", "mm_token_type_ids"),
         forward_defaults={"use_cache": False, "return_dict": True}, notes=notes,
-        causal_attention=True, last_stream_kv_layer=last_stream_kv_layer,
+        causal_attention=None if mixed_attention else True,
+        attention_pattern="mixed" if mixed_attention else "causal",
+        last_stream_kv_layer=last_stream_kv_layer,
         residual_bypass=per_layer_inputs or bool(shared),
     )
     model_id = getattr(model.config, "_name_or_path", "") or type(model).__name__

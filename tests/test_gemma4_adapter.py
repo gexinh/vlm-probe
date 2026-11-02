@@ -265,7 +265,8 @@ class Gemma4AdapterTests(unittest.TestCase):
             Prober(make_gemma4(bidirectional="all")[0])
         model, inputs = make_gemma4(bidirectional="vision")
         probe = Prober(model)
-        self.assertTrue(probe.spec.causal_attention)
+        self.assertIsNone(probe.spec.causal_attention)
+        self.assertEqual(probe.spec.attention_pattern, "mixed")
         without = {key: value for key, value in inputs.items() if key != "mm_token_type_ids"}
         with self.assertRaisesRegex(CapabilityError, "require mm_token_type_ids"):
             probe._run(without)

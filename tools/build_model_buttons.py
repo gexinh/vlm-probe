@@ -12,6 +12,8 @@ ASSETS = ROOT / "docs/assets/model-buttons"
 # Original line icons, drawn in the same visual language as the method buttons.
 QWEN_ICON = '<path d="m18 8 2.4 5.6L26 16l-5.6 2.4L18 24l-2.4-5.6L10 16l5.6-2.4Z"/><path d="m24 7 .8 1.8L27 10l-2.2.8L24 13l-.8-2.2L21 10l2.2-1.2Z"/>'
 FAMILIES = (
+    ("Gemma 4", "gemma4", "gemma4.md", "#eff6ff", "#cbdcf3", "#4e75b2",
+     '<path d="m18 7 8 6-3 11H13l-3-11Z"/><path d="m10 13 8 4 8-4M18 7v10l5 7M18 17l-5 7"/>'),
     ("Qwen3-VL", "qwen3-vl", "qwen3_vl.md", "#f5f1ff", "#dfd4f5", "#7954bd", QWEN_ICON),
     ("Qwen2.5-VL", "qwen2-5-vl", "qwen2_5_vl.md", "#f5f1ff", "#dfd4f5", "#7954bd", QWEN_ICON),
     ("Qwen2-VL", "qwen2-vl", "qwen2_vl.md", "#f5f1ff", "#dfd4f5", "#7954bd", QWEN_ICON),
