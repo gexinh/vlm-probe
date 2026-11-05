@@ -7,7 +7,8 @@ from pathlib import Path
 
 from tools.sync_repositories import (
     LAB_REPOSITORY, PERSONAL_REPOSITORY, PRERELEASE_END, PRERELEASE_LINE, PRERELEASE_START,
-    STABLE_END, STABLE_LINE, STABLE_START, changed_paths, is_ancestor, readme_at,
+    README_NAVIGATION, STABLE_END, STABLE_LINE, STABLE_START,
+    STABLE_NOTICE_END, STABLE_NOTICE_HTML, STABLE_NOTICE_START, changed_paths, is_ancestor, readme_at,
     release_readme, render_readme, shared_readme_body, synchronize,
 )
 
@@ -71,9 +72,11 @@ class RepositorySyncTests(unittest.TestCase):
         self.assertEqual(expected.count(PRERELEASE_START), 1)
         self.assertEqual(expected.count(PRERELEASE_LINE), 1)
         self.assertNotIn(PRERELEASE_START, personal_readme)
-        self.assertEqual(personal_readme.count(STABLE_START), 1)
-        self.assertEqual(personal_readme.count(STABLE_LINE), 1)
+        self.assertEqual(personal_readme.count(STABLE_NOTICE_START), 1)
+        self.assertEqual(personal_readme.count(STABLE_NOTICE_HTML), 1)
+        self.assertNotIn(STABLE_START, personal_readme)
         self.assertNotIn(STABLE_START, expected)
+        self.assertNotIn(STABLE_NOTICE_START, expected)
         self.assertEqual(shared_readme_body(expected), shared_readme_body(personal_readme))
 
     def test_rendering_retargets_only_own_urls_and_preserves_readme_structure(self):
@@ -134,7 +137,7 @@ class RepositorySyncTests(unittest.TestCase):
                         expected = original.replace(f"gexinh/{source}.git@", f"{target}.git@")
                         self.assertEqual(render_readme(original, target), expected)
 
-    def test_release_readme_has_identical_body_and_idempotent_repository_footers(self):
+    def test_release_readme_has_identical_body_and_idempotent_repository_notices(self):
         for newline in ("\n", "\r\n"):
             original = LEGACY_README.replace("\n", newline)
             personal = release_readme(original, PERSONAL_REPOSITORY)
@@ -144,18 +147,77 @@ class RepositorySyncTests(unittest.TestCase):
             self.assertEqual(shared_readme_body(lab), body)
             self.assertNotIn(PRERELEASE_START, personal)
             self.assertNotIn(STABLE_START, lab)
-            self.assertEqual(personal, render_readme(original, PERSONAL_REPOSITORY) + newline + newline.join(
-                (STABLE_START, STABLE_LINE, STABLE_END, "")))
+            self.assertNotIn(STABLE_NOTICE_START, lab)
+            notice = newline.join((STABLE_NOTICE_START, STABLE_NOTICE_HTML.replace("\n", newline),
+                                   STABLE_NOTICE_END, "", ""))
+            self.assertEqual(personal, notice + render_readme(original, PERSONAL_REPOSITORY))
             self.assertEqual(lab, body + newline + newline.join(
                 (PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, "")))
             self.assertEqual(release_readme(lab, PERSONAL_REPOSITORY), personal)
             self.assertEqual(release_readme(lab, LAB_REPOSITORY), lab)
             self.assertEqual(release_readme(personal, PERSONAL_REPOSITORY), personal)
             self.assertEqual(release_readme(personal, LAB_REPOSITORY), lab)
-            self.assertIn("(https://github.com/ubc-tea/vlm-probe)", personal)
+            self.assertIn('href="https://github.com/ubc-tea/vlm-probe"', personal)
             self.assertIn("(https://github.com/gexinh/vlm-probe)", lab)
             self.assertNotIn("\n##", lab[len(body):])
-            self.assertNotIn("\n##", personal[len(body):])
+            self.assertNotIn("\n##", STABLE_NOTICE_HTML)
+
+    def test_personal_notice_precedes_navigation_and_lab_has_no_notice(self):
+        for newline in ("\n", "\r\n"):
+            header = '<h1>VLMProbe</h1>\n\n<p>Project badges</p>\n\n'
+            navigation = README_NAVIGATION + '\n  <a href="docs/API.md">API</a>\n</p>\n'
+            original = (header + navigation + '\nLibrary introduction\n').replace("\n", newline)
+            personal = release_readme(original, PERSONAL_REPOSITORY)
+            self.assertTrue(personal.startswith(header.replace("\n", newline)))
+            self.assertLess(personal.index("Project badges"), personal.index(STABLE_NOTICE_START))
+            self.assertLess(personal.index(STABLE_NOTICE_END), personal.index("Documentation</a>"))
+            lab = release_readme(personal, LAB_REPOSITORY)
+            self.assertNotIn(STABLE_NOTICE_START, lab)
+            self.assertNotIn("For the stable version", lab)
+            self.assertEqual(shared_readme_body(personal), shared_readme_body(lab))
+            self.assertEqual(release_readme(lab, PERSONAL_REPOSITORY), personal)
+
+    def test_personal_notice_refuses_edits_duplicates_or_noncanonical_placement(self):
+        for newline in ("\n", "\r\n"):
+            original = ('<h1>VLMProbe</h1>\n\n' + README_NAVIGATION + '\n</p>\n').replace("\n", newline)
+            personal = release_readme(original, PERSONAL_REPOSITORY)
+            block = newline.join((STABLE_NOTICE_START, STABLE_NOTICE_HTML.replace("\n", newline),
+                                  STABLE_NOTICE_END, "", ""))
+            malformed = (
+                personal.replace(STABLE_NOTICE_END, ""),
+                personal.replace(STABLE_NOTICE_START, ""),
+                personal.replace("For the stable version", "Collaborator explanation"),
+                personal.replace(STABLE_NOTICE_START, STABLE_NOTICE_START + newline + "User content"),
+                personal.replace(newline + STABLE_NOTICE_START, "X" + STABLE_NOTICE_START),
+                personal.replace(block, block + block),
+                block + personal.replace(block, ""),
+                personal.replace(block, "") + block,
+                personal.replace(STABLE_NOTICE_END + newline + newline, STABLE_NOTICE_END + newline),
+                personal.replace(STABLE_NOTICE_END, "<!-- vlmprobe:stable-notice:end --"),
+                personal + newline.join((STABLE_START, STABLE_LINE, STABLE_END, "")),
+            )
+            for value in malformed:
+                for renderer in (lambda text: release_readme(text, PERSONAL_REPOSITORY),
+                                 lambda text: release_readme(text, LAB_REPOSITORY), shared_readme_body):
+                    with self.subTest(text=value), self.assertRaisesRegex(ValueError, "stable notice|release footer"):
+                        renderer(value)
+
+    def test_notice_removal_preserves_adjacent_reader_content(self):
+        original = ("Reader content before the navigation\n\n" + README_NAVIGATION
+                    + "\n</p>\n\nReader content after the navigation\n")
+        personal = release_readme(original, PERSONAL_REPOSITORY)
+        self.assertEqual(shared_readme_body(personal), original)
+        self.assertEqual(release_readme(personal + "\nNew collaborator paragraph\n", LAB_REPOSITORY),
+                         release_readme(original + "\nNew collaborator paragraph\n", LAB_REPOSITORY))
+
+    def test_old_personal_stable_footer_migrates_to_header_without_body_edits(self):
+        for newline in ("\n", "\r\n"):
+            body = LEGACY_README.replace("\n", newline)
+            old = body + newline + newline.join((STABLE_START, STABLE_LINE, STABLE_END, ""))
+            personal = release_readme(old, PERSONAL_REPOSITORY)
+            self.assertEqual(personal, release_readme(body, PERSONAL_REPOSITORY))
+            self.assertEqual(shared_readme_body(personal), render_readme(body, LAB_REPOSITORY))
+            self.assertNotIn(STABLE_START, personal)
 
     def test_release_readme_refuses_malformed_or_nontrailing_managed_blocks(self):
         body = shared_readme_body(PERSONAL_README)
@@ -199,7 +261,7 @@ class RepositorySyncTests(unittest.TestCase):
         previous_personal, previous_lab = self.head("personal"), self.head("lab")
         (self.repo / "README.md").write_text(shared_readme_body(PERSONAL_README))
         self.commit("old shared body without personal footer")
-        with self.assertRaisesRegex(ValueError, "managed personal stable footer.*Nothing was pushed"):
+        with self.assertRaisesRegex(ValueError, "managed personal stable notice.*Nothing was pushed"):
             synchronize(self.repo, ("personal", "lab"), "main", True)
         self.assertEqual(self.head("personal"), previous_personal)
         self.assertEqual(self.head("lab"), previous_lab)
@@ -218,6 +280,25 @@ class RepositorySyncTests(unittest.TestCase):
         self.run_git(self.repo, "reset", "--hard", old_base)
         (self.repo / "README.md").write_text(release_readme(body, PERSONAL_REPOSITORY))
         target = self.commit("reviewed personal stable footer")
+        synchronize(self.repo, ("personal", "lab"), "main", True)
+        self.assert_matching_trees(target, self.head("lab"))
+        self.assertTrue(is_ancestor(self.repo, old_lab, self.head("lab")))
+
+    def test_sync_migrates_historical_personal_stable_footer_without_losing_history(self):
+        body = shared_readme_body(LEGACY_README)
+        old_personal = body + "\n" + "\n".join((STABLE_START, STABLE_LINE, STABLE_END, ""))
+        (self.repo / "README.md").write_text(old_personal)
+        old_base = self.commit("historical personal stable footer")
+        self.run_git(self.repo, "push", "personal", "main")
+        self.run_git(self.repo, "push", "lab", "main")
+        (self.repo / "README.md").write_text(release_readme(body, LAB_REPOSITORY))
+        self.run_git(self.repo, "add", "README.md")
+        self.run_git(self.repo, "commit", "-m", "historical lab beta footer")
+        old_lab = self.run_git(self.repo, "rev-parse", "HEAD")
+        self.run_git(self.repo, "push", "lab", "main")
+        self.run_git(self.repo, "reset", "--hard", old_base)
+        (self.repo / "README.md").write_text(release_readme(old_personal, PERSONAL_REPOSITORY))
+        target = self.commit("move stable link to personal header")
         synchronize(self.repo, ("personal", "lab"), "main", True)
         self.assert_matching_trees(target, self.head("lab"))
         self.assertTrue(is_ancestor(self.repo, old_lab, self.head("lab")))
@@ -366,6 +447,24 @@ class RepositorySyncTests(unittest.TestCase):
             stream.write("\nImportant collaborator edit\n")
         self.run_git(other, "add", "README.md")
         self.run_git(other, "commit", "-m", "Edit README")
+        self.run_git(other, "push", "origin", "main")
+        edited_lab = self.head("lab")
+        self.commit("second")
+        with self.assertRaisesRegex(ValueError, "unexpected README edits.*Nothing was pushed"):
+            synchronize(self.repo, ("personal", "lab"), "main", True)
+        self.assertEqual(self.head("personal"), previous_personal)
+        self.assertEqual(self.head("lab"), edited_lab)
+
+    def test_personal_notice_on_lab_is_not_accepted_as_historical_url_rendering(self):
+        self.commit("first")
+        synchronize(self.repo, ("personal", "lab"), "main", True)
+        previous_personal = self.head("personal")
+        other = self.root / "collaborator"
+        self.run_git(self.root, "clone", str(self.root / "lab"), str(other))
+        self.configure_identity(other)
+        (other / "README.md").write_text(render_readme(PERSONAL_README, LAB_REPOSITORY))
+        self.run_git(other, "add", "README.md")
+        self.run_git(other, "commit", "-m", "Copy personal notice to lab")
         self.run_git(other, "push", "origin", "main")
         edited_lab = self.head("lab")
         self.commit("second")

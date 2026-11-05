@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Promote one reviewed library tree with repository-specific README footers."""
+"""Promote one reviewed library tree with repository-specific README notices."""
 from __future__ import annotations
 
 import argparse
@@ -31,6 +31,61 @@ STABLE_LINE = (
     "[![Stable](https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&logo=github)]"
     "(https://github.com/ubc-tea/vlm-probe)"
 )
+STABLE_NOTICE_START = "<!-- vlmprobe:stable-notice:start -->"
+STABLE_NOTICE_END = "<!-- vlmprobe:stable-notice:end -->"
+STABLE_NOTICE_HTML = '''<p align="center">
+  For the stable version, please use the laboratory repository:
+  <a href="https://github.com/ubc-tea/vlm-probe"><img src="https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&amp;logo=github" alt="Stable version: ubc-tea/vlm-probe"></a>
+</p>'''
+README_NAVIGATION = '<p align="center">\n  <a href="docs/README.md">Documentation</a> ·'
+
+
+def _with_stable_notice(body: str) -> str:
+    """Place the personal notice immediately before the top documentation links."""
+    newline = "\r\n" if "\r\n" in body else "\n"
+    anchor = README_NAVIGATION.replace("\n", newline)
+    if body.count(anchor) > 1:
+        raise ValueError("README stable notice requires one unambiguous navigation anchor.")
+    index = body.index(anchor) if anchor in body else 0
+    if index and not body[:index].endswith(("\n", "\r")):
+        raise ValueError("README stable notice navigation anchor must start on its own line.")
+    notice = newline.join((STABLE_NOTICE_START, STABLE_NOTICE_HTML.replace("\n", newline),
+                           STABLE_NOTICE_END, "", ""))
+    return body[:index] + notice + body[index:]
+
+
+def _without_stable_notice(text: str) -> str:
+    """Remove only the exact generated notice at its canonical header position."""
+    prefixes = re.findall(r"<!--\s*vlmprobe:stable-notice\b", text)
+    if not prefixes:
+        return text
+    if (len(prefixes) != 2 or text.count(STABLE_NOTICE_START) != 1
+            or text.count(STABLE_NOTICE_END) != 1):
+        raise ValueError("README must have exactly one complete managed stable notice.")
+    if text.index(STABLE_NOTICE_END) < text.index(STABLE_NOTICE_START):
+        raise ValueError("README managed stable notice markers must be in start/end order.")
+    before, rest = text.split(STABLE_NOTICE_START, 1)
+    content, after = rest.split(STABLE_NOTICE_END, 1)
+    if before and not before.endswith(("\n", "\r")):
+        raise ValueError("README managed stable notice must start on its own line.")
+    if content.replace("\r\n", "\n") != "\n" + STABLE_NOTICE_HTML + "\n":
+        raise ValueError("README contains unexpected managed stable notice content; review it before replacing.")
+    newline = "\r\n" if "\r\n" in text else "\n"
+    if not after.startswith(newline + newline):
+        raise ValueError("README managed stable notice must have its original following blank line.")
+    body = before + after[len(newline + newline):]
+    if _with_stable_notice(body) != text:
+        raise ValueError("README managed stable notice must precede the top documentation links.")
+    return body
+
+
+def _without_release_links(text: str) -> str:
+    """Accept either the new header notice or one historical trailing footer."""
+    notice = re.search(r"<!--\s*vlmprobe:stable-notice\b", text)
+    footer = re.search(r"<!--\s*vlmprobe:(?:prerelease|stable)-link\b", text)
+    if notice and footer:
+        raise ValueError("README must have exactly one complete managed release footer or stable notice.")
+    return _without_stable_notice(text) if notice else _without_release_footer(text)
 
 
 def _without_release_footer(text: str) -> str:
@@ -65,27 +120,27 @@ def _without_release_footer(text: str) -> str:
 def shared_readme_body(text: str) -> str:
     """Return the exact common body, normalized to the stable project URLs."""
     newline = "\r\n" if "\r\n" in text else "\n"
-    return render_readme(_without_release_footer(text), LAB_REPOSITORY).rstrip("\r\n") + newline
+    return render_readme(_without_release_links(text), LAB_REPOSITORY).rstrip("\r\n") + newline
 
 
 def release_readme(text: str, repository: str) -> str:
-    """Render the shared README for this repository and its one trailing link.
+    """Render the shared README with the personal notice or laboratory footer.
 
     This is the current publishing policy. ``render_readme`` remains the
     historical URL renderer, used to validate old mirror-only commits safely.
-    Only a single managed block at the end may be removed; malformed markers or
-    text following that block fail rather than silently deleting user content.
+    Exact historical footers remain readable. Generated notices have a fixed
+    header position; unexpected content or placement requires explicit review.
     """
     if repository not in REPOSITORIES:
         raise ValueError("Unknown repository for README rendering.")
     newline = "\r\n" if "\r\n" in text else "\n"
     # Source installs and documentation links must follow the selected release
-    # repository. Strip the footer first so its opposite-repository destination
+    # repository. Strip the managed block first so its opposite-repository destination
     # is kept separate from those own-project links.
-    body = render_readme(_without_release_footer(text), repository).rstrip("\r\n") + newline
-    footer = ((PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END)
-              if repository == LAB_REPOSITORY else (STABLE_START, STABLE_LINE, STABLE_END))
-    return body + newline + newline.join((*footer, ""))
+    body = render_readme(_without_release_links(text), repository).rstrip("\r\n") + newline
+    if repository != LAB_REPOSITORY:
+        return _with_stable_notice(body)
+    return body + newline + newline.join((PRERELEASE_START, PRERELEASE_LINE, PRERELEASE_END, ""))
 
 
 def render_readme(text: str, repository: str) -> str:
@@ -183,7 +238,7 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
     readme = readme_at(repo, target)
     if readme != release_readme(readme, PERSONAL_REPOSITORY):
         raise ValueError("Local README.md must use the personal repository URLs and the "
-                         "managed personal stable footer; render it with release_readme(text, "
+                         "managed personal stable notice; render it with release_readme(text, "
                          "PERSONAL_REPOSITORY) before committing. Nothing was pushed.")
     for remote in remotes:
         git(repo, "remote", "get-url", remote)
@@ -203,7 +258,7 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
         # Previous sync versions left pinned pip VCS URLs on the personal
         # repository. Accept that exact historical rendering, not arbitrary
         # README edits, while always producing fully retargeted URLs now.
-        historical_body = _without_release_footer(base_readme).rstrip("\r\n")
+        historical_body = _without_release_links(base_readme).rstrip("\r\n")
         newline = "\r\n" if "\r\n" in base_readme else "\n"
         historical_body += newline
         historical_renderings = {release_readme(base_readme, LAB_REPOSITORY),
@@ -230,7 +285,7 @@ def synchronize(repo: Path, remotes: tuple[str, str], branch: str, push: bool) -
         parents = [target] if is_ancestor(repo, heads[lab], target) else [heads[lab], target]
         parent_args = [arg for parent in parents for arg in ("-p", parent)]
         lab_target = git(repo, "commit-tree", tree, *parent_args, "-m",
-                         "Promote reviewed library; adapt repository README footer").stdout.strip()
+                         "Promote reviewed library; adapt repository README notices").stdout.strip()
     targets = {personal: target, lab: lab_target}
     for remote, destination in targets.items():
         if heads[remote] != destination:

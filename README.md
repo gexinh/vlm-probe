@@ -19,6 +19,13 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-22863a?style=flat-square" alt="PolyForm Noncommercial License 1.0.0"></a>
 </p>
 
+<!-- vlmprobe:stable-notice:start -->
+<p align="center">
+  For the stable version, please use the laboratory repository:
+  <a href="https://github.com/ubc-tea/vlm-probe"><img src="https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&amp;logo=github" alt="Stable version: ubc-tea/vlm-probe"></a>
+</p>
+<!-- vlmprobe:stable-notice:end -->
+
 <p align="center">
   <a href="docs/README.md">Documentation</a> ·
   <a href="#notebook-tutorials">Notebook Tutorials</a> ·
@@ -353,7 +360,3 @@ If you use VLMProbe in your research, please cite the [paper](https://arxiv.org/
   url={https://arxiv.org/abs/2610.33072},
 }
 ```
-
-<!-- vlmprobe:stable-link:start -->
-Stable version: [![Stable](https://img.shields.io/badge/Stable-ubc--tea%2Fvlm--probe-2ea44f?style=flat-square&logo=github)](https://github.com/ubc-tea/vlm-probe)
-<!-- vlmprobe:stable-link:end -->
