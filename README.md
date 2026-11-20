@@ -211,6 +211,9 @@ Each guide explains the implemented computation, parameters, outputs, and
 relationship to its original paper. Reusable primitives are labeled separately
 from paper methods.
 
+[Run Probe Explorer locally](explorer/README.md) to compare archived attention,
+lens, causal, and sparse autoencoder measurements or inspect your own results.
+
 ### Lens
 
 <p>

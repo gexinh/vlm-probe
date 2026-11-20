@@ -24,6 +24,7 @@ import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "project-page"
+EXPLORER = ROOT / "explorer"
 REPORT = ROOT / "docs" / "assets" / "vlmprobe-technical-report.pdf"
 OVERVIEW = ROOT / "docs" / "assets" / "library-overview-sae.svg"
 MJ_PREVIEW = ROOT / "docs/assets/tutorials/lens-mj-report-region-tokens.png"
@@ -68,6 +69,38 @@ def rewrite_links(html: str, repository: str) -> str:
     return HREF.sub(replace, html)
 
 
+def copy_explorer(repository: str, output: Path) -> None:
+    destination = output / "explorer"
+    data = destination / "data"
+    data.mkdir(parents=True)
+    html = rewrite_links((EXPLORER / "index.html").read_text(encoding="utf-8"), repository)
+    (destination / "index.html").write_text(html, encoding="utf-8")
+    for name in ("styles.css", "app.js", "bundle.js", "charts.js", "spatial.js"):
+        shutil.copy2(EXPLORER / name, destination / name)
+    samples = EXPLORER / "data/examples.json"
+    shutil.copy2(samples, data / samples.name)
+    assets = {SOURCE / "assets/mark.svg"}
+    image_roots = (ROOT / "demos/assets/images", ROOT / "docs/assets/tutorials")
+
+    def add_image(image: dict | None) -> None:
+        if image is None or image["src"].startswith("data:"):
+            return
+        asset = (EXPLORER / image["src"]).resolve()
+        if not any(asset.is_relative_to(root) for root in image_roots):
+            raise ValueError(f"Explorer image outside its asset directories: {asset}")
+        assets.add(asset)
+
+    for case in json.loads(samples.read_text(encoding="utf-8"))["cases"]:
+        add_image(case.get("image"))
+        for method in case["methods"]:
+            for view in method["views"]:
+                add_image(view.get("image"))
+    for asset in sorted(assets):
+        target = output / asset.relative_to(ROOT)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(asset, target)
+
+
 def build(repository: str, output: Path, *, ref: str | None = None) -> Path:
     output = output.resolve()
     if ROOT.is_relative_to(output) or SOURCE.is_relative_to(output) or output.is_relative_to(SOURCE):
@@ -101,6 +134,7 @@ def build(repository: str, output: Path, *, ref: str | None = None) -> Path:
     shutil.copy2(REPORT, output / REPORT_LINK)
     shutil.copy2(OVERVIEW, output / "assets" / OVERVIEW.name)
     shutil.copy2(MJ_PREVIEW, output / "assets/lens-mj-report-region-tokens.png")
+    copy_explorer(repository, output)
     # Generate directly in the build tree: each mirror gets its own navigation,
     # and building a site must not rewrite the checked-in documentation.
     payload = json.loads(gzip.decompress(CATALOG_RESOURCE.read_bytes()))

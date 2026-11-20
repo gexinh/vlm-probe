@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Compare measured attention, vocabulary readouts, interventions, and sparse features from VLMProbe.">
+  <title>Probe Explorer · VLMProbe</title>
+  <link rel="icon" href="../docs/project-page/assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to explorer</a>
+  <header class="masthead">
+    <div class="brand">
+      <img src="../docs/project-page/assets/mark.svg" alt="" width="36" height="36">
+      <span>VLMProbe</span>
+      <span class="brand-divider"></span>
+      <span class="brand-section">Explorer</span>
+    </div>
+    <div class="header-actions">
+      <a class="header-link" href="https://github.com/ubc-tea/vlm-probe">GitHub</a>
+      <button id="import-button" class="import-button" type="button"><span class="import-icon" aria-hidden="true">+</span> Import results</button>
+      <input id="import-input" type="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="sidebar">
+      <nav aria-label="Probe families">
+        <p class="side-label">Methods</p>
+        <div id="families" class="families"></div>
+      </nav>
+      <div class="side-resources">
+        <p class="side-label">Resources</p>
+        <a href="https://github.com/ubc-tea/vlm-probe/blob/main/docs/methods/README.md">Method guides</a>
+        <a href="https://github.com/ubc-tea/vlm-probe/blob/main/docs/VISUALIZATION.md">Visualization guide</a>
+      </div>
+      <div class="side-brand"><span class="side-brand-line"></span> VLMProbe research toolkit</div>
+    </aside>
+
+    <main id="main" class="main">
+      <div class="page-heading">
+        <div>
+          <h1>Probe Explorer</h1>
+          <p id="family-description">Compare measurements from VLMProbe.</p>
+        </div>
+        <label class="case-field" for="case-select">Experiment
+          <select id="case-select" disabled><option>Loading examples…</option></select>
+        </label>
+      </div>
+      <p id="notice" class="notice" role="status" hidden></p>
+      <section id="case-summary" class="case-summary" aria-label="Experiment details" hidden></section>
+
+      <section id="comparison" aria-labelledby="comparison-title" hidden>
+        <div class="comparison-heading">
+          <h2 id="comparison-title">Compare methods</h2>
+          <div id="compare-count" class="compare-count" aria-live="polite"></div>
+        </div>
+        <div id="methods" class="methods" role="group" aria-label="Methods to display"></div>
+        <div id="map-toolbar" class="map-toolbar" hidden>
+          <div class="toolbar-main">
+            <label id="layer-field" class="layer-field" for="layer-select" hidden>Layer
+              <select id="layer-select"></select>
+            </label>
+            <div id="map-modes" class="segmented" role="group" aria-label="Map display">
+              <button type="button" data-mode="overlay" aria-pressed="true">Overlay</button>
+              <button type="button" data-mode="heatmap" aria-pressed="false">Heatmap</button>
+              <button type="button" data-mode="image" aria-pressed="false">Image</button>
+            </div>
+          </div>
+          <div class="toolbar-options">
+            <label id="opacity-field" class="opacity-field" for="opacity">Opacity
+              <input type="range" id="opacity" min="0" max="100" value="72">
+              <output for="opacity" id="opacity-value">72%</output>
+            </label>
+            <label class="toggle"><input id="show-grid" type="checkbox"> Grid</label>
+            <label class="toggle" id="boxes-field"><input id="show-boxes" type="checkbox" checked> Regions</label>
+          </div>
+        </div>
+        <p id="map-scale-note" class="map-scale-note" hidden>Each map uses its own color scale. Compare spatial patterns across methods.</p>
+        <div id="panels" class="panels"></div>
+        <div id="case-source" class="case-source"></div>
+      </section>
+      <noscript><p class="notice">Enable JavaScript to view and compare probe results.</p></noscript>
+    </main>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
