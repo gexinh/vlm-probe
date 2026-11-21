@@ -2,7 +2,9 @@
 
 import ast
 import json
+from math import exp
 from pathlib import Path
+from statistics import mean, median
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -76,22 +78,36 @@ def table(title, columns, rows, **details):
     return {"type": "table", "title": title, "columns": columns, "rows": rows, **details}
 
 
+def comparison_metric(key, label, formatting, direction, entries, *, scope):
+    return {
+        "id": key, "label": label, "format": formatting, "direction": direction,
+        "entries": entries, "scope": scope,
+    }
+
+
+def metric_entry(label, value, method_id=None):
+    entry = {"label": label, "value": value}
+    if method_id is not None:
+        entry["method"] = method_id
+    return entry
+
+
 ATTENTION_METHODS = {
     "Raw attention": (
         "raw-attention", "Raw attention", "attention probability",
         "Native decoder attention averaged across heads and answer-prediction positions.",
     ),
-    "Rollout": (
-        "rollout", "Attention rollout", "transition weight",
-        "Composes residual self-attention transitions through the decoder stack.",
+    "Grad-CAM": (
+        "grad-cam", "Grad-CAM", "CAM score",
+        "Reweights the attention heads by their gradients for the fixed answer score.",
     ),
     "Generic relevance": (
         "relevance", "Attention relevance", "relevance score",
         "Propagates positive gradient-weighted attention for the fixed answer score.",
     ),
-    "Grad-CAM": (
-        "grad-cam", "Grad-CAM", "CAM score",
-        "Reweights the attention heads by their gradients for the fixed answer score.",
+    "Rollout": (
+        "rollout", "Attention rollout", "transition weight",
+        "Composes residual self-attention transitions through the decoder stack.",
     ),
     "ATTATTR": (
         "attattr", "ATTATTR", "signed attribution",
@@ -117,6 +133,11 @@ def attention_example(question_id):
     result = read(path)
     sample = result["sample"]
     processed = gqa_image(sample, padding=result["input"]["image_pad_offset_xy"])
+    region = sample["object_name"]
+    token_positions = result["input"]["token_positions"]
+    target_positions = set(token_positions["target"])
+    # Translate the snapshot's expanded-token mask to flat, row-major patch coordinates.
+    target_patches = {index for index, position in enumerate(token_positions["image"]) if position in target_positions}
     methods = []
     for name, (key, label, unit, description) in ATTENTION_METHODS.items():
         record = result["methods"][name]
@@ -127,16 +148,27 @@ def attention_example(question_id):
         map_layers = layers if len(maps) == len(layers) else layers[-1:]
         for layer, values, diagnostic in reversed(list(zip(map_layers, maps, diagnostics))):
             title = f"Decoder layer {layer}" if len(maps) > 1 else f"Through decoder layer {layer}"
-            caption = (
-                f"{diagnostic['shirt_absolute_mass_fraction']:.1%} of absolute map mass is inside "
-                f"the annotated shirt patches ({diagnostic['shirt_patch_area_fraction']:.1%} of the grid)."
-            )
-            if name in {"TAM", "Beyond Intuition-H", "Beyond Intuition-C"}:
-                caption += " Causal decoder masks can favor early positions during propagation."
+            flat = [abs(value) for row in values for value in row]
+            peak_value = max(flat)
+            peak_patches = {idx for idx, value in enumerate(flat) if value == peak_value} if peak_value else set()
+            peak_in_region = None
+            if peak_patches:
+                if peak_patches <= target_patches:
+                    peak_in_region = True
+                elif peak_patches.isdisjoint(target_patches):
+                    peak_in_region = False
             views.append({
                 "type": "spatial", "title": title, "layer": layer, "values": values,
-                "unit": unit, "signed": record["signed"], "image": processed, "caption": caption,
+                "unit": unit, "signed": record["signed"], "image": processed,
+                "localization": {
+                    "region": region, "massFraction": diagnostic["shirt_absolute_mass_fraction"],
+                    "areaFraction": diagnostic["shirt_patch_area_fraction"],
+                    "negativeMassFraction": diagnostic["negative_mass_fraction"],
+                    "zeroMap": diagnostic["zero_map"], "peakInRegion": peak_in_region,
+                },
             })
+            if name in {"TAM", "Beyond Intuition-H", "Beyond Intuition-C"}:
+                views[-1]["caption"] = "Causal decoder masks can favor early positions during propagation."
         if len(maps) > 1:
             views.append(series(
                 "Map mass inside the shirt", layers,
@@ -155,8 +187,13 @@ def attention_example(question_id):
         "metric": "Complete-answer log probability for target-conditioned methods",
         "description": "Compare the same decoder attention queries and 24 × 24 image patch grid.",
         "image": gqa_image(sample),
+        "localization": {
+            "region": region, "targetPatches": sorted(target_patches),
+            "gridShape": result["input"]["geometry"]["grid_shape"],
+            "areaFraction": len(target_patches) / len(token_positions["image"]),
+        },
         "source": source(path, "Archived LLaVA report measurement on a bundled GQA image."),
-        "defaultMethods": ["raw-attention", "grad-cam", "attattr"],
+        "defaultMethods": ["raw-attention", "grad-cam", "relevance"],
         "methods": methods,
     }
 
@@ -168,6 +205,10 @@ def lens_example():
     lens_readouts = [result[key] for key in ("logit", "tuned")]
     rank_bounds = [1, max(rank for readout in lens_readouts for row in readout["target_ranks"] for rank in row)]
     answer_bounds = [min(min(readout["full_answer_log_probability"]) for readout in lens_readouts), 0]
+    shared_layers = sorted(set(lens_readouts[0]["layers"]) & set(lens_readouts[1]["layers"]))
+    shared_layer_labels = ", ".join(f"L{layer}" for layer in shared_layers)
+    shared_ranks = []
+    shared_probabilities = []
     methods = []
     for key, label, description in [
         ("logit", "Logit Lens", "Reads intermediate residuals through LLaVA's native vocabulary head."),
@@ -176,6 +217,13 @@ def lens_example():
         readout = result[key]
         columns = [f"{piece} · {position}" for piece, position in zip(readout["source_pieces"], readout["positions"])]
         answer_pieces = [readout["target_pieces"][index] for index in readout["answer_columns"]]
+        shared_indices = [readout["layers"].index(layer) for layer in shared_layers]
+        shared_probabilities.append(metric_entry(
+            label, exp(readout["full_answer_log_probability"][shared_indices[-1]]), key,
+        ))
+        shared_ranks.append(metric_entry(
+            label, median(readout["target_ranks"][row][col] for row in shared_indices for col in readout["answer_columns"]), key,
+        ))
         methods.append(method(key, label, description,
             matrix(
                 "Next-token rank across layers", readout["layers"], columns, readout["target_ranks"],
@@ -231,6 +279,20 @@ def lens_example():
         "target": result["target_text"], "metric": "Rank, answer log probability or lexical cosine",
         "description": "Read vocabulary evidence from text states and projected visual embeddings.",
         "image": gqa_image(sample),
+        "comparison": {
+            "title": f'Which lens recovers “{result["target_text"]}”?',
+            "description": "Logit and Tuned Lens read the same answer pieces at the same decoder positions.",
+            "metrics": [
+                comparison_metric(
+                    "answer-probability", "Complete-answer probability", "percent", "higher",
+                    shared_probabilities, scope=f"L{shared_layers[-1]} · deepest shared layer",
+                ),
+                comparison_metric(
+                    "answer-piece-rank", "Median answer-piece rank", "number", "lower", shared_ranks,
+                    scope=f"Both answer pieces across {shared_layer_labels}",
+                ),
+            ],
+        },
         "source": source(path, "Archived LLaVA lens readouts on an unseen GQA example."),
         "defaultMethods": ["logit", "tuned"],
         "methods": methods,
@@ -245,6 +307,18 @@ def causal_example():
     estimated_layers = result["layers"]
     measured = result["actual"]
     estimated = result["approximate"]
+    estimated_indices = [estimated_layers.index(layer) for layer in actual_layers]
+    aligned_estimates = {
+        scope: [estimated[scope][index] for index in estimated_indices]
+        for scope in ("visual", "prediction")
+    }
+    errors = {
+        scope: [abs(exact - estimate) for exact, estimate in zip(measured[scope], aligned_estimates[scope])]
+        for scope in ("visual", "prediction")
+    }
+    largest_image_error = max(range(len(actual_layers)), key=errors["visual"].__getitem__)
+    measured_at_max = measured["visual"][largest_image_error]
+    estimated_at_max = aligned_estimates["visual"][largest_image_error]
     max_score_change = max(
         abs(effects[scope][layers.index(layer)])
         for layers, effects in ((actual_layers, measured), (estimated_layers, estimated))
@@ -293,6 +367,36 @@ def causal_example():
         "target": result["target"]["text"], "metric": "Change in complete-answer log probability",
         "description": "Compare exact and gradient-estimated interventions with a matched gray-image donor.",
         "image": gqa_image(case),
+        "comparison": {
+            "title": "How close is the gradient estimate?",
+            "description": "Activation patching reruns the model. Its measured effects serve as the reference for the gradient estimate.",
+            "metrics": [
+                comparison_metric(
+                    "max-gap", "Image-patch effect at the largest gap", "decimal", "descriptive",
+                    [
+                        metric_entry("Measured", measured_at_max, "patch"),
+                        metric_entry("Gradient estimate", estimated_at_max, "attribute"),
+                    ],
+                    scope=f"L{actual_layers[largest_image_error]} · change in answer log probability",
+                ),
+                comparison_metric(
+                    "patch-error", "Mean absolute estimation error", "decimal", "descriptive",
+                    [
+                        metric_entry("Image patches", mean(errors["visual"])),
+                        metric_entry("Answer positions", mean(errors["prediction"])),
+                    ],
+                    scope=f"Answer log probability · {len(actual_layers)} shared layers",
+                ),
+            ],
+            "chart": series(
+                "Image-patch replacement by layer", actual_layers,
+                [
+                    ("Measured", measured["visual"]),
+                    ("Gradient estimate", aligned_estimates["visual"]),
+                ],
+                unit="Δ log probability", signed=True, xLabel="Decoder layer",
+            ),
+        },
         "source": source(path, "Archived matched activation and attribution patching on the bundled GQA input."),
         "methods": methods,
     }
@@ -325,6 +429,9 @@ def sae_example():
         [("car", box["bbox_xywh"]) for box in car["annotations"] if box["category_id"] == car["category_id"]],
     )
     figure = image("docs/assets/tutorials/sae-pretrained-dino-features.png", (1491, 1280))
+    peak_hits = round(localization["point_at_1"] * localization["n_examples"])
+    deletion_distance = mean(1 - row["selected_deletion_output_cosine"] for row in interventions)
+    reconstruction_distance = mean(1 - row["reconstructed_output_cosine"] for row in interventions)
     return {
         "id": "dino-sae", "family": "sae", "title": "DINO · pretrained visual features",
         "model": "facebook/dino-vitb16", "dataset": "COCO 2017 validation",
@@ -332,6 +439,32 @@ def sae_example():
         "target": "Layer 11 · Prisma ReLU dictionary", "metric": "Patch localization and cosine fidelity",
         "description": "Features were selected on 32 independent calibration images and evaluated on three held-out photos.",
         "image": thumbnail,
+        "comparison": {
+            "title": "Do the selected features track the annotated objects?",
+            "description": "The frozen person, car and dog features were selected on separate images.",
+            "facts": [
+                {
+                    "label": "Strongest patch inside the object",
+                    "value": f"{peak_hits} of {localization['n_examples']}",
+                    "description": "One selected feature per held-out image.",
+                },
+                {
+                    "label": "Activation inside the annotated region",
+                    "value": f"{localization['mass_inside_active']:.1%}",
+                    "description": "Average share across the active feature maps.",
+                },
+            ],
+            "metrics": [
+                comparison_metric(
+                    "cosine-distance", "Change in the native representation", "decimal", "descriptive",
+                    [
+                        metric_entry("Delete selected feature", deletion_distance * 10_000),
+                        metric_entry("Reconstruction control", reconstruction_distance * 10_000),
+                    ],
+                    scope="Cosine distance × 10⁴ · mean over three held-out images",
+                ),
+            ],
+        },
         "source": source(path, "Executed DINO notebook, pinned Prisma weights, and published activation figure."),
         "defaultMethods": ["relu-features", "relu-edit"],
         "methods": [
@@ -388,6 +521,13 @@ SAE_LABELS = {
 }
 
 
+SAE_RECIPE_METRICS = [
+    ("validation_fvu", "Variance unexplained (FVU)", "percent", "Validation split · lower is better"),
+    ("mean_test_l0", "Active features per token (L0)", "decimal", "Test split · fewer active features means sparser codes"),
+    ("validation_mse", "Reconstruction MSE", "decimal", "Validation split · lower is better"),
+]
+
+
 def sae_recipes_example():
     path = "docs/assets/tutorials/sae-examples-provenance.json"
     records = read(path)["methods"]
@@ -397,8 +537,20 @@ def sae_recipes_example():
         "prompt": "Compare sparsity and reconstruction in the repository's tutorial runs.",
         "metric": "Validation FVU, validation MSE and test L0",
         "description": "All 14 recipes use the same small illustrative setup. The runs measure mechanics and reconstruction.",
+        "comparison": {
+            "title": "Reconstruction quality versus sparsity",
+            "description": "Compare selected recipes on the same small ViT tutorial setup. Lower FVU means better reconstruction and lower L0 means sparser codes.",
+            "metrics": [
+                comparison_metric(
+                    key, label, formatting, "lower",
+                    [metric_entry(SAE_LABELS[row["method"]], row[key], row["method"]) for row in records],
+                    scope=scope,
+                )
+                for key, label, formatting, scope in SAE_RECIPE_METRICS
+            ],
+        },
         "source": source(path, "Execution measurements from the repository's validated CPU examples."),
-        "defaultMethods": ["relu", "topk", "jumprelu"],
+        "defaultMethods": ["signed_orthogonal_matching_pursuit", "batchtopk", "matching_pursuit"],
         "methods": [
             method(
                 row["method"], SAE_LABELS[row["method"]],

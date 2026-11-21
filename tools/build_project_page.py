@@ -75,7 +75,7 @@ def copy_explorer(repository: str, output: Path) -> None:
     data.mkdir(parents=True)
     html = rewrite_links((EXPLORER / "index.html").read_text(encoding="utf-8"), repository)
     (destination / "index.html").write_text(html, encoding="utf-8")
-    for name in ("styles.css", "app.js", "bundle.js", "charts.js", "spatial.js"):
+    for name in ("styles.css", "app.js", "bundle.js", "charts.js", "spatial.js", "evidence.css", "evidence.js"):
         shutil.copy2(EXPLORER / name, destination / name)
     samples = EXPLORER / "data/examples.json"
     shutil.copy2(samples, data / samples.name)

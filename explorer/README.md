@@ -20,10 +20,23 @@ also includes the Explorer at `explorer/`.
 
 | Family | Included experiments |
 | --- | --- |
-| Attention | Two LLaVA/GQA cases with eight archived methods. Switch among measured layers, toggle image display and patch grids, and inspect the same patch across aligned maps. Independent color scales preserve each method’s measurement units. |
-| Lens | Compare Logit and Tuned Lens rank and answer scores on the same case. Inspect EmbedLens lexical similarity and fragments or Patchscope scores in the target prompt. |
-| Causal | Compare answer-score curves and token-level matrices for activation patching and its gradient approximation under the same intervention. |
-| Sparse autoencoders | Inspect the published pretrained DINO feature overlays, held-out localization, feature deletion and reconstruction controls. A second experiment compares 14 SAE recipe runs on the same small random ViT setup. |
+| Attention | Two LLaVA/GQA cases with eight archived methods and an annotated reference image. Compare the share of absolute signal in the target with the fraction of the input grid covered by the annotation. Inspect aligned patches, change measured layers, or open the original boxed image at full size. |
+| Lens | Compare complete-answer probability and answer-token ranks at matched layers. Inspect EmbedLens lexical similarity and fragments or Patchscope scores in the target prompt. |
+| Causal | See the measured activation patching curve and gradient estimate on the same axis, including a layer where their signs differ. Inspect the underlying token-level effects in the individual method panels. |
+| Sparse autoencoders | See held-out DINO feature localization, published feature overlays, and feature deletion against its reconstruction control. Rank 14 SAE recipe runs on the same small random ViT by reconstruction error or sparsity. |
+
+**Signal focus** highlights the highest-magnitude patches covering at least
+the selected fraction of each map’s absolute signal. It keeps tied patches
+at the cutoff and rings a unique peak. Gold shows positive signal and
+blue shows negative signal. The solid mint box shows the original
+annotation and the dashed outline shows the target patches counted in
+the score. Overlay and heatmap views retain independent color scales in
+their measurement units.
+
+Attention leaders are scoped to the selected maps, input, annotated region
+and layer. The uniform baseline is the share of native patches assigned
+to the region by the archived benchmark. The panel updates when you change
+methods or layers.
 
 The DINO notebook includes the rendered maps and evaluation measurements.
 Patch-level hover uses numerical arrays when the experiment provides them.

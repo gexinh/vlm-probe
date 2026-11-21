@@ -7,6 +7,7 @@
   <title>Probe Explorer · VLMProbe</title>
   <link rel="icon" href="../docs/project-page/assets/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="evidence.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to explorer</a>
@@ -57,33 +58,50 @@
           <div id="compare-count" class="compare-count" aria-live="polite"></div>
         </div>
         <div id="methods" class="methods" role="group" aria-label="Methods to display"></div>
+        <section id="localization" class="localization-result" aria-label="Localization comparison" aria-live="polite" hidden></section>
+        <section id="evidence" aria-label="Comparison measurements" hidden></section>
         <div id="map-toolbar" class="map-toolbar" hidden>
           <div class="toolbar-main">
             <label id="layer-field" class="layer-field" for="layer-select" hidden>Layer
               <select id="layer-select"></select>
             </label>
             <div id="map-modes" class="segmented" role="group" aria-label="Map display">
-              <button type="button" data-mode="overlay" aria-pressed="true">Overlay</button>
+              <button type="button" data-mode="focus" aria-pressed="true">Signal focus</button>
+              <button type="button" data-mode="overlay" aria-pressed="false">Overlay</button>
               <button type="button" data-mode="heatmap" aria-pressed="false">Heatmap</button>
               <button type="button" data-mode="image" aria-pressed="false">Image</button>
             </div>
           </div>
           <div class="toolbar-options">
+            <label id="focus-field" class="focus-field" for="focus-fraction">Signal shown
+              <select id="focus-fraction">
+                <option value="0.5">At least 50%</option>
+                <option value="0.75">At least 75%</option>
+                <option value="0.9">At least 90%</option>
+              </select>
+            </label>
             <label id="opacity-field" class="opacity-field" for="opacity">Opacity
               <input type="range" id="opacity" min="0" max="100" value="72">
               <output for="opacity" id="opacity-value">72%</output>
             </label>
             <label class="toggle"><input id="show-grid" type="checkbox"> Grid</label>
-            <label class="toggle" id="boxes-field"><input id="show-boxes" type="checkbox" checked> Regions</label>
+            <label class="toggle" id="boxes-field"><input id="show-boxes" type="checkbox" checked> Boxes on maps</label>
           </div>
         </div>
-        <p id="map-scale-note" class="map-scale-note" hidden>Each map uses its own color scale. Compare spatial patterns across methods.</p>
+        <div id="map-scale-note" class="map-scale-note" hidden></div>
         <div id="panels" class="panels"></div>
         <div id="case-source" class="case-source"></div>
       </section>
       <noscript><p class="notice">Enable JavaScript to view and compare probe results.</p></noscript>
     </main>
   </div>
+  <dialog id="reference-dialog" class="reference-dialog" aria-labelledby="reference-dialog-title">
+    <header>
+      <h2 id="reference-dialog-title">Original image</h2>
+      <form method="dialog"><button type="submit">Close</button></form>
+    </header>
+    <figure id="reference-original"></figure>
+  </dialog>
   <script type="module" src="app.js"></script>
 </body>
 </html>

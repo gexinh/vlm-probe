@@ -1,5 +1,7 @@
 const SEQUENTIAL = ["#122241", "#324bb0", "#148dc8", "#4ecd9c", "#ffe370"];
 const SIGNED = ["#29a9f3", "#2f68c2", "#18243b", "#b94848", "#ffc568"];
+const FOCUS_POSITIVE = "#ffd66b";
+const FOCUS_NEGATIVE = "#62ccff";
 const compact = new Intl.NumberFormat("en", { maximumSignificantDigits: 4 });
 
 function node(tag, className, text) {
@@ -62,6 +64,30 @@ function prepareColors(values, scale) {
   }));
 }
 
+export function signalFocus(values, fraction) {
+  const patches = values.flat().flatMap((value, index) => Number.isFinite(value) && value !== 0
+    ? [{ index, magnitude: Math.abs(value) }] : []);
+  patches.sort((a, b) => b.magnitude - a.magnitude);
+  const indices = new Set();
+  if (!patches.length) return { indices, peak: null, covered: null, max: 0 };
+  const max = patches[0].magnitude;
+  const total = patches.reduce((sum, { magnitude }) => sum + magnitude / max, 0);
+  let sum = 0;
+  let previous;
+  for (const { index, magnitude } of patches) {
+    if (sum >= fraction * total && magnitude !== previous) break;
+    indices.add(index);
+    sum += magnitude / max;
+    previous = magnitude;
+  }
+  return {
+    indices,
+    peak: patches[1]?.magnitude === max ? null : patches[0].index,
+    covered: sum / total,
+    max,
+  };
+}
+
 function drawGrid(ctx, w, h, rows, columns) {
   ctx.strokeStyle = "#fff8";
   ctx.lineWidth = Math.min(w, h) / 480;
@@ -85,13 +111,40 @@ function drawRegions(ctx, w, h, image) {
     const width = box.width * w / image.width;
     const height = box.height * h / image.height;
     const ratio = window.devicePixelRatio || 1;
-    ctx.strokeStyle = "#111c2e";
-    ctx.lineWidth = 3.6 * ratio;
+    ctx.strokeStyle = "#06291f";
+    ctx.lineWidth = 4.6 * ratio;
     ctx.strokeRect(x, y, width, height);
-    ctx.strokeStyle = "#eafff7";
-    ctx.lineWidth = 1.6 * ratio;
+    ctx.strokeStyle = "#78ffd4";
+    ctx.lineWidth = 2.2 * ratio;
     ctx.strokeRect(x, y, width, height);
   }
+}
+
+function drawTargetBoundary(ctx, w, h, rows, columns, patches) {
+  const dx = w / columns;
+  const dy = h / rows;
+  const ratio = window.devicePixelRatio || 1;
+  ctx.save();
+  ctx.beginPath();
+  function edge(x1, y1, x2, y2) {
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+  }
+  for (const index of patches) {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+    const x = col * dx;
+    const y = row * dy;
+    if (row === 0 || !patches.has(index - columns)) edge(x, y, x + dx, y);
+    if (col === 0 || !patches.has(index - 1)) edge(x, y, x, y + dy);
+    if (col === columns - 1 || !patches.has(index + 1)) edge(x + dx, y, x + dx, y + dy);
+    if (row === rows - 1 || !patches.has(index + columns)) edge(x, y + dy, x + dx, y + dy);
+  }
+  ctx.setLineDash([3 * ratio, 2 * ratio]);
+  ctx.strokeStyle = "#75ffd3";
+  ctx.lineWidth = 1.25 * ratio;
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawSelected(ctx, patch, w, h, rows, cols) {
@@ -107,17 +160,49 @@ function drawSelected(ctx, patch, w, h, rows, cols) {
   ctx.strokeRect(x, y, w / cols, h / rows);
 }
 
-function drawMap(ctx, w, h, colors, image, options, patch) {
+function drawPeak(ctx, w, h, rows, columns, focus, values) {
+  if (focus.peak === null) return;
+  const x = focus.peak % columns;
+  const y = Math.floor(focus.peak / columns);
+  const color = values[y][x] < 0 ? FOCUS_NEGATIVE : FOCUS_POSITIVE;
+  ctx.beginPath();
+  ctx.arc((x + .5) * w / columns, (y + .5) * h / rows,
+    .63 * Math.min(w / columns, h / rows), 0, 2 * Math.PI);
+  ctx.strokeStyle = "#152435";
+  ctx.lineWidth = 4.5 * (window.devicePixelRatio || 1);
+  ctx.stroke();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2 * (window.devicePixelRatio || 1);
+  ctx.stroke();
+}
+
+function drawMap(ctx, w, h, { colors, values, image, options, reference, targetPatches, mode, focus, patch }) {
   const rows = colors.length;
   const columns = colors[0].length;
-  const mode = image ? options.mode : "heatmap";
   ctx.clearRect(0, 0, w, h);
-  if (mode !== "image") {
+  if (reference && options.grid && targetPatches) {
+    ctx.fillStyle = "#6cffcb55";
+    for (const cell of targetPatches) {
+      const x = cell % columns;
+      const y = Math.floor(cell / columns);
+      ctx.fillRect(x * w / columns, y * h / rows, w / columns, h / rows);
+    }
+  }
+  if (mode !== "image" && !reference) {
     colors.forEach((row, y) => row.forEach((cell, x) => {
       const left = Math.round(x * w / columns);
       const top = Math.round(y * h / rows);
       const width = Math.round((x + 1) * w / columns) - left;
       const height = Math.round((y + 1) * h / rows) - top;
+      if (mode === "focus") {
+        if (!focus.indices.has(y * columns + x)) return;
+        const value = values[y][x];
+        const color = value < 0 ? FOCUS_NEGATIVE : FOCUS_POSITIVE;
+        ctx.globalAlpha = .17 + .7 * Math.pow(Math.abs(value) / focus.max, .42);
+        ctx.fillStyle = color;
+        ctx.fillRect(left, top, width, height);
+        return;
+      }
       if (!cell) {
         if (mode === "heatmap") {
           ctx.fillStyle = (x + y) % 2 ? "#788599" : "#a5afbd";
@@ -132,7 +217,11 @@ function drawMap(ctx, w, h, colors, image, options, patch) {
   }
   ctx.globalAlpha = 1;
   if (options.grid) drawGrid(ctx, w, h, rows, columns);
-  if (options.boxes) drawRegions(ctx, w, h, image);
+  if (mode === "focus" && options.boxes && targetPatches) {
+    drawTargetBoundary(ctx, w, h, rows, columns, targetPatches);
+  }
+  if (reference || options.boxes) drawRegions(ctx, w, h, image);
+  if (mode === "focus") drawPeak(ctx, w, h, rows, columns, focus, values);
   drawSelected(ctx, patch, w, h, rows, columns);
 }
 
@@ -168,7 +257,9 @@ export function spatialKey(view, image) {
   return JSON.stringify([image?.src, image?.width, image?.height, image?.content, view.values.length, view.values[0].length]);
 }
 
-export function renderSpatial(view, image, { options, updatePatch, currentPatch, readoutId }) {
+export function renderSpatial(view, image, {
+  options, updatePatch, currentPatch, readoutId, reference = false, targetPatches,
+}) {
   const host = node("figure", "map-figure");
   const media = node("div", "map-media");
   const canvas = node("canvas", "map-canvas");
@@ -177,42 +268,73 @@ export function renderSpatial(view, image, { options, updatePatch, currentPatch,
   const rows = view.values.length;
   const cols = view.values[0].length;
   const scale = limits(view);
-  const colors = prepareColors(view.values, scale);
+  const colors = reference ? view.values : prepareColors(view.values, scale);
   const key = spatialKey(view, image);
   const width = image?.width || cols;
   const height = image?.height || rows;
   let patch = currentPatch(key);
+  let focusFraction;
+  let focus;
+  const paint = { colors, values: view.values, image, options, reference, targetPatches };
 
   media.style.aspectRatio = `${width} / ${height}`;
   media.style.maxWidth = `${570 * width / height}px`;
   media.style.backgroundColor = image?.background || "#132139";
   media.tabIndex = 0;
-  media.setAttribute("aria-label", `${view.title}. Use arrow keys to inspect patches, Enter to pin, Escape to clear.`);
+  const title = reference ? (image.boxes?.length ? "Reference image with dataset annotation" : "Reference image") : view.title;
+  media.setAttribute("aria-label", `${title}. Use arrow keys to inspect patches, Enter to pin, Escape to clear.`);
   media.setAttribute("aria-describedby", readoutId);
   canvas.setAttribute("aria-hidden", "true");
   chip.setAttribute("aria-hidden", "true");
   readout.id = readoutId;
   addImage(media, image);
   media.append(canvas, chip);
-  host.append(media, legendFor(scale, view), readout);
+  if (reference) {
+    image.boxes?.filter(box => box.label).forEach(box => {
+      const label = node("span", "reference-box-label", box.label);
+      label.style.left = `${Math.min(70, 100 * box.x / image.width)}%`;
+      label.style.top = `${100 * box.y / image.height}%`;
+      media.append(label);
+    });
+  }
+  const legend = legendFor(scale, view);
+  host.append(media);
+  if (!reference) host.append(legend);
+  host.append(readout);
 
   const ctx = canvas.getContext("2d");
   function refresh() {
-    media.dataset.mode = image ? options.mode : "heatmap";
+    const mode = reference ? "image" : image ? options.mode : "heatmap";
+    media.dataset.mode = mode;
+    legend.hidden = mode === "focus" || mode === "image";
+    if (mode === "focus" && focusFraction !== options.focusFraction) {
+      focusFraction = options.focusFraction;
+      focus = signalFocus(view.values, focusFraction);
+    }
     const ratio = Math.min(window.devicePixelRatio || 1, 3);
     const w = Math.round(media.clientWidth * ratio);
     const h = Math.round(media.clientHeight * ratio);
     if (ctx && w && h) {
       if (canvas.width !== w) canvas.width = w;
       if (canvas.height !== h) canvas.height = h;
-      drawMap(ctx, w, h, colors, image, options, patch);
+      drawMap(ctx, w, h, { ...paint, mode, focus, patch });
     }
     chip.hidden = !patch;
     if (patch) {
       const raw = view.values[patch.row][patch.col];
       const position = `Row ${patch.row + 1}, col ${patch.col + 1}`;
-      chip.textContent = `${position} · ${format(raw)}`;
-      readout.textContent = `${patch.locked ? "Pinned · " : ""}${position} · ${raw ?? "Unmeasured"}`;
+      const inBox = targetPatches?.has(patch.row * cols + patch.col);
+      const region = targetPatches ? (inBox ? " · Target patch" : " · Outside target patches") : "";
+      chip.textContent = reference ? position : `${position} · ${format(raw)}`;
+      const value = reference ? "" : ` · ${raw ?? "Unmeasured"}`;
+      readout.textContent = `${patch.locked ? "Pinned · " : ""}${position}${value}${region}`;
+    } else if (reference) {
+      readout.textContent = image.boxes?.length ? "Mint outline · dataset annotation" : `${rows} × ${cols} model patches`;
+    } else if (mode === "focus") {
+      const count = focus.indices.size;
+      readout.textContent = count
+        ? `${count} highlighted ${count === 1 ? "patch" : "patches"} · ${(100 * focus.covered).toFixed(1)}% of signal`
+        : scale.hasData ? "No signal in this map" : "No measured patches";
     } else {
       readout.textContent = `${rows} × ${cols} patches · ${scale.hasData ? "Inspect a patch to see its value" : "No measured patches"}`;
     }

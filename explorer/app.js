@@ -1,16 +1,23 @@
 import { renderChart } from "./charts.js";
 import { validateBundle, sourceHref, families } from "./bundle.js";
-import { renderSpatial } from "./spatial.js";
+import { renderSpatial, spatialKey } from "./spatial.js";
+import { renderEvidence } from "./evidence.js";
 
 const byId = id => document.getElementById(id);
 const repository = document.querySelector(".header-link").href;
 const colors = ["#365bca", "#1e8270", "#b66047", "#754fc0", "#963e78", "#35798d"];
 const methodLimit = 4;
+const referenceKey = Symbol("reference");
+const percent = new Intl.NumberFormat("en", {
+  style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1,
+});
 const ui = {
   families: byId("families"), caseSelect: byId("case-select"), summary: byId("case-summary"),
   description: byId("family-description"), comparison: byId("comparison"), comparisonTitle: byId("comparison-title"),
   methods: byId("methods"), count: byId("compare-count"), panels: byId("panels"), notice: byId("notice"),
   source: byId("case-source"), toolbar: byId("map-toolbar"), modes: byId("map-modes"), scaleNote: byId("map-scale-note"),
+  localization: byId("localization"), evidence: byId("evidence"), focusField: byId("focus-field"), focus: byId("focus-fraction"),
+  referenceDialog: byId("reference-dialog"), original: byId("reference-original"),
   layer: byId("layer-select"), layerField: byId("layer-field"), opacity: byId("opacity"),
   opacityField: byId("opacity-field"), opacityValue: byId("opacity-value"), grid: byId("show-grid"),
   boxes: byId("show-boxes"), boxesField: byId("boxes-field"), file: byId("import-input"),
@@ -24,7 +31,11 @@ const state = {
   views: new Map(),
   maps: new Map(),
   patches: new Map(),
-  options: { mode: "overlay", opacity: Number(ui.opacity.value) / 100, grid: ui.grid.checked, boxes: ui.boxes.checked },
+  evidenceMetric: null,
+  options: {
+    mode: "focus", focusFraction: Number(ui.focus.value), opacity: Number(ui.opacity.value) / 100,
+    grid: ui.grid.checked, boxes: ui.boxes.checked,
+  },
 };
 
 function node(tag, className, text) {
@@ -160,6 +171,106 @@ function activeMethods() {
   return state.case.methods.filter(method => state.active.has(method.id));
 }
 
+function currentView(method) {
+  return method.views[state.views.get(method.id) || 0];
+}
+
+function localizationComparison(maps) {
+  const measured = maps.filter(map => map.view.localization);
+  const signaled = measured.filter(({ view }) => !view.localization.zeroMap);
+  const first = measured[0];
+  const leaders = new Set();
+  if (!first) return null;
+  const { areaFraction, region } = first.view.localization;
+  const { layer } = first.view;
+  const frame = spatialKey(first.view, first.image);
+  const matched = measured.every(({ view, image }) => view.layer === layer
+    && spatialKey(view, image) === frame && view.localization.areaFraction === areaFraction
+    && view.localization.region === region);
+  const highest = signaled.reduce((best, { view }) => Math.max(best, view.localization.massFraction), -Infinity);
+  if (matched && signaled.length > 1) {
+    for (const { method, view } of signaled) {
+      if (percent.format(view.localization.massFraction) === percent.format(highest)) leaders.add(method.id);
+    }
+  }
+  return { areaFraction, region, layer, measured, matched, highest, leaders };
+}
+
+function renderLocalization(result) {
+  ui.localization.replaceChildren();
+  ui.localization.hidden = !result;
+  if (!result) return;
+  const { matched, measured, leaders, highest, layer, areaFraction, region } = result;
+  const claim = node("div", "localization-claim");
+  const label = node("span", "localization-label", "Share of absolute signal on patches that touch the annotated box");
+  let title = "Compare the in-box share on each map";
+  if (leaders.size) {
+    const names = measured.filter(({ method }) => leaders.has(method.id)).map(({ method }) => method.label);
+    title = names.length === 1
+      ? `${names[0]} has the highest share at the ${region}`
+      : `${names.join(" and ")} tie at displayed precision`;
+  } else if (!matched) {
+    title = "Select a common layer to compare target shares";
+  } else if (!Number.isFinite(highest)) {
+    title = "The selected maps have no signal";
+  }
+  claim.append(label, node("h3", "", title));
+  if (leaders.size) {
+    const value = node("strong", "localization-leading-value", percent.format(highest));
+    claim.append(value);
+  }
+  const baseline = node("div", "localization-baseline");
+  if (matched) {
+    baseline.append(node("strong", "", `${percent.format(areaFraction)} uniform baseline`));
+    const scope = Number.isFinite(layer) ? `Through L${layer} · ` : "";
+    baseline.append(node("span", "", `${scope}${measured.length} selected ${measured.length === 1 ? "map" : "maps"}`));
+    if (Number.isFinite(highest) && highest < areaFraction) {
+      baseline.append(node("span", "localization-below", "All below baseline"));
+    }
+  }
+  ui.localization.append(claim, baseline);
+}
+
+function shareDisplay(value, label, baseline) {
+  const display = node("div", "map-share");
+  const content = node("div", "map-share-content");
+  content.append(node("strong", "map-share-value", Number.isFinite(value) ? percent.format(value) : "No signal"),
+    node("span", "map-share-label", label));
+  display.append(content);
+  if (Number.isFinite(value)) {
+    const track = node("div", "map-share-track");
+    const fill = node("span", "map-share-fill");
+    fill.style.width = `${100 * value}%`;
+    track.append(fill);
+    if (Number.isFinite(baseline)) {
+      const marker = node("span", "map-share-baseline");
+      marker.style.left = `${100 * baseline}%`;
+      marker.title = `Uniform baseline · ${percent.format(baseline)}`;
+      track.append(marker);
+    }
+    track.setAttribute("aria-hidden", "true");
+    display.append(track);
+  }
+  return display;
+}
+
+function targetPatchesFor(view) {
+  const annotation = state.case.localization;
+  if (view.localization && annotation?.gridShape[0] === view.values.length
+      && annotation.gridShape[1] === view.values[0].length
+      && annotation.region === view.localization.region) {
+    return new Set(annotation.targetPatches);
+  }
+  return undefined;
+}
+
+function spatialOptions(view, readoutId, reference = false) {
+  return {
+    reference, options: state.options, readoutId, updatePatch,
+    currentPatch: key => state.patches.get(key), targetPatches: targetPatchesFor(view),
+  };
+}
+
 function updatePatch(key, patch) {
   if (patch) state.patches.set(key, patch);
   else state.patches.delete(key);
@@ -197,80 +308,161 @@ function renderFigure(view) {
   return figure;
 }
 
-function renderPanelBody(body, unit, method, index) {
-  releaseMap(method.id);
-  const view = method.views[state.views.get(method.id) || 0];
-  unit.textContent = view.unit || "";
-  unit.hidden = !unit.textContent;
-  body.replaceChildren();
-  if (method.views.length === 1) body.append(node("p", "view-title", view.title));
+function openReference(image) {
+  const frame = node("div", "original-frame");
+  const photo = node("img");
+  photo.src = image.src;
+  photo.alt = image.alt || "Original experiment image";
+  frame.append(photo);
+  for (const box of image.boxes || []) {
+    const region = node("span", "original-box");
+    region.style.left = `${100 * box.x / image.width}%`;
+    region.style.top = `${100 * box.y / image.height}%`;
+    region.style.width = `${100 * box.width / image.width}%`;
+    region.style.height = `${100 * box.height / image.height}%`;
+    if (box.label) region.append(node("span", "", box.label));
+    frame.append(region);
+  }
+  ui.original.replaceChildren(frame);
+  ui.referenceDialog.showModal();
+}
+
+function renderPanelBody(body, method, view, index) {
   if (view.type === "spatial") {
-    const map = renderSpatial(view, view.image ?? state.case.image, {
-      options: state.options, updatePatch, currentPatch: key => state.patches.get(key), readoutId: `patch-${index}`,
-    });
+    const map = renderSpatial(view, view.image ?? state.case.image, spatialOptions(view, `patch-${index}`));
     state.maps.set(method.id, map);
     body.append(map.host);
   } else {
+    if (method.views.length === 1) body.append(node("p", "view-title", view.title));
     body.append(view.type === "figure" ? renderFigure(view) : renderChart(view));
+  }
+  if (view.localization) {
+    const settings = node("details", "map-method-details");
+    settings.append(node("summary", "", "Map details"));
+    if (method.description) settings.append(node("p", "", method.description));
+    settings.append(node("p", "", `${view.title} · ${view.unit}`));
+    if (view.localization.peakInRegion !== null && view.localization.peakInRegion !== undefined) {
+      settings.append(node("p", "", view.localization.peakInRegion
+        ? "The strongest patch is in the annotation."
+        : "The strongest patch is outside the annotation."));
+    }
+    if (view.caption) settings.append(node("p", "", view.caption));
+    body.append(settings);
+    return;
   }
   const description = view.description ?? view.caption;
   if (description) body.append(node("p", "view-description", description));
 }
 
-function buildPanel(method, index) {
+function buildPanel(method, index, leaders) {
+  const view = currentView(method);
   const panel = node("article", "panel");
   panel.dataset.method = method.id;
   panel.style.setProperty("--panel-accent", colors[index % colors.length]);
+  if (leaders?.has(method.id)) panel.dataset.leader = "true";
   const header = node("header", "panel-header");
   const heading = node("div", "panel-heading");
   const accent = node("span", "panel-accent");
   accent.setAttribute("aria-hidden", "true");
-  const unit = node("span", "metric-tag");
-  heading.append(accent, node("h3", "", method.label), unit);
-  header.append(heading);
-  if (method.description) header.append(node("p", "panel-description", method.description));
+  heading.append(accent, node("h3", "", method.label));
+  if (view.localization) {
+    if (Number.isFinite(view.layer)) heading.append(node("span", "metric-tag", `L${view.layer}`));
+    const { zeroMap, massFraction, areaFraction } = view.localization;
+    header.append(heading, shareDisplay(zeroMap ? null : massFraction, "signal at target", areaFraction));
+  } else {
+    if (view.unit) heading.append(node("span", "metric-tag", view.unit));
+    header.append(heading);
+    if (method.description) header.append(node("p", "panel-description", method.description));
+  }
   panel.append(header);
   const body = node("div", "panel-body");
+  const showMapFirst = state.family === "attention";
+  if (showMapFirst) panel.append(body);
 
   if (method.views.length > 1) {
     const label = node("label", "panel-select", "View");
     const select = node("select");
+    select.id = `view-for-method-${index}`;
     select.setAttribute("aria-label", `View for ${method.label}`);
     method.views.forEach((view, n) => select.add(new Option(view.title, n)));
     select.value = state.views.get(method.id) || 0;
     select.addEventListener("change", () => {
       state.views.set(method.id, Number(select.value));
-      renderPanelBody(body, unit, method, index);
-      updateToolbar();
+      renderPanels();
+      byId(select.id).focus({ preventScroll: true });
     });
     label.append(select);
     panel.append(label);
+  } else if (view.type === "spatial" && !view.localization) {
+    panel.append(node("p", "panel-select static-view", view.title));
   }
-  renderPanelBody(body, unit, method, index);
-  panel.append(body);
+  renderPanelBody(body, method, view, index);
+  if (!showMapFirst) panel.append(body);
   return panel;
+}
+
+function buildReference({ view, image }) {
+  const panel = node("article", "panel reference-panel");
+  panel.style.setProperty("--panel-accent", "#267963");
+  const header = node("header", "panel-header");
+  const heading = node("div", "panel-heading");
+  heading.append(node("span", "panel-accent"), node("h3", "", "Reference image"));
+  header.append(heading);
+  if (view.localization) {
+    header.append(shareDisplay(view.localization.areaFraction, "of patches touch box"));
+  } else {
+    header.append(node("p", "panel-description", "Model input"));
+  }
+  const body = node("div", "panel-body");
+  const map = renderSpatial(view, image, spatialOptions(view, "reference-patch", true));
+  state.maps.set(referenceKey, map);
+  body.append(map.host);
+  const original = state.case.image;
+  if (original?.src === image.src && !original.content) {
+    const button = node("button", "reference-open", "View original image");
+    button.type = "button";
+    button.addEventListener("click", () => openReference(original));
+    body.append(button);
+  }
+  panel.append(header, body);
+  return panel;
+}
+
+function renderCaseEvidence() {
+  renderEvidence(ui.evidence, state.case.comparison, state.active, state.evidenceMetric, metric => {
+    state.evidenceMetric = metric;
+    renderCaseEvidence();
+  });
 }
 
 function renderPanels() {
   for (const id of state.maps.keys()) releaseMap(id);
   const methods = activeMethods();
-  ui.panels.dataset.count = methods.length;
-  ui.panels.style.setProperty("--columns", methods.length);
-  ui.panels.replaceChildren(...methods.map(method => buildPanel(method, state.case.methods.indexOf(method))));
-  updateToolbar();
+  const maps = mapInfo();
+  const reference = state.family === "attention" ? maps.find(map => map.image) : null;
+  const result = localizationComparison(maps);
+  const panels = methods.map(method => buildPanel(method, state.case.methods.indexOf(method), result?.leaders));
+  if (reference) panels.unshift(buildReference(reference));
+  ui.summary.querySelector(".sample-media").hidden = !state.case.image || Boolean(reference);
+  ui.panels.dataset.count = panels.length;
+  ui.panels.dataset.family = state.family;
+  ui.panels.style.setProperty("--columns", Math.min(panels.length, 4));
+  ui.panels.replaceChildren(...panels);
+  renderLocalization(result);
+  renderCaseEvidence();
+  updateToolbar(maps);
 }
 
 function mapInfo() {
   return activeMethods().flatMap(method => {
-    const view = method.views[state.views.get(method.id) || 0];
+    const view = currentView(method);
     return view.type === "spatial" ? [{ method, view, image: view.image ?? state.case.image }] : [];
   });
 }
 
-function updateToolbar() {
-  const maps = mapInfo();
+function updateToolbar(maps) {
   ui.toolbar.hidden = !maps.length;
-  ui.scaleNote.hidden = maps.length < 2;
+  ui.scaleNote.hidden = !maps.length;
   if (!maps.length) return;
 
   const canOverlay = maps.some(map => map.image);
@@ -281,8 +473,10 @@ function updateToolbar() {
     .filter(view => view.type === "spatial" && Number.isFinite(view.layer)).map(view => view.layer))]
     .filter(layer => layered.every(({ method }) => method.views.some(view => view.type === "spatial" && view.layer === layer)))
     .sort((a, b) => a - b) : [];
-  ui.layerField.hidden = sharedLayers.length < 2;
-  if (sharedLayers.length > 1) {
+  const canChangeLayer = sharedLayers.length > 1 || sharedLayers.length === 1
+    && layered.some(({ view }) => view.layer !== sharedLayers[0]);
+  ui.layerField.hidden = !canChangeLayer;
+  if (canChangeLayer) {
     const currentLayer = layered[0].view.layer;
     const matched = sharedLayers.includes(currentLayer) && layered.every(({ view }) => view.layer === currentLayer);
     ui.layer.replaceChildren(new Option("Mixed", "", !matched, !matched));
@@ -298,14 +492,30 @@ function updateMapDisplay(canOverlay = mapInfo().some(map => map.image)) {
     button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
   }
   ui.opacityField.hidden = mode !== "overlay";
+  ui.focusField.hidden = mode !== "focus";
+  ui.scaleNote.replaceChildren();
+  if (mode === "focus") {
+    const gold = node("span", "map-key key-positive", "Positive");
+    const blue = node("span", "map-key key-negative", "Negative");
+    const peak = node("span", "map-key key-peak", "Peak patch");
+    ui.scaleNote.append(gold, blue, peak);
+    if (state.options.boxes && mapInfo().some(({ view }) => targetPatchesFor(view))) {
+      ui.scaleNote.append(node("span", "map-key key-target", "Target patches"));
+    }
+    ui.scaleNote.append(node("span", "map-key-note", "Strongest patches covering the selected share. Ties are included."));
+  } else if (mode !== "image") {
+    ui.scaleNote.append(node("span", "", "Each map uses its own color scale."));
+  }
   for (const map of state.maps.values()) map.refresh();
 }
 
 function selectCase(c, family = c.family) {
+  if (state.family !== family) state.options.mode = family === "attention" ? "focus" : "overlay";
   state.family = family;
   state.case = c;
   state.views.clear();
   state.patches.clear();
+  state.evidenceMetric = null;
   renderFamilySelection();
   if (!c) {
     for (const id of state.maps.keys()) releaseMap(id);
@@ -357,6 +567,10 @@ ui.layer.addEventListener("change", () => {
 ui.opacity.addEventListener("input", () => {
   state.options.opacity = Number(ui.opacity.value) / 100;
   ui.opacityValue.textContent = `${ui.opacity.value}%`;
+  updateMapDisplay();
+});
+ui.focus.addEventListener("change", () => {
+  state.options.focusFraction = Number(ui.focus.value);
   updateMapDisplay();
 });
 ui.grid.addEventListener("change", () => {

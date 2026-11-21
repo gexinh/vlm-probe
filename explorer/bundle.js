@@ -30,6 +30,7 @@ const sameLength = (value, count, valid) => Array.isArray(value) && value.length
 const localAsset = /^\.\.\/(?:demos\/assets\/images|docs\/assets\/tutorials)\/[\w./-]+\.(?:png|jpe?g|webp)$/i;
 const dataImage = /^data:image\/(?:png|jpeg|webp);base64,[a-z0-9+/=\r\n]+$/i;
 const validPath = /^(?:demos|docs)\/[\w./-]+(?:#[\w-]+)?$/;
+const fraction = value => Number.isFinite(value) && value >= 0 && value <= 1;
 
 function within(box, image) {
   return box && [box.x, box.y, box.width, box.height].every(Number.isFinite)
@@ -50,6 +51,23 @@ function imageSpec(image, context, imported) {
   }
 }
 
+function annotationSpec(annotation, context) {
+  ensure(annotation && nonempty(annotation.region)
+    && sameLength(annotation.gridShape, 2, n => Number.isSafeInteger(n) && n > 0),
+  context, "an annotation label and a native grid shape");
+  const size = annotation.gridShape[0] * annotation.gridShape[1];
+  ensure(Array.isArray(annotation.targetPatches) && Number.isSafeInteger(size)
+    && annotation.targetPatches.every(n => Number.isSafeInteger(n) && n >= 0 && n < size)
+    && new Set(annotation.targetPatches).size === annotation.targetPatches.length,
+  context, "unique target patch indices within the native grid");
+}
+
+function localizationSpec(result, context) {
+  ensure(result && nonempty(result.region) && fraction(result.massFraction) && fraction(result.areaFraction)
+    && typeof result.zeroMap === "boolean",
+  context, "a localization region, measured shares and a signal flag");
+}
+
 function validateView(view, context, imported) {
   ensure(view && nonempty(view.title), context, "a view title");
   if (view.image !== undefined) imageSpec(view.image, context, imported);
@@ -60,6 +78,7 @@ function validateView(view, context, imported) {
     case "spatial":
       ensure(seq(view.values, row => seq(row, scalar)) && view.values.every(row => row.length === view.values[0].length),
         context, "a rectangular grid of numbers or nulls");
+      if (view.localization !== undefined) localizationSpec(view.localization, context);
       break;
     case "matrix":
       ensure(seq(view.rows, label) && seq(view.columns, label)
@@ -86,6 +105,25 @@ function validateView(view, context, imported) {
   }
 }
 
+function comparisonSpec(comparison, context, methodIds, imported) {
+  ensure(comparison && nonempty(comparison.title), context, "a comparison title");
+  if (comparison.metrics !== undefined) {
+    ensure(seq(comparison.metrics, metric => metric && nonempty(metric.id) && nonempty(metric.label)
+      && ["higher", "lower", "descriptive"].includes(metric.direction)
+      && seq(metric.entries, entry => entry && nonempty(entry.label) && scalar(entry.value)
+        && (entry.method === undefined || methodIds.has(entry.method)))),
+    context, "labeled comparison metrics with measured entries and valid method IDs");
+  }
+  if (comparison.facts !== undefined) {
+    ensure(seq(comparison.facts, fact => fact && nonempty(fact.label) && label(fact.value)
+      && (fact.method === undefined || methodIds.has(fact.method))), context, "labeled comparison facts");
+  }
+  if (comparison.chart !== undefined) {
+    ensure(["series", "matrix", "bars", "table"].includes(comparison.chart?.type), context, "a comparable chart");
+    validateView(comparison.chart, context, imported);
+  }
+}
+
 export function validateBundle(bundle, { imported = false } = {}) {
   ensure(bundle?.schema === 1 && seq(bundle.cases, c => c && nonempty(c.id)), "Result file",
     "schema 1 and at least one experiment with an ID");
@@ -96,6 +134,7 @@ export function validateBundle(bundle, { imported = false } = {}) {
     ids.add(c.id);
     ensure(Object.hasOwn(families, c.family) && nonempty(c.title), context, "a supported family and a title");
     if (c.image !== undefined) imageSpec(c.image, context, imported);
+    if (c.localization !== undefined) annotationSpec(c.localization, context);
     ensure(seq(c.methods, method => method && nonempty(method.id) && nonempty(method.label) && seq(method.views, Boolean)),
       context, "labeled methods with at least one view");
     const methodIds = new Set();
@@ -108,6 +147,7 @@ export function validateBundle(bundle, { imported = false } = {}) {
     if (c.defaultMethods !== undefined) {
       ensure(seq(c.defaultMethods, id => methodIds.has(id)), context, "default methods from this experiment");
     }
+    if (c.comparison !== undefined) comparisonSpec(c.comparison, context, methodIds, imported);
   }
   return bundle.cases;
 }
