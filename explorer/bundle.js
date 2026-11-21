@@ -156,6 +156,6 @@ export function sourceHref(source, repository, archived) {
   if (typeof source?.path !== "string" || !validPath.test(source.path) || source.path.split("/").includes("..")) return null;
   const ref = typeof source.commit === "string" && /^[a-f0-9]{7,40}$/i.test(source.commit)
     ? source.commit
-    : archived ? "7e5aca79ecd154c88e34c4bfb2171352d80db675" : "main";
+    : archived ? "059b7df29c51f76a2e3ea3b8f9bd668219adf92d" : "main";
   return `${repository}/blob/${ref}/${source.path}`;
 }
