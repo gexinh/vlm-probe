@@ -6,6 +6,18 @@
 
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
+## Review the Probe Explorer
+
+**[Open the interactive demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)** ·
+[Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback) ·
+[Compare this branch with main](https://github.com/gexinh/vlm-probe/compare/main...feature/probe-explorer)
+
+Start with the yellow- and black-shirt examples in Attention, then try Lens,
+Causal, and Sparse Autoencoders. When sharing feedback, include the experiment
+and selected methods or layer so the view can be reproduced.
+
+[![Probe Explorer comparing Raw attention, Grad-CAM, and Attention relevance beside a boxed reference image](explorer/assets/attention-comparison.jpg)](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
@@ -211,8 +223,9 @@ Each guide explains the implemented computation, parameters, outputs, and
 relationship to its original paper. Reusable primitives are labeled separately
 from paper methods.
 
-[Run Probe Explorer locally](explorer/README.md) to compare archived attention,
-lens, causal, and sparse autoencoder measurements or inspect your own results.
+[Open the Probe Explorer demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/) to compare archived attention,
+lens, causal, and sparse autoencoder measurements. The
+[Explorer guide](explorer/README.md) covers importing your own results.
 
 ### Lens
 

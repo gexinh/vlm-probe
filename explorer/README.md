@@ -1,11 +1,14 @@
 # Probe Explorer
 
+**[Open the interactive review demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)** ·
+[Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback)
+
 Probe Explorer compares recorded VLMProbe measurements in a browser. Use the
 family and experiment selectors, then choose up to four method panels for that
 experiment. The bundled examples load without Python packages, model weights,
 or a network connection.
 
-## Start locally
+## Run locally for development
 
 From the repository root, run
 
