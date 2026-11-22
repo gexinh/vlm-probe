@@ -6,18 +6,6 @@
 
 <p align="center"><strong>Exploring Model Internals Beyond the Answer</strong></p>
 
-## Review the Probe Explorer
-
-**[Open the interactive demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)** ·
-[Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback) ·
-[Compare this branch with main](https://github.com/gexinh/vlm-probe/compare/main...feature/probe-explorer)
-
-Start with the yellow- and black-shirt examples in Attention, then try Lens,
-Causal, and Sparse Autoencoders. When sharing feedback, include the experiment
-and selected methods or layer so the view can be reproduced.
-
-[![Probe Explorer comparing Raw attention, Grad-CAM, and Attention relevance beside a boxed reference image](explorer/assets/attention-comparison.jpg)](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/library-overview-sae.svg" width="100%" alt="Model inputs, adapter configuration, lens/attention/causal/SAE tools, and structured results">
 </p>
@@ -73,6 +61,18 @@ a measured zero effect.
   <a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing"><img src="https://raw.githubusercontent.com/gexinh/vlm-probe/main/docs/assets/vlmprobe-demo.gif" width="960" alt="VLMProbe video demo — animated preview; click to watch the full video with narration"></a>
 </p>
 <p align="center"><a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing">Watch the full video with narration ↗</a></p>
+
+## Review the Probe Explorer
+
+**[Open the interactive demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)** ·
+[Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback) ·
+[Compare this branch with main](https://github.com/gexinh/vlm-probe/compare/main...feature/probe-explorer)
+
+Start with the yellow- and black-shirt examples in Attention, then try Lens,
+Causal, and Sparse Autoencoders. When sharing feedback, include the experiment
+and selected methods or layer so the view can be reproduced.
+
+[![Probe Explorer comparing Raw attention, Grad-CAM, and Attention relevance beside a boxed reference image](explorer/assets/attention-comparison.jpg)](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)
 
 ## Installation
 
