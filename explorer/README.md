@@ -4,9 +4,8 @@
 [Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback)
 
 Probe Explorer compares recorded VLMProbe measurements in a browser. Use the
-family and experiment selectors, then choose up to four method panels for that
-experiment. The bundled examples load without Python packages, model weights,
-or a network connection.
+family and experiment selectors, then pick methods individually or choose
+**Select all**. The bundled examples run in the browser.
 
 ## Run locally for development
 
@@ -36,10 +35,13 @@ annotation and the dashed outline shows the target patches counted in
 the score. Overlay and heatmap views retain independent color scales in
 their measurement units.
 
-Attention leaders are scoped to the selected maps, input, annotated region
-and layer. The uniform baseline is the share of native patches assigned
-to the region by the archived benchmark. The panel updates when you change
-methods or layers.
+The Attention ranking groups maps by layer, input geometry, and annotated
+region. Each bar shows the share of absolute signal on target patches. The
+uniform baseline is the share of native patches in the region, and the
+difference from that baseline is shown in percentage points. Select a
+ranked method to inspect its map. The Layer control switches maps with
+measurements at that layer and shows separate rankings for the measured
+layers in view.
 
 The DINO notebook includes the rendered maps and evaluation measurements.
 Patch-level hover uses numerical arrays when the experiment provides them.

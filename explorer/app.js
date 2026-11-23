@@ -1,12 +1,12 @@
 import { renderChart } from "./charts.js";
 import { validateBundle, sourceHref, families } from "./bundle.js";
-import { renderSpatial, spatialKey } from "./spatial.js";
+import { renderSpatial } from "./spatial.js";
 import { renderEvidence } from "./evidence.js";
+import { compareLocalization, renderAttentionSummary } from "./attention-summary.js";
 
 const byId = id => document.getElementById(id);
 const repository = document.querySelector(".header-link").href;
 const colors = ["#365bca", "#1e8270", "#b66047", "#754fc0", "#963e78", "#35798d"];
-const methodLimit = 4;
 const referenceKey = Symbol("reference");
 const percent = new Intl.NumberFormat("en", {
   style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1,
@@ -15,6 +15,8 @@ const ui = {
   families: byId("families"), caseSelect: byId("case-select"), summary: byId("case-summary"),
   description: byId("family-description"), comparison: byId("comparison"), comparisonTitle: byId("comparison-title"),
   methods: byId("methods"), count: byId("compare-count"), panels: byId("panels"), notice: byId("notice"),
+  selection: byId("selection-tools"), selectAll: byId("select-all"), reset: byId("reset-selection"),
+  mapsHeading: byId("maps-heading"), layerNote: byId("layer-note"),
   source: byId("case-source"), toolbar: byId("map-toolbar"), modes: byId("map-modes"), scaleNote: byId("map-scale-note"),
   localization: byId("localization"), evidence: byId("evidence"), focusField: byId("focus-field"), focus: byId("focus-fraction"),
   referenceDialog: byId("reference-dialog"), original: byId("reference-original"),
@@ -32,6 +34,7 @@ const state = {
   maps: new Map(),
   patches: new Map(),
   evidenceMetric: null,
+  layer: null,
   options: {
     mode: "focus", focusFraction: Number(ui.focus.value), opacity: Number(ui.opacity.value) / 100,
     grid: ui.grid.checked, boxes: ui.boxes.checked,
@@ -141,10 +144,10 @@ function renderMethodSelection() {
     chip.append(check, method.label);
     chip.addEventListener("click", () => {
       if (chip.getAttribute("aria-disabled") === "true") return;
-      if (state.active.has(method.id)) state.active.delete(method.id);
-      else state.active.add(method.id);
-      updateChips();
-      renderPanels();
+      const next = new Set(state.active);
+      if (next.has(method.id)) next.delete(method.id);
+      else next.add(method.id);
+      setMethodSelection(next);
     });
     ui.methods.append(chip);
   });
@@ -152,19 +155,36 @@ function renderMethodSelection() {
 }
 
 function updateChips() {
-  const max = Math.min(state.case.methods.length, methodLimit);
+  const available = state.case.methods.length;
   const selected = state.active.size;
-  ui.comparisonTitle.textContent = max === 1 ? "Method result" : "Compare methods";
-  ui.count.textContent = max > 1 ? `${selected} of ${max} panels` : "";
+  const defaults = defaultSelection(state.case);
+  const isDefault = selected === defaults.length && defaults.every(id => state.active.has(id));
+  ui.comparisonTitle.textContent = available === 1 ? "Method result" : "Compare methods";
+  ui.selection.hidden = available === 1;
+  ui.count.textContent = `${selected} of ${available} selected`;
+  ui.selectAll.setAttribute("aria-disabled", String(selected === available));
+  ui.reset.setAttribute("aria-disabled", String(isDefault));
   for (const button of ui.methods.children) {
     const active = state.active.has(button.dataset.method);
-    const disabled = active ? selected === 1 : selected >= methodLimit;
+    const disabled = active && selected === 1;
     button.setAttribute("aria-pressed", String(active));
     button.setAttribute("aria-disabled", String(disabled));
-    button.title = disabled
-      ? active ? "Keep at least one result visible" : "Deselect a method to free a panel"
-      : button.textContent.slice(1);
+    button.title = disabled ? "Keep at least one result visible" : "";
   }
+}
+
+function defaultSelection(c) {
+  return [...new Set(c.defaultMethods || c.methods.slice(0, 3).map(method => method.id))];
+}
+
+function setMethodSelection(ids) {
+  const next = new Set(ids);
+  for (const method of state.case.methods) {
+    if (next.has(method.id) && !state.active.has(method.id)) showLayer(method, state.layer);
+  }
+  state.active = next;
+  updateChips();
+  renderPanels();
 }
 
 function activeMethods() {
@@ -175,60 +195,15 @@ function currentView(method) {
   return method.views[state.views.get(method.id) || 0];
 }
 
-function localizationComparison(maps) {
-  const measured = maps.filter(map => map.view.localization);
-  const signaled = measured.filter(({ view }) => !view.localization.zeroMap);
-  const first = measured[0];
-  const leaders = new Set();
-  if (!first) return null;
-  const { areaFraction, region } = first.view.localization;
-  const { layer } = first.view;
-  const frame = spatialKey(first.view, first.image);
-  const matched = measured.every(({ view, image }) => view.layer === layer
-    && spatialKey(view, image) === frame && view.localization.areaFraction === areaFraction
-    && view.localization.region === region);
-  const highest = signaled.reduce((best, { view }) => Math.max(best, view.localization.massFraction), -Infinity);
-  if (matched && signaled.length > 1) {
-    for (const { method, view } of signaled) {
-      if (percent.format(view.localization.massFraction) === percent.format(highest)) leaders.add(method.id);
-    }
-  }
-  return { areaFraction, region, layer, measured, matched, highest, leaders };
+function layerViewIndex(method, layer) {
+  return method.views.findIndex(view => view.type === "spatial" && view.layer === layer);
 }
 
-function renderLocalization(result) {
-  ui.localization.replaceChildren();
-  ui.localization.hidden = !result;
-  if (!result) return;
-  const { matched, measured, leaders, highest, layer, areaFraction, region } = result;
-  const claim = node("div", "localization-claim");
-  const label = node("span", "localization-label", "Share of absolute signal on patches that touch the annotated box");
-  let title = "Compare the in-box share on each map";
-  if (leaders.size) {
-    const names = measured.filter(({ method }) => leaders.has(method.id)).map(({ method }) => method.label);
-    title = names.length === 1
-      ? `${names[0]} has the highest share at the ${region}`
-      : `${names.join(" and ")} tie at displayed precision`;
-  } else if (!matched) {
-    title = "Select a common layer to compare target shares";
-  } else if (!Number.isFinite(highest)) {
-    title = "The selected maps have no signal";
-  }
-  claim.append(label, node("h3", "", title));
-  if (leaders.size) {
-    const value = node("strong", "localization-leading-value", percent.format(highest));
-    claim.append(value);
-  }
-  const baseline = node("div", "localization-baseline");
-  if (matched) {
-    baseline.append(node("strong", "", `${percent.format(areaFraction)} uniform baseline`));
-    const scope = Number.isFinite(layer) ? `Through L${layer} · ` : "";
-    baseline.append(node("span", "", `${scope}${measured.length} selected ${measured.length === 1 ? "map" : "maps"}`));
-    if (Number.isFinite(highest) && highest < areaFraction) {
-      baseline.append(node("span", "localization-below", "All below baseline"));
-    }
-  }
-  ui.localization.append(claim, baseline);
+function showLayer(method, layer) {
+  const view = currentView(method);
+  if (!Number.isFinite(layer) || view.type !== "spatial" || !Number.isFinite(view.layer) || view.layer === layer) return;
+  const index = layerViewIndex(method, layer);
+  if (index >= 0) state.views.set(method.id, index);
 }
 
 function shareDisplay(value, label, baseline) {
@@ -357,6 +332,9 @@ function renderPanelBody(body, method, view, index) {
 function buildPanel(method, index, leaders) {
   const view = currentView(method);
   const panel = node("article", "panel");
+  panel.id = `method-panel-${index}`;
+  panel.tabIndex = -1;
+  panel.setAttribute("aria-label", method.label);
   panel.dataset.method = method.id;
   panel.style.setProperty("--panel-accent", colors[index % colors.length]);
   if (leaders?.has(method.id)) panel.dataset.leader = "true";
@@ -366,9 +344,9 @@ function buildPanel(method, index, leaders) {
   accent.setAttribute("aria-hidden", "true");
   heading.append(accent, node("h3", "", method.label));
   if (view.localization) {
-    if (Number.isFinite(view.layer)) heading.append(node("span", "metric-tag", `L${view.layer}`));
+    if (Number.isFinite(view.layer)) heading.append(node("span", "map-layer-tag", `L${view.layer}`));
     const { zeroMap, massFraction, areaFraction } = view.localization;
-    header.append(heading, shareDisplay(zeroMap ? null : massFraction, "signal at target", areaFraction));
+    header.append(heading, shareDisplay(zeroMap ? null : massFraction, "on target patches", areaFraction));
   } else {
     if (view.unit) heading.append(node("span", "metric-tag", view.unit));
     header.append(heading);
@@ -388,6 +366,7 @@ function buildPanel(method, index, leaders) {
     select.value = state.views.get(method.id) || 0;
     select.addEventListener("change", () => {
       state.views.set(method.id, Number(select.value));
+      state.layer = null;
       renderPanels();
       byId(select.id).focus({ preventScroll: true });
     });
@@ -435,20 +414,29 @@ function renderCaseEvidence() {
   });
 }
 
+function inspectMap(methodId) {
+  const index = state.case.methods.findIndex(method => method.id === methodId);
+  const panel = byId(`method-panel-${index}`);
+  if (!panel) return;
+  panel.focus({ preventScroll: true });
+  panel.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
 function renderPanels() {
   for (const id of state.maps.keys()) releaseMap(id);
   const methods = activeMethods();
   const maps = mapInfo();
   const reference = state.family === "attention" ? maps.find(map => map.image) : null;
-  const result = localizationComparison(maps);
+  const result = compareLocalization(maps, state.layer);
   const panels = methods.map(method => buildPanel(method, state.case.methods.indexOf(method), result?.leaders));
   if (reference) panels.unshift(buildReference(reference));
   ui.summary.querySelector(".sample-media").hidden = !state.case.image || Boolean(reference);
   ui.panels.dataset.count = panels.length;
   ui.panels.dataset.family = state.family;
-  ui.panels.style.setProperty("--columns", Math.min(panels.length, 4));
+  ui.panels.dataset.layout = panels.length > 4 ? "gallery" : "comparison";
+  ui.panels.style.setProperty("--columns", panels.length > 4 ? 3 : panels.length);
   ui.panels.replaceChildren(...panels);
-  renderLocalization(result);
+  renderAttentionSummary(ui.localization, result, inspectMap);
   renderCaseEvidence();
   updateToolbar(maps);
 }
@@ -462,26 +450,37 @@ function mapInfo() {
 
 function updateToolbar(maps) {
   ui.toolbar.hidden = !maps.length;
+  ui.mapsHeading.hidden = !maps.length;
   ui.scaleNote.hidden = !maps.length;
+  ui.layerNote.hidden = true;
   if (!maps.length) return;
 
   const canOverlay = maps.some(map => map.image);
   for (const button of ui.modes.children) button.hidden = !canOverlay && button.dataset.mode !== "heatmap";
   ui.boxesField.hidden = !maps.some(map => map.image?.boxes?.length);
   const layered = maps.filter(map => Number.isFinite(map.view.layer));
-  const sharedLayers = layered.length ? [...new Set(layered[0].method.views
-    .filter(view => view.type === "spatial" && Number.isFinite(view.layer)).map(view => view.layer))]
-    .filter(layer => layered.every(({ method }) => method.views.some(view => view.type === "spatial" && view.layer === layer)))
-    .sort((a, b) => a - b) : [];
-  const canChangeLayer = sharedLayers.length > 1 || sharedLayers.length === 1
-    && layered.some(({ view }) => view.layer !== sharedLayers[0]);
-  ui.layerField.hidden = !canChangeLayer;
-  if (canChangeLayer) {
-    const currentLayer = layered[0].view.layer;
-    const matched = sharedLayers.includes(currentLayer) && layered.every(({ view }) => view.layer === currentLayer);
-    ui.layer.replaceChildren(new Option("Mixed", "", !matched, !matched));
-    ui.layer.options[0].disabled = true;
-    for (const layer of sharedLayers) ui.layer.add(new Option(`L${layer}`, layer, false, matched && currentLayer === layer));
+  const layers = [...new Set(layered.flatMap(({ method }) => method.views
+    .filter(view => view.type === "spatial" && Number.isFinite(view.layer)).map(view => view.layer)))]
+    .sort((a, b) => b - a);
+  ui.layerField.hidden = layers.length < 2;
+  if (layers.length > 1) {
+    const shown = new Set(layered.map(({ view }) => view.layer));
+    const honorsSelection = layers.includes(state.layer) && layered.every(({ method, view }) =>
+      view.layer === state.layer || layerViewIndex(method, state.layer) < 0);
+    const selected = shown.size === 1 ? layered[0].view.layer : honorsSelection ? state.layer : null;
+    ui.layer.replaceChildren();
+    if (selected === null) {
+      const mixed = new Option("Mixed", "", true, true);
+      mixed.disabled = true;
+      ui.layer.add(mixed);
+    }
+    for (const layer of layers) ui.layer.add(new Option(`L${layer}`, layer, false, layer === selected));
+    if (shown.size > 1) {
+      const counts = layers.map(layer => [layer, layered.filter(({ view }) => view.layer === layer).length])
+        .filter(([, count]) => count > 0);
+      ui.layerNote.textContent = counts.map(([layer, count]) => `${count} ${count === 1 ? "map" : "maps"} at L${layer}`).join(" · ");
+      ui.layerNote.hidden = false;
+    }
   }
   updateMapDisplay(canOverlay);
 }
@@ -510,12 +509,16 @@ function updateMapDisplay(canOverlay = mapInfo().some(map => map.image)) {
 }
 
 function selectCase(c, family = c.family) {
+  const keepAttentionSelection = c?.family === "attention" && state.case?.family === "attention"
+    && !c.imported && !state.case.imported;
+  const previous = state.active;
   if (state.family !== family) state.options.mode = family === "attention" ? "focus" : "overlay";
   state.family = family;
   state.case = c;
   state.views.clear();
   state.patches.clear();
   state.evidenceMetric = null;
+  if (!keepAttentionSelection) state.layer = null;
   renderFamilySelection();
   if (!c) {
     for (const id of state.maps.keys()) releaseMap(id);
@@ -525,8 +528,9 @@ function selectCase(c, family = c.family) {
     notice("No experiments are loaded for this family. Import a result file to get started.");
     return;
   }
-  const defaults = c.defaultMethods || c.methods.slice(0, 3).map(method => method.id);
-  state.active = new Set(defaults.slice(0, methodLimit));
+  const kept = keepAttentionSelection ? c.methods.filter(method => previous.has(method.id)) : [];
+  state.active = new Set(kept.length ? kept.map(method => method.id) : defaultSelection(c));
+  for (const method of activeMethods()) showLayer(method, state.layer);
   renderSummary(c);
   renderMethodSelection();
   ui.comparison.hidden = false;
@@ -542,6 +546,12 @@ function addCases(cases, imported) {
 }
 
 renderFamilies();
+ui.selectAll.addEventListener("click", () => {
+  if (state.case && state.active.size < state.case.methods.length) setMethodSelection(state.case.methods.map(method => method.id));
+});
+ui.reset.addEventListener("click", () => {
+  if (state.case && ui.reset.getAttribute("aria-disabled") === "false") setMethodSelection(defaultSelection(state.case));
+});
 ui.caseSelect.addEventListener("change", () => {
   const next = state.cases.find(c => c.key === ui.caseSelect.value);
   if (next) {
@@ -556,12 +566,8 @@ ui.modes.addEventListener("click", event => {
   updateMapDisplay();
 });
 ui.layer.addEventListener("change", () => {
-  const layer = Number(ui.layer.value);
-  for (const { method, view } of mapInfo()) {
-    if (!Number.isFinite(view.layer)) continue;
-    const next = method.views.findIndex(candidate => candidate.type === "spatial" && candidate.layer === layer);
-    if (next >= 0) state.views.set(method.id, next);
-  }
+  state.layer = Number(ui.layer.value);
+  for (const { method } of mapInfo()) showLayer(method, state.layer);
   renderPanels();
 });
 ui.opacity.addEventListener("input", () => {

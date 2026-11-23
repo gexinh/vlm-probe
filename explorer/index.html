@@ -8,6 +8,7 @@
   <link rel="icon" href="../docs/project-page/assets/mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="evidence.css">
+  <link rel="stylesheet" href="attention-summary.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to explorer</a>
@@ -55,11 +56,16 @@
       <section id="comparison" aria-labelledby="comparison-title" hidden>
         <div class="comparison-heading">
           <h2 id="comparison-title">Compare methods</h2>
-          <div id="compare-count" class="compare-count" aria-live="polite"></div>
+          <div id="selection-tools" class="selection-tools" hidden>
+            <span id="compare-count" class="compare-count" aria-live="polite"></span>
+            <button id="select-all" class="selection-action" type="button">Select all</button>
+            <button id="reset-selection" class="selection-action" type="button">Reset selection</button>
+          </div>
         </div>
         <div id="methods" class="methods" role="group" aria-label="Methods to display"></div>
-        <section id="localization" class="localization-result" aria-label="Localization comparison" aria-live="polite" hidden></section>
+        <section id="localization" aria-label="Localization comparison" hidden></section>
         <section id="evidence" aria-label="Comparison measurements" hidden></section>
+        <h3 id="maps-heading" class="maps-heading" hidden>Compare maps</h3>
         <div id="map-toolbar" class="map-toolbar" hidden>
           <div class="toolbar-main">
             <label id="layer-field" class="layer-field" for="layer-select" hidden>Layer
@@ -88,6 +94,7 @@
             <label class="toggle" id="boxes-field"><input id="show-boxes" type="checkbox" checked> Boxes on maps</label>
           </div>
         </div>
+        <p id="layer-note" class="layer-note" hidden></p>
         <div id="map-scale-note" class="map-scale-note" hidden></div>
         <div id="panels" class="panels"></div>
         <div id="case-source" class="case-source"></div>

@@ -68,11 +68,9 @@ a measured zero effect.
 [Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback) ·
 [Compare this branch with main](https://github.com/gexinh/vlm-probe/compare/main...feature/probe-explorer)
 
-Start with the yellow- and black-shirt examples in Attention, then try Lens,
-Causal, and Sparse Autoencoders. When sharing feedback, include the experiment
-and selected methods or layer so the view can be reproduced.
-
-[![Probe Explorer comparing Raw attention, Grad-CAM, and Attention relevance beside a boxed reference image](explorer/assets/attention-comparison.jpg)](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)
+Start with the yellow- and black-shirt examples in Attention. Use **Select all**
+to compare all eight methods, then select a ranked result to inspect its map.
+When sharing feedback, include the experiment, methods, and measured layer.
 
 ## Installation
 
