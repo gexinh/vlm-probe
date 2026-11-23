@@ -14,9 +14,10 @@ python tools/build_project_page.py --repository ubc-tea/vlm-probe --output /tmp/
 python -m http.server 8765 --directory /tmp/vlmprobe-site
 ```
 
-Open http://localhost:8765/. The build copies the current report, framework and
-measured MJ-Lens preview, and generates the searchable SAE catalog. Use HTTP
-because the experiment and catalog fetch local JSON.
+Open http://localhost:8765/. The build includes Probe Explorer at
+`/explorer/`, the current report, framework and measured MJ-Lens preview,
+and the searchable SAE catalog. Serve it over HTTP so the browser can load
+the local experiment data.
 
 ## Edit
 

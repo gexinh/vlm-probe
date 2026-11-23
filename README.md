@@ -62,6 +62,16 @@ a measured zero effect.
 </p>
 <p align="center"><a href="https://drive.google.com/file/d/1vELcJ0T67VzG6_x4r79uQmDQRQUELXP2/view?usp=sharing">Watch the full video with narration ↗</a></p>
 
+## Review the Probe Explorer
+
+**[Open the interactive demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/)** ·
+[Leave feedback on GitHub](https://github.com/gexinh/vlm-probe/issues/new?title=Probe%20Explorer%20review%20feedback) ·
+[Compare this branch with main](https://github.com/gexinh/vlm-probe/compare/main...feature/probe-explorer)
+
+Start with the yellow- and black-shirt examples in Attention. Use **Select all**
+to compare all eight methods, then select a ranked result to inspect its map.
+When sharing feedback, include the experiment, methods, and measured layer.
+
 ## Installation
 
 Python 3.10+ is required. Install the current source version from GitHub:
@@ -210,6 +220,10 @@ see the [capability matrix](docs/models/README.md).
 Each guide explains the implemented computation, parameters, outputs, and
 relationship to its original paper. Reusable primitives are labeled separately
 from paper methods.
+
+[Open the Probe Explorer demo](https://vlmprobe-explorer-review.mythictoad512.chatgpt.site/) to compare archived attention,
+lens, causal, and sparse autoencoder measurements. The
+[Explorer guide](explorer/README.md) covers importing your own results.
 
 ### Lens
 
